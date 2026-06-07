@@ -352,6 +352,14 @@ const navItems = [
     groupKey: "Earn & Vote",
   },
   {
+    to: "/commons",
+    labelKey: "SORA Commons",
+    descriptionKey: "Propose, vote, and fund productive work",
+    icon: WalletIcon,
+    requiresAccount: true,
+    groupKey: "Earn & Vote",
+  },
+  {
     to: "/explore",
     labelKey: "Explore",
     descriptionKey: "Explorer QR and network status",
@@ -406,7 +414,7 @@ const navItems = [
     icon: WalletIcon,
     requiresAccount: true,
     utility: true,
-    groupKey: "Tools",
+    groupKey: "Tools", 
   },
   {
     to: "/setup",
