@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { useParliamentStore } from "@/stores/parliament";
-import { COMMONS_CONFIG } from "@/constants/commonsConfig";
+import { COMMONS_CONFIG, calculateFeeSplit } from "@/constants/commonsConfig";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,6 +31,7 @@ export type Milestone = {
   completed: boolean;
   completedAt: string | null;
   xorBurned: string;
+  xorToMaintainer: string;
 };
 
 export type DiscussionPost = {
@@ -190,6 +191,12 @@ export const useCommonsStore = defineStore("commons", () => {
       .toFixed(4),
   );
 
+  const totalXorToMaintainer = computed(() =>
+    proposals.value
+      .reduce((sum, p) => sum + parseFloat(p.xorToMaintainer || "0"), 0)
+      .toFixed(4),
+  );
+
   // ── Signal Stats ───────────────────────────────────────────────────────────
 
   const getSignalStats = (proposal: CommonsProposal) => {
@@ -272,6 +279,9 @@ export const useCommonsStore = defineStore("commons", () => {
     const signalEnd = new Date(
       now.getTime() + COMMONS_CONFIG.COMMUNITY_SIGNAL_DAYS * 24 * 60 * 60 * 1000,
     );
+    const { burnAmount, maintainerAmount } = calculateFeeSplit(
+      parseFloat(COMMONS_CONFIG.PROPOSAL_FEE_XOR)
+    );
     const newProposal: CommonsProposal = {
       id: generateId(),
       proposerAccountId: currentAccountId.value,
@@ -299,7 +309,8 @@ export const useCommonsStore = defineStore("commons", () => {
       panelVotes: [],
       sortitionEndsAt: null,
       revisionCount: 0,
-      xorBurned: COMMONS_CONFIG.PROPOSAL_FEE_XOR,
+      xorBurned: burnAmount.toFixed(4),
+      xorToMaintainer: maintainerAmount.toFixed(4),
       createdAt: now.toISOString(),
     };
     proposals.value.unshift(newProposal);
@@ -608,7 +619,7 @@ export const useCommonsStore = defineStore("commons", () => {
 
     // Proposal views
     activeProposal, proposalsByStatus, liveProposals,
-    completedProposals, totalXorBurned,
+    completedProposals, totalXorBurned, totalXorToMaintainer,
 
     // Signal
     getSignalStats, canSignal, hasSignaled,

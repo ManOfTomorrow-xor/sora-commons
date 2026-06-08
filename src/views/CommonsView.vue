@@ -70,6 +70,7 @@
       <div class="proposal-detail__meta">
         <div class="meta-item"><span class="meta-item__label">XOR Requested</span><span class="meta-item__value">{{ commons.activeProposal.xorRequested }} XOR</span></div>
         <div class="meta-item"><span class="meta-item__label">XOR Burned</span><span class="meta-item__value">{{ commons.activeProposal.xorBurned }} XOR</span></div>
+<div class="meta-item"><span class="meta-item__label">Protocol Maintenance</span><span class="meta-item__value maintenance-value">{{ commons.activeProposal.xorToMaintainer }} XOR</span></div>
         <div class="meta-item"><span class="meta-item__label">Proposer</span><span class="meta-item__value mono">{{ commons.activeProposal.proposerAccountId.slice(0, 20) }}...</span></div>
         <div class="meta-item"><span class="meta-item__label">Submitted</span><span class="meta-item__value">{{ commons.formatDate(commons.activeProposal.createdAt) }}</span></div>
       </div>
@@ -173,9 +174,15 @@
     <div v-if="activeTab === 'submit'" class="submit-form">
       <h2>Submit a Proposal</h2>
       <div class="fee-notice">
-        <span>Fee: <strong>{{ config.PROPOSAL_FEE_XOR }} XOR</strong> burned on submission</span>
-        <span>Balance: <strong>{{ commons.xorBalance }} XOR</strong></span>
-      </div>
+  <div class="fee-notice__split">
+    <span class="fee-notice__title">Submission fee: <strong>{{ config.PROPOSAL_FEE_XOR }} XOR</strong></span>
+    <span class="fee-split__burn">{{ feeSplit.burnAmount }} XOR burned</span>
+    <span class="fee-split__divider">·</span>
+    <span class="fee-split__maintainer">{{ feeSplit.maintainerAmount }} XOR protocol maintenance</span>
+    <span class="fee-split__note">Both non-refundable</span>
+  </div>
+  <span>Balance: <strong>{{ commons.xorBalance }} XOR</strong></span>
+</div>
       <div v-if="parseFloat(commons.xorBalance) < parseFloat(config.PROPOSAL_FEE_XOR)" class="fee-gate">
         <p>You need at least {{ config.PROPOSAL_FEE_XOR }} XOR to submit.</p>
       </div>
@@ -209,12 +216,13 @@
           <button class="btn btn--ghost" @click="commons.addMilestone()">+ Add Milestone</button>
         </div>
         <div class="burn-preview">
-          <p>On submission: <strong>{{ config.PROPOSAL_FEE_XOR }} XOR burns immediately</strong></p>
-          <p>On each milestone: <strong>1% of tranche burns on confirmation</strong></p>
-        </div>
+  <p>On submission: <strong>{{ feeSplit.burnAmount }} XOR burned · {{ feeSplit.maintainerAmount }} XOR protocol maintenance</strong></p>
+  <p class="fee-transparency">Both portions are non-refundable and recorded publicly on-chain.</p>
+  <p>On each milestone: <strong>1% of tranche burns on confirmation</strong></p>
+</div>
         <button class="btn btn--primary btn--large" :disabled="!commons.isDraftValid" @click="handleSubmit">
-          Submit Proposal — Burn {{ config.PROPOSAL_FEE_XOR }} XOR
-        </button>
+  Submit Proposal — {{ feeSplit.burnAmount }} XOR burned · {{ feeSplit.maintainerAmount }} XOR maintenance
+</button>
       </div>
     </div>
     <div v-if="activeTab === 'completed'" class="proposal-list">
@@ -235,7 +243,9 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useCommonsStore } from "@/stores/commons";
-import { COMMONS_CONFIG as config } from "@/constants/commonsConfig";
+import { COMMONS_CONFIG as config, calculateFeeSplit } from "@/constants/commonsConfig";
+
+const feeSplit = calculateFeeSplit(parseFloat(config.PROPOSAL_FEE_XOR));
 
 const commons = useCommonsStore();
 const activeTab = ref<"live" | "submit" | "completed" | "detail">("live");
@@ -362,4 +372,12 @@ const handleSubmit = () => {
 .milestone-item__body p { margin: 0 0 0.2rem; font-size: 0.9rem; }
 .milestone-item__body span { font-size: 0.78rem; opacity: 0.5; display: block; }
 .burn-note { color: #ff6464 !important; opacity: 1 !important; }
+.fee-notice__split { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.fee-notice__title { font-size: 0.85rem; }
+.fee-split__burn { color: #ff6464; font-size: 0.82rem; font-weight: 600; }
+.fee-split__divider { opacity: 0.3; }
+.fee-split__maintainer { color: #64b4ff; font-size: 0.82rem; font-weight: 600; }
+.fee-split__note { font-size: 0.75rem; opacity: 0.45; }
+.fee-transparency { font-size: 0.78rem; opacity: 0.5; margin: 0.2rem 0; }
+.maintenance-value { color: #64b4ff; }
 </style>
