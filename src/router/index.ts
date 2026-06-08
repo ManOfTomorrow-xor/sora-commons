@@ -147,19 +147,19 @@ const routes = [
     },
   },
   {
-    path: "/commons",
-    component: () => import("@/views/CommonsView.vue"),
-    meta: {
-      titleKey: "SORA Commons",
-      subtitleKey: "Propose, vote, and fund productive work",
-    },
-  },
-  {
     path: "/offline",
     component: OfflineView,
     meta: {
       titleKey: "Offline",
       subtitleKey: "Device payments and invoices",
+    },
+  },
+  {
+    path: "/commons",
+    component: () => import("@/views/CommonsView.vue"),
+    meta: {
+      titleKey: "SORA Commons",
+      subtitleKey: "Propose, vote, and fund productive work",
     },
   },
 ];
