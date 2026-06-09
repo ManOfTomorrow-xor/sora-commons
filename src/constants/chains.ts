@@ -58,7 +58,7 @@ const envNumber = (key: string): number | null => {
 const defaultPresetId = envString("VITE_DEFAULT_CHAIN_PRESET");
 const defaultPreset =
   CHAIN_PRESETS.find((preset) => preset.id === defaultPresetId) ??
-  MINAMOTO_CHAIN_PRESET;
+  TAIRA_CHAIN_PRESET;
 
 export const DEFAULT_CHAIN_PRESET: ChainPreset = {
   ...defaultPreset,

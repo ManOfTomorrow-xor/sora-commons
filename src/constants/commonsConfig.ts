@@ -5,7 +5,7 @@ export const COMMONS_CONFIG = {
   // Network Mode
   // DEMO_MODE: true  = Taira testnet, relaxed gates, demo banner shown
   // DEMO_MODE: false = Minamoto mainnet, full production rules
-  DEMO_MODE: false,
+  DEMO_MODE: true,
 
   // Stage 1 — Proposal Submission
   PROPOSAL_FEE_XOR: "5",
