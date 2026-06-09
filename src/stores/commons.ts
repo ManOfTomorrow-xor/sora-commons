@@ -80,6 +80,7 @@ export type CommonsProposal = {
   deliberationEndsAt: string | null;
   sortitionExcluded: string[];  // accounts excluded from sortition pool
   parliamentBrief: string | null;
+  parliamentRemarks: string | null;
 
   // Stage 4
   panelMembers: string[];
@@ -128,7 +129,7 @@ export const useCommonsStore = defineStore("commons", () => {
   const isConnected = computed(() => Boolean(currentAccountId.value));
   const isCitizen = computed(() => parliament.hasCitizenRecord);
   const isOperator = computed(
-  () => parliament.hasParliamentPermission || parliament.hasEnactPermission || true, // TEST MODE
+  () => parliament.hasParliamentPermission || parliament.hasEnactPermission,
 );
   const citizenCount = computed(() => parliament.citizenCountDisplay);
   const xorBalance = computed(() => parliament.xorBalance);
@@ -212,9 +213,9 @@ export const useCommonsStore = defineStore("commons", () => {
 
  const canSignal = (proposal: CommonsProposal): boolean => {
     if (proposal.status !== "signal") return false;
-    // if (proposal.proposerAccountId === currentAccountId.value) return false;
-    // if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.MINIMUM_SIGNAL_BALANCE)) return false;
-    // if (proposal.signals.some((s) => s.accountId === currentAccountId.value)) return false;
+    if (proposal.proposerAccountId === currentAccountId.value) return false;
+    if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.MINIMUM_SIGNAL_BALANCE)) return false;
+    if (proposal.signals.some((s) => s.accountId === currentAccountId.value)) return false;
     return true;
   };
 
@@ -305,6 +306,7 @@ export const useCommonsStore = defineStore("commons", () => {
       deliberationEndsAt: null,
       sortitionExcluded: [currentAccountId.value],
       parliamentBrief: null,
+      parliamentRemarks: null,
       panelMembers: [],
       panelVotes: [],
       sortitionEndsAt: null,
@@ -322,10 +324,10 @@ export const useCommonsStore = defineStore("commons", () => {
   const castSignal = (proposalId: string, vote: SignalVote): boolean => {
     const accountId = currentAccountId.value;
     if (!accountId) return false;
-    //if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.MINIMUM_SIGNAL_BALANCE)) return false;
+    if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.MINIMUM_SIGNAL_BALANCE)) return false;
     const proposal = proposals.value.find((p) => p.id === proposalId);
     if (!proposal || proposal.status !== "signal") return false;
-    //if (proposal.proposerAccountId === accountId) return false;
+    if (proposal.proposerAccountId === accountId) return false;
     const existing = proposal.signals.findIndex((s) => s.accountId === accountId);
     if (existing >= 0) {
       // Allow changing vote during signal window
@@ -457,9 +459,18 @@ export const useCommonsStore = defineStore("commons", () => {
     return true;
   };
 
+  // Stage 3 — Submit Parliament Final Remarks (operator only)
+  const submitParliamentRemarks = (proposalId: string, remarks: string): boolean => {
+    if (!isOperator.value) return false;
+    const proposal = proposals.value.find((p) => p.id === proposalId);
+    if (!proposal || proposal.status !== "deliberation") return false;
+    if (!proposal.parliamentBrief) return false;
+    proposal.parliamentRemarks = remarks.trim();
+    return true;
+  };
+
   // Advance to Stage 4 — Sortition
   const advanceToSortition = (proposalId: string): boolean => {
-    const proposal = proposals.value.find((p) => p.id === proposalId);
     if (!proposal || proposal.status !== "deliberation") return false;
     proposal.status = "sortition";
     const sortitionEnd = new Date(
@@ -630,7 +641,7 @@ export const useCommonsStore = defineStore("commons", () => {
     // Actions
     setActiveProposal, addMilestone, removeMilestone,
     resetDraft, submitProposal, castSignal,
-    postDiscussion, submitAmendment, submitParliamentBrief,
+    postDiscussion, submitAmendment, submitParliamentBrief, submitParliamentRemarks,
     advanceToSortition, castPanelVote, confirmMilestone,
 
     // Helpers

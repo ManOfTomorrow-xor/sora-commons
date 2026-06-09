@@ -92,7 +92,7 @@
           </div>
         </div>
         <div v-if="commons.canSignal(commons.activeProposal)" class="signal-actions">
-          <button class="btn btn--aye" @click="() => { console.log('aye clicked', commons.activeProposal?.id); commons.castSignal(commons.activeProposal.id, 'aye') }">Aye</button>
+          <button class="btn btn--aye" @click="commons.castSignal(commons.activeProposal.id, 'aye')">Aye</button>
           <button class="btn btn--nay" @click="commons.castSignal(commons.activeProposal.id, 'nay')">Nay</button>
         </div>
         <div v-else-if="commons.hasSignaled(commons.activeProposal)" class="already-signaled">You signaled {{ commons.hasSignaled(commons.activeProposal) === "aye" ? "Aye ✓" : "Nay ✗" }}</div>
@@ -121,9 +121,22 @@
             <button class="btn btn--primary" :disabled="!discussionContent.trim()" @click="commons.postDiscussion(commons.activeProposal.id, discussionContent); discussionContent = ''">Post</button>
           </div>
         </div>
-        <div v-if="commons.isOperator" class="operator-actions">
-          <button class="btn btn--primary" @click="commons.advanceToSortition(commons.activeProposal.id)">Advance to Sortition</button>
-        </div>
+       <div v-if="commons.isOperator" class="operator-actions">
+  <div v-if="!commons.activeProposal.parliamentBrief" class="form-group">
+    <label>Parliament Brief</label>
+    <textarea v-model="briefContent" rows="4" placeholder="Summarise deliberation — pros, cons, risks, recommended questions for panel..." />
+    <button class="btn btn--primary" :disabled="!briefContent.trim()" @click="commons.submitParliamentBrief(commons.activeProposal.id, briefContent); briefContent = ''">Submit Brief</button>
+  </div>
+  <div v-else-if="!commons.activeProposal.parliamentRemarks" class="form-group">
+    <label>Parliament Final Remarks</label>
+    <p class="stage-note">Brief submitted. Add final remarks for the sortition panel before advancing.</p>
+    <textarea v-model="remarksContent" rows="4" placeholder="Final guidance to the sortition panel..." />
+    <button class="btn btn--primary" :disabled="!remarksContent.trim()" @click="commons.submitParliamentRemarks(commons.activeProposal.id, remarksContent); remarksContent = ''">Submit Final Remarks</button>
+  </div>
+  <div v-else>
+    <button class="btn btn--primary" @click="commons.advanceToSortition(commons.activeProposal.id)">Advance to Sortition</button>
+  </div>
+</div>
       </div>
 
       <!-- Stage 4 Sortition -->
@@ -208,7 +221,12 @@
               <input v-model="milestone.description" type="text" placeholder="What will you deliver?" />
               <div class="milestone-row__inline">
                 <input v-model="milestone.xorAmount" type="number" placeholder="XOR" min="0" />
-                <input v-model="milestone.timeline" type="text" placeholder="Timeline (e.g. 2 weeks)" />
+                <input
+  v-model="milestone.timeline"
+  type="text"
+  placeholder="Expected completion (MM/DD/YYYY)"
+  @focus="showDatePicker($event)"
+/>
               </div>
             </div>
             <button class="btn btn--ghost btn--small" @click="commons.removeMilestone(index)">✕</button>
@@ -246,12 +264,34 @@ import { useCommonsStore } from "@/stores/commons";
 import { COMMONS_CONFIG as config, calculateFeeSplit } from "@/constants/commonsConfig";
 
 const feeSplit = calculateFeeSplit(parseFloat(config.PROPOSAL_FEE_XOR));
-
 const commons = useCommonsStore();
+
+const minDate = computed(() => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow.toISOString().split('T')[0];
+});
 const activeTab = ref<"live" | "submit" | "completed" | "detail">("live");
 const discussionContent = ref("");
 const briefContent = ref("");
+const remarksContent = ref("");
 const panelFeedback = ref("");
+
+const showDatePicker = (event: FocusEvent) => {
+  const input = event.target as HTMLInputElement;
+  input.type = 'date';
+  input.min = minDate.value;
+  input.addEventListener('blur', () => {
+    if (!input.value) input.type = 'text';
+  }, { once: true });
+  input.addEventListener('change', () => {
+    const date = new Date(input.value);
+    input.type = 'text';
+    input.value = date.toLocaleDateString('en-US', {
+      month: '2-digit', day: '2-digit', year: 'numeric'
+    });
+  }, { once: true });
+};
 
 const tabs = computed(() => [
   { id: "live" as const, label: "Live Proposals", count: commons.liveProposals.length },
@@ -380,4 +420,5 @@ const handleSubmit = () => {
 .fee-split__note { font-size: 0.75rem; opacity: 0.45; }
 .fee-transparency { font-size: 0.78rem; opacity: 0.5; margin: 0.2rem 0; }
 .maintenance-value { color: #64b4ff; }
+.milestone-date-label { font-size: 0.75rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; display: block; }
 </style>
