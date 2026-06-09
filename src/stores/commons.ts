@@ -613,6 +613,19 @@ export const useCommonsStore = defineStore("commons", () => {
     const diff = new Date(iso).getTime() - Date.now();
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   };
+  // Revise and Resubmit — pre-fills draft from rejected proposal
+  const reviseAndResubmit = (proposalId: string): void => {
+    const proposal = proposals.value.find((p) => p.id === proposalId);
+    if (!proposal || proposal.status !== "rejected") return;
+    draftTitle.value = proposal.title;
+    draftDescription.value = proposal.description;
+    draftXorRequested.value = proposal.xorRequested;
+    draftMilestones.value = proposal.milestones.map((m) => ({
+      description: m.description,
+      xorAmount: m.xorAmount,
+      timeline: "",
+    }));
+  };
 
   // ── Return ─────────────────────────────────────────────────────────────────
 
@@ -641,8 +654,8 @@ export const useCommonsStore = defineStore("commons", () => {
     // Actions
     setActiveProposal, addMilestone, removeMilestone,
     resetDraft, submitProposal, castSignal,
-    postDiscussion, submitAmendment, submitParliamentBrief, submitParliamentRemarks,
-    advanceToSortition, castPanelVote, confirmMilestone,
+    postDiscussion, submitAmendment, submitParliamentBrief, submitParliamentRemarks, reviseAndResubmit,
+   advanceToSortition, castPanelVote, confirmMilestone,
 
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
