@@ -87,12 +87,12 @@
             <span class="nay">{{ commons.getSignalStats(commons.activeProposal).nay }} Nay</span>
           </div>
           <div class="signal-thresholds">
-            <span :class="{ met: commons.getSignalStats(commons.activeProposal).meetsQuorum }">{{ commons.getSignalStats(commons.activeProposal).meetsQuorum ? "✓" : "○" }} Minimum 10 Aye</span>
+            <span :class="{ met: commons.getSignalStats(commons.activeProposal).meetsQuorum }">{{ commons.getSignalStats(commons.activeProposal).meetsQuorum ? "✓" : "○" }} Minimum {{ config.MINIMUM_AYE_SIGNALS }} Aye</span>
             <span :class="{ met: commons.getSignalStats(commons.activeProposal).meetsPercent }">{{ commons.getSignalStats(commons.activeProposal).meetsPercent ? "✓" : "○" }} 60% threshold</span>
           </div>
         </div>
         <div v-if="commons.canSignal(commons.activeProposal)" class="signal-actions">
-          <button class="btn btn--aye" @click="commons.castSignal(commons.activeProposal.id, 'aye')">Aye</button>
+          <button class="btn btn--aye" @click="() => { console.log('aye clicked', commons.activeProposal?.id); commons.castSignal(commons.activeProposal.id, 'aye') }">Aye</button>
           <button class="btn btn--nay" @click="commons.castSignal(commons.activeProposal.id, 'nay')">Nay</button>
         </div>
         <div v-else-if="commons.hasSignaled(commons.activeProposal)" class="already-signaled">You signaled {{ commons.hasSignaled(commons.activeProposal) === "aye" ? "Aye ✓" : "Nay ✗" }}</div>

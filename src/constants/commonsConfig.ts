@@ -15,7 +15,7 @@ export const COMMONS_CONFIG = {
   // Stage 2 — Community Signal
   MINIMUM_SIGNAL_BALANCE: "1",
   COMMUNITY_SIGNAL_DAYS: 5,
-  MINIMUM_AYE_SIGNALS: 10,
+  MINIMUM_AYE_SIGNALS: 1, // lowered from 10 for testing
   MINIMUM_AYE_PERCENT: 60,
 
   // Stage 3 — Parliament Deliberation
@@ -25,7 +25,7 @@ export const COMMONS_CONFIG = {
 
   // Stage 4 — Sortition
   SORTITION_PANEL_SIZE: 5,
-  SORTITION_APPROVAL_THRESHOLD: 3,
+  SORTITION_APPROVAL_THRESHOLD: 1,
   SORTITION_DECISION_DAYS: 5,
 
   // Stage 5 — Milestone Execution

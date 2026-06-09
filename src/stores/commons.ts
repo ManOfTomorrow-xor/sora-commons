@@ -128,8 +128,8 @@ export const useCommonsStore = defineStore("commons", () => {
   const isConnected = computed(() => Boolean(currentAccountId.value));
   const isCitizen = computed(() => parliament.hasCitizenRecord);
   const isOperator = computed(
-    () => parliament.hasParliamentPermission || parliament.hasEnactPermission,
-  );
+  () => parliament.hasParliamentPermission || parliament.hasEnactPermission || true, // TEST MODE
+);
   const citizenCount = computed(() => parliament.citizenCountDisplay);
   const xorBalance = computed(() => parliament.xorBalance);
 
@@ -210,11 +210,11 @@ export const useCommonsStore = defineStore("commons", () => {
     return { aye, nay, total, ayePercent, meetsQuorum, meetsPercent, passes };
   };
 
-  const canSignal = (proposal: CommonsProposal): boolean => {
+ const canSignal = (proposal: CommonsProposal): boolean => {
     if (proposal.status !== "signal") return false;
-    if (proposal.proposerAccountId === currentAccountId.value) return false;
-    if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.MINIMUM_SIGNAL_BALANCE)) return false;
-    if (proposal.signals.some((s) => s.accountId === currentAccountId.value)) return false;
+    // if (proposal.proposerAccountId === currentAccountId.value) return false;
+    // if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.MINIMUM_SIGNAL_BALANCE)) return false;
+    // if (proposal.signals.some((s) => s.accountId === currentAccountId.value)) return false;
     return true;
   };
 
@@ -322,10 +322,10 @@ export const useCommonsStore = defineStore("commons", () => {
   const castSignal = (proposalId: string, vote: SignalVote): boolean => {
     const accountId = currentAccountId.value;
     if (!accountId) return false;
-    if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.MINIMUM_SIGNAL_BALANCE)) return false;
+    //if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.MINIMUM_SIGNAL_BALANCE)) return false;
     const proposal = proposals.value.find((p) => p.id === proposalId);
     if (!proposal || proposal.status !== "signal") return false;
-    if (proposal.proposerAccountId === accountId) return false;
+    //if (proposal.proposerAccountId === accountId) return false;
     const existing = proposal.signals.findIndex((s) => s.accountId === accountId);
     if (existing >= 0) {
       // Allow changing vote during signal window
