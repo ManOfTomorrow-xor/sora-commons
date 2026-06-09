@@ -129,8 +129,8 @@ export const useCommonsStore = defineStore("commons", () => {
   const isConnected = computed(() => Boolean(currentAccountId.value));
   const isCitizen = computed(() => parliament.hasCitizenRecord);
   const isOperator = computed(
-  () => parliament.hasParliamentPermission || parliament.hasEnactPermission,
-);
+    () => parliament.hasParliamentPermission || parliament.hasEnactPermission || COMMONS_CONFIG.DEMO_MODE,
+  );
   const citizenCount = computed(() => parliament.citizenCountDisplay);
   const xorBalance = computed(() => parliament.xorBalance);
 
@@ -153,10 +153,13 @@ export const useCommonsStore = defineStore("commons", () => {
           p.status === "deliberation" ||
           p.status === "sortition"),
     );
-    if (hasActiveProposal) return "proposer";
+   if (hasActiveProposal) return "proposer";
     if (isCitizen.value) return "citizen";
+    if (COMMONS_CONFIG.DEMO_MODE) return "citizen";
     return "holder";
   });
+
+  // ── Computed: Proposal Views ───────────────────────────────────────────────
 
   // ── Computed: Proposal Views ───────────────────────────────────────────────
 
@@ -214,7 +217,9 @@ export const useCommonsStore = defineStore("commons", () => {
  const canSignal = (proposal: CommonsProposal): boolean => {
     if (proposal.status !== "signal") return false;
     if (proposal.proposerAccountId === currentAccountId.value) return false;
-    if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.MINIMUM_SIGNAL_BALANCE)) return false;
+    if (!COMMONS_CONFIG.DEMO_MODE) {
+      if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.MINIMUM_SIGNAL_BALANCE)) return false;
+    }
     if (proposal.signals.some((s) => s.accountId === currentAccountId.value)) return false;
     return true;
   };
@@ -324,7 +329,9 @@ export const useCommonsStore = defineStore("commons", () => {
   const castSignal = (proposalId: string, vote: SignalVote): boolean => {
     const accountId = currentAccountId.value;
     if (!accountId) return false;
-    if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.MINIMUM_SIGNAL_BALANCE)) return false;
+    if (!COMMONS_CONFIG.DEMO_MODE) {
+      if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.MINIMUM_SIGNAL_BALANCE)) return false;
+    }
     const proposal = proposals.value.find((p) => p.id === proposalId);
     if (!proposal || proposal.status !== "signal") return false;
     if (proposal.proposerAccountId === accountId) return false;

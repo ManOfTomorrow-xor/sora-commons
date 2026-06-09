@@ -2,6 +2,11 @@
 // Phase 1A: Fixed constants
 // Phase 1B: These become Parliament-controlled on-chain parameters
 export const COMMONS_CONFIG = {
+  // Network Mode
+  // DEMO_MODE: true  = Taira testnet, relaxed gates, demo banner shown
+  // DEMO_MODE: false = Minamoto mainnet, full production rules
+  DEMO_MODE: false,
+
   // Stage 1 — Proposal Submission
   PROPOSAL_FEE_XOR: "5",
 
@@ -13,7 +18,7 @@ export const COMMONS_CONFIG = {
   MAINTENANCE_WALLET: "cnEWm5...YOUR_WALLET_ADDRESS_HERE", // replace with Champions2026 address
 
   // Stage 2 — Community Signal
-  MINIMUM_SIGNAL_BALANCE: "1",
+  MINIMUM_SIGNAL_BALANCE: "10",
   COMMUNITY_SIGNAL_DAYS: 5,
   MINIMUM_AYE_SIGNALS: 1, // lowered from 10 for testing
   MINIMUM_AYE_PERCENT: 60,
@@ -25,7 +30,7 @@ export const COMMONS_CONFIG = {
 
   // Stage 4 — Sortition
   SORTITION_PANEL_SIZE: 5,
-  SORTITION_APPROVAL_THRESHOLD: 1,
+  SORTITION_APPROVAL_THRESHOLD: 3,
   SORTITION_DECISION_DAYS: 5,
 
   // Stage 5 — Milestone Execution

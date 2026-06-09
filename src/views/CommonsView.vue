@@ -1,5 +1,8 @@
 <template>
   <div class="commons-view">
+    <div v-if="config.DEMO_MODE" class="demo-banner">
+      ⚠️ DEMO MODE — Taira Testnet · Role restrictions relaxed so you can experience the full 5-stage flow · On Minamoto mainnet all citizen and bonded XOR requirements apply · Early participants will be recognized in Phase 2 $COMMONS distribution
+    </div>
     <div class="commons-header">
       <div class="commons-header__title">
         <h1>SORA Commons</h1>
@@ -247,13 +250,19 @@
       <div v-if="commons.completedProposals.length === 0" class="empty-state">
         <p>No completed proposals yet.</p>
       </div>
-      <div v-for="proposal in commons.completedProposals" :key="proposal.id" class="proposal-card" @click="commons.setActiveProposal(proposal.id); activeTab = 'detail'">
-        <div class="proposal-card__header">
-          <span class="proposal-card__stage">{{ commons.statusLabel(proposal.status) }}</span>
-          <span class="proposal-card__xor">{{ proposal.xorBurned }} XOR burned</span>
-        </div>
-        <h3 class="proposal-card__title">{{ proposal.title }}</h3>
-      </div>
+     <div v-for="proposal in commons.completedProposals" :key="proposal.id" class="proposal-card" :class="{ 'proposal-card--rejected': proposal.status === 'rejected' }" @click="commons.setActiveProposal(proposal.id); activeTab = 'detail'">
+  <div class="proposal-card__header">
+    <span class="proposal-card__stage">{{ commons.statusLabel(proposal.status) }}</span>
+    <span class="proposal-card__xor">{{ proposal.xorBurned }} XOR burned</span>
+  </div>
+  <h3 class="proposal-card__title">{{ proposal.title }}</h3>
+  <div v-if="proposal.status === 'rejected' && proposal.panelVotes.length > 0" class="rejection-reasons">
+    <p class="rejection-reasons__label">Panel feedback:</p>
+    <p v-for="vote in proposal.panelVotes.filter(v => v.feedback)" :key="vote.accountId" class="rejection-reasons__item">
+      "{{ vote.feedback }}"
+    </p>
+  </div>
+</div>
     </div>
   </div>
 </template>
@@ -421,4 +430,9 @@ const handleSubmit = () => {
 .fee-transparency { font-size: 0.78rem; opacity: 0.5; margin: 0.2rem 0; }
 .maintenance-value { color: #64b4ff; }
 .milestone-date-label { font-size: 0.75rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; display: block; }
+.proposal-card--rejected { border-color: rgba(255,100,100,0.2); }
+.rejection-reasons { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,100,100,0.15); }
+.rejection-reasons__label { font-size: 0.72rem; opacity: 0.5; margin: 0 0 0.25rem; text-transform: uppercase; }
+.rejection-reasons__item { font-size: 0.82rem; opacity: 0.7; margin: 0.2rem 0; font-style: italic; }
+.demo-banner { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; font-size: 0.78rem; color: #C9A84C; line-height: 1.6; text-align: center; }
 </style>
