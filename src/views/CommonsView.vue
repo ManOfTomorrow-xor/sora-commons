@@ -72,8 +72,7 @@
       <p class="proposal-detail__description">{{ commons.activeProposal.description }}</p>
       <div class="proposal-detail__meta">
         <div class="meta-item"><span class="meta-item__label">XOR Requested</span><span class="meta-item__value">{{ commons.activeProposal.xorRequested }} XOR</span></div>
-        <div class="meta-item"><span class="meta-item__label">XOR Burned</span><span class="meta-item__value">{{ commons.activeProposal.xorBurned }} XOR</span></div>
-<div class="meta-item"><span class="meta-item__label">Protocol Maintenance</span><span class="meta-item__value maintenance-value">{{ commons.activeProposal.xorToMaintainer }} XOR</span></div>
+       <div class="meta-item"><span class="meta-item__label">XOR Burned</span><span class="meta-item__value">{{ commons.activeProposal.xorBurned }} XOR</span></div>
         <div class="meta-item"><span class="meta-item__label">Proposer</span><span class="meta-item__value mono">{{ commons.activeProposal.proposerAccountId.slice(0, 20) }}...</span></div>
         <div class="meta-item"><span class="meta-item__label">Submitted</span><span class="meta-item__value">{{ commons.formatDate(commons.activeProposal.createdAt) }}</span></div>
       </div>
@@ -189,14 +188,8 @@
     </div>
     <div v-if="activeTab === 'submit'" class="submit-form">
       <h2>Submit a Proposal</h2>
-      <div class="fee-notice">
-  <div class="fee-notice__split">
-    <span class="fee-notice__title">Submission fee: <strong>{{ config.PROPOSAL_FEE_XOR }} XOR</strong></span>
-    <span class="fee-split__burn">{{ feeSplit.burnAmount }} XOR burned</span>
-    <span class="fee-split__divider">·</span>
-    <span class="fee-split__maintainer">{{ feeSplit.maintainerAmount }} XOR protocol maintenance</span>
-    <span class="fee-split__note">Both non-refundable</span>
-  </div>
+     <div class="fee-notice">
+  <span>Submission fee: <strong>{{ config.PROPOSAL_FEE_XOR }} XOR</strong> — burned on submission, non-refundable</span>
   <span>Balance: <strong>{{ commons.xorBalance }} XOR</strong></span>
 </div>
       <div v-if="parseFloat(commons.xorBalance) < parseFloat(config.PROPOSAL_FEE_XOR)" class="fee-gate">
@@ -236,13 +229,12 @@
           </div>
           <button class="btn btn--ghost" @click="commons.addMilestone()">+ Add Milestone</button>
         </div>
-        <div class="burn-preview">
-  <p>On submission: <strong>{{ feeSplit.burnAmount }} XOR burned · {{ feeSplit.maintainerAmount }} XOR protocol maintenance</strong></p>
-  <p class="fee-transparency">Both portions are non-refundable and recorded publicly on-chain.</p>
+        <<div class="burn-preview">
+  <p>On submission: <strong>{{ config.PROPOSAL_FEE_XOR }} XOR burned</strong> — non-refundable, recorded on-chain</p>
   <p>On each milestone: <strong>1% of tranche burns on confirmation</strong></p>
 </div>
         <button class="btn btn--primary btn--large" :disabled="!commons.isDraftValid" @click="handleSubmit">
-  Submit Proposal — {{ feeSplit.burnAmount }} XOR burned · {{ feeSplit.maintainerAmount }} XOR maintenance
+  Submit Proposal — Burn {{ config.PROPOSAL_FEE_XOR }} XOR
 </button>
       </div>
     </div>
@@ -270,11 +262,9 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useCommonsStore } from "@/stores/commons";
-import { COMMONS_CONFIG as config, calculateFeeSplit } from "@/constants/commonsConfig";
+import { COMMONS_CONFIG as config } from "@/constants/commonsConfig";
 
-const feeSplit = calculateFeeSplit(parseFloat(config.PROPOSAL_FEE_XOR));
 const commons = useCommonsStore();
-
 const minDate = computed(() => {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -421,14 +411,6 @@ const handleSubmit = () => {
 .milestone-item__body p { margin: 0 0 0.2rem; font-size: 0.9rem; }
 .milestone-item__body span { font-size: 0.78rem; opacity: 0.5; display: block; }
 .burn-note { color: #ff6464 !important; opacity: 1 !important; }
-.fee-notice__split { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-.fee-notice__title { font-size: 0.85rem; }
-.fee-split__burn { color: #ff6464; font-size: 0.82rem; font-weight: 600; }
-.fee-split__divider { opacity: 0.3; }
-.fee-split__maintainer { color: #64b4ff; font-size: 0.82rem; font-weight: 600; }
-.fee-split__note { font-size: 0.75rem; opacity: 0.45; }
-.fee-transparency { font-size: 0.78rem; opacity: 0.5; margin: 0.2rem 0; }
-.maintenance-value { color: #64b4ff; }
 .milestone-date-label { font-size: 0.75rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; display: block; }
 .proposal-card--rejected { border-color: rgba(255,100,100,0.2); }
 .rejection-reasons { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,100,100,0.15); }

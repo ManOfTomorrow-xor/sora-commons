@@ -1,8 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { useParliamentStore } from "@/stores/parliament";
-import { COMMONS_CONFIG, calculateFeeSplit } from "@/constants/commonsConfig";
-
+import { COMMONS_CONFIG } from "@/constants/commonsConfig";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ProposalStatus =
@@ -31,7 +30,6 @@ export type Milestone = {
   completed: boolean;
   completedAt: string | null;
   xorBurned: string;
-  xorToMaintainer: string;
 };
 
 export type DiscussionPost = {
@@ -195,12 +193,6 @@ export const useCommonsStore = defineStore("commons", () => {
       .toFixed(4),
   );
 
-  const totalXorToMaintainer = computed(() =>
-    proposals.value
-      .reduce((sum, p) => sum + parseFloat(p.xorToMaintainer || "0"), 0)
-      .toFixed(4),
-  );
-
   // ── Signal Stats ───────────────────────────────────────────────────────────
 
   const getSignalStats = (proposal: CommonsProposal) => {
@@ -216,7 +208,7 @@ export const useCommonsStore = defineStore("commons", () => {
 
  const canSignal = (proposal: CommonsProposal): boolean => {
     if (proposal.status !== "signal") return false;
-    if (proposal.proposerAccountId === currentAccountId.value) return false;
+    if (!COMMONS_CONFIG.DEMO_MODE && proposal.proposerAccountId === currentAccountId.value) return false;
     if (!COMMONS_CONFIG.DEMO_MODE) {
       if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.MINIMUM_SIGNAL_BALANCE)) return false;
     }
@@ -285,9 +277,6 @@ export const useCommonsStore = defineStore("commons", () => {
     const signalEnd = new Date(
       now.getTime() + COMMONS_CONFIG.COMMUNITY_SIGNAL_DAYS * 24 * 60 * 60 * 1000,
     );
-    const { burnAmount, maintainerAmount } = calculateFeeSplit(
-      parseFloat(COMMONS_CONFIG.PROPOSAL_FEE_XOR)
-    );
     const newProposal: CommonsProposal = {
       id: generateId(),
       proposerAccountId: currentAccountId.value,
@@ -316,9 +305,7 @@ export const useCommonsStore = defineStore("commons", () => {
       panelVotes: [],
       sortitionEndsAt: null,
       revisionCount: 0,
-      xorBurned: burnAmount.toFixed(4),
-      xorToMaintainer: maintainerAmount.toFixed(4),
-      createdAt: now.toISOString(),
+      xorBurned: COMMONS_CONFIG.PROPOSAL_FEE_XOR,
     };
     proposals.value.unshift(newProposal);
     resetDraft();
@@ -334,7 +321,7 @@ export const useCommonsStore = defineStore("commons", () => {
     }
     const proposal = proposals.value.find((p) => p.id === proposalId);
     if (!proposal || proposal.status !== "signal") return false;
-    if (proposal.proposerAccountId === accountId) return false;
+    if (!COMMONS_CONFIG.DEMO_MODE && proposal.proposerAccountId === accountId) return false;
     const existing = proposal.signals.findIndex((s) => s.accountId === accountId);
     if (existing >= 0) {
       // Allow changing vote during signal window
@@ -650,7 +637,7 @@ export const useCommonsStore = defineStore("commons", () => {
 
     // Proposal views
     activeProposal, proposalsByStatus, liveProposals,
-    completedProposals, totalXorBurned, totalXorToMaintainer,
+    completedProposals, totalXorBurned,
 
     // Signal
     getSignalStats, canSignal, hasSignaled,
