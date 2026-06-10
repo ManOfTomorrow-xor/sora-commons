@@ -183,8 +183,7 @@
             <div class="milestone-item__check">{{ milestone.completed ? "✓" : "○" }}</div>
             <div class="milestone-item__body">
               <p>{{ milestone.description }}</p>
-              <span>{{ milestone.xorAmount }} XOR · {{ milestone.timeline }}</span>
-              <span v-if="milestone.completed" class="burn-note">{{ milestone.xorBurned }} XOR burned</span>
+             <span>{{ milestone.xorAmount }} XOR · {{ commons.formatDate(milestone.timeline) }}</span>              <span v-if="milestone.completed" class="burn-note">{{ milestone.xorBurned }} XOR burned</span>
             </div>
             <button v-if="!milestone.completed && commons.isOperator" class="btn btn--small btn--primary" @click="commons.confirmMilestone(commons.activeProposal.id, milestone.id)">Confirm</button>
           </div>
@@ -198,7 +197,7 @@
           <div class="milestone-item__check">{{ milestone.completed ? "✓" : "○" }}</div>
           <div class="milestone-item__body">
             <p>{{ milestone.description }}</p>
-            <span>{{ milestone.xorAmount }} XOR · {{ milestone.timeline }}</span>
+            <span>{{ milestone.xorAmount }} XOR · {{ commons.formatDate(milestone.timeline) }}</span>
           </div>
         </div>
       </div>
