@@ -23,7 +23,7 @@ export const COMMONS_CONFIG = {
 
   // Stage 4 — Sortition
   SORTITION_PANEL_SIZE: 5,
-  SORTITION_APPROVAL_THRESHOLD: 1,
+  SORTITION_APPROVAL_THRESHOLD: 3,
   SORTITION_DECISION_DAYS: 5,
 
   // Stage 5 — Milestone Execution

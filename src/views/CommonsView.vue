@@ -144,7 +144,8 @@
       <!-- Stage 4 Sortition -->
       <div v-if="commons.activeProposal.status === 'sortition'" class="stage-panel">
         <h3>Sortition — Binding Decision <span class="days-remaining">{{ commons.daysRemaining(commons.activeProposal.sortitionEndsAt) }} days remaining</span></h3>
-        <p class="stage-note">5 randomly selected citizens make the binding funding decision. 3 of 5 needed to approve.</p>
+        <p class="stage-note">{{ config.SORTITION_PANEL_SIZE }} citizens drawn by lot make the binding funding decision. {{ config.SORTITION_APPROVAL_THRESHOLD }} of {{ config.SORTITION_PANEL_SIZE }} needed to approve.</p>
+        <p v-if="config.DEMO_MODE" class="stage-note demo-note">Demo note: This proposal needs {{ config.SORTITION_APPROVAL_THRESHOLD }} separate panel members to approve. With one wallet you can cast one vote — invite others to test the full sortition, or the proposal will wait at this stage until {{ config.SORTITION_APPROVAL_THRESHOLD }} approvals are reached.</p>
         <div class="panel-votes">
   <div class="panel-votes__breakdown">
     <span class="vote-tally vote-tally--approve">Approve: {{ commons.activeProposal.panelVotes.filter(v => v.decision === 'approve').length }}</span>
@@ -429,4 +430,5 @@ const handleSubmit = () => {
 .vote-tally--approve { color: #64dcaa; }
 .vote-tally--reject { color: #ff6464; }
 .vote-tally--revision { color: #C9A84C; }
+.demo-note { color: #C9A84C; opacity: 0.8; border-left: 2px solid rgba(201,168,76,0.4); padding-left: 0.75rem; margin-top: 0.5rem; }
 </style>
