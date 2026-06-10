@@ -82,8 +82,17 @@
         <h3>Community Signal <span class="days-remaining">{{ commons.daysRemaining(commons.activeProposal.signalEndsAt) }} days remaining</span></h3>
         <p class="stage-note">This is a soft signal — not a binding vote. The binding decision happens in Stage 4 Sortition.</p>
         <div class="signal-stats">
-          <div class="signal-bar"><div class="signal-bar__fill" :style="`width: ${commons.getSignalStats(commons.activeProposal).ayePercent}%`"></div></div>
-          <div class="signal-numbers">
+<div class="signal-bar-wrap">
+  <div class="signal-bar">
+    <div class="signal-bar__aye" :style="`width: ${commons.getSignalStats(commons.activeProposal).total > 0 ? commons.getSignalStats(commons.activeProposal).ayePercent : 0}%`"></div>
+    <div class="signal-bar__nay" :style="`width: ${commons.getSignalStats(commons.activeProposal).total > 0 ? (100 - commons.getSignalStats(commons.activeProposal).ayePercent) : 0}%`"></div>
+    <div class="signal-bar__threshold" :style="`left: ${config.MINIMUM_AYE_PERCENT}%`"></div>
+  </div>
+  <div class="signal-bar__threshold-label" :style="`left: ${config.MINIMUM_AYE_PERCENT}%`">
+    <span class="threshold-arrow">▲</span>
+    <span class="threshold-text">{{ config.MINIMUM_AYE_PERCENT }}% needed to pass</span>
+  </div>
+</div>       <div class="signal-numbers">
             <span class="aye">{{ commons.getSignalStats(commons.activeProposal).aye }} Aye</span>
             <span class="percent">{{ commons.getSignalStats(commons.activeProposal).ayePercent }}%</span>
             <span class="nay">{{ commons.getSignalStats(commons.activeProposal).nay }} Nay</span>
@@ -217,7 +226,13 @@
           <input v-model="commons.draftXorRequested" type="number" placeholder="0" min="0" />
         </div>
         <div class="milestones-form">
-          <h3>Milestones <span class="delta" :class="{ 'delta--error': parseFloat(commons.milestoneDelta) !== 0 }">{{ commons.milestoneDelta }} XOR remaining</span></h3>
+         <h3>Milestones</h3>
+          <p v-if="parseFloat(commons.milestoneDelta) < 0" class="milestone-warning">
+  Milestones total {{ commons.milestoneTotal }} XOR but you requested {{ commons.draftXorRequested }} XOR. Reduce milestone amounts by {{ Math.abs(parseFloat(commons.milestoneDelta)).toFixed(4) }} XOR, or increase your total XOR requested.
+</p>
+<p v-else-if="parseFloat(commons.milestoneDelta) > 0 && parseFloat(commons.milestoneTotal) > 0" class="milestone-warning milestone-warning--under">
+  You have {{ commons.milestoneDelta }} XOR unallocated. Add it to a milestone, or reduce your total XOR requested to match.
+</p>
           <p class="milestone-hint">Tip: Make Milestone 1 small and achievable — first delivery = first payment.</p>
           <div v-for="(milestone, index) in commons.draftMilestones" :key="index" class="milestone-row">
             <div class="milestone-row__number">{{ index + 1 }}</div>
@@ -385,8 +400,10 @@ const handleSubmit = () => {
 .days-remaining { font-size: 0.75rem; font-weight: 400; opacity: 0.5; }
 .stage-note { font-size: 0.82rem; opacity: 0.6; margin-bottom: 1rem; line-height: 1.5; }
 .signal-stats { margin-bottom: 1rem; }
-.signal-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-bottom: 0.5rem; overflow: hidden; }
-.signal-bar__fill { height: 100%; background: #64dcaa; border-radius: 3px; transition: width 0.3s; }
+.signal-bar { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-bottom: 0.5rem; overflow: hidden; position: relative; display: flex; }
+.signal-bar__aye { height: 100%; background: #64dcaa; transition: width 0.3s; }
+.signal-bar__nay { height: 100%; background: #ff6464; transition: width 0.3s; }
+.signal-bar__threshold { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #C9A84C; z-index: 2; }
 .signal-numbers { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.5rem; }
 .aye { color: #64dcaa; font-weight: 600; }
 .nay { color: #ff6464; font-weight: 600; }
@@ -431,4 +448,11 @@ const handleSubmit = () => {
 .vote-tally--reject { color: #ff6464; }
 .vote-tally--revision { color: #C9A84C; }
 .demo-note { color: #C9A84C; opacity: 0.8; border-left: 2px solid rgba(201,168,76,0.4); padding-left: 0.75rem; margin-top: 0.5rem; }
+.milestone-warning { font-size: 0.8rem; color: #ff6464; background: rgba(255,100,100,0.05); border: 1px solid rgba(255,100,100,0.15); border-radius: 8px; padding: 0.6rem 0.75rem; margin-bottom: 0.75rem; line-height: 1.5; }
+.milestone-warning--under { color: #C9A84C; background: rgba(201,168,76,0.05); border-color: rgba(201,168,76,0.15); }
+.signal-bar-wrap { margin-bottom: 1.75rem; position: relative; }
+.signal-bar__threshold-label { position: absolute; top: 10px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; white-space: nowrap; }
+.threshold-arrow { color: #C9A84C; font-size: 0.6rem; line-height: 1; }
+.threshold-text { color: #C9A84C; font-size: 0.7rem; opacity: 0.85; margin-top: 1px; }
 </style>
+
