@@ -240,19 +240,24 @@
               <input v-model="milestone.description" type="text" placeholder="What will you deliver?" />
               <div class="milestone-row__inline">
                 <input v-model="milestone.xorAmount" type="number" placeholder="XOR" min="0" />
-                <input
-  v-model="milestone.timeline"
-  type="text"
-  placeholder="Expected completion (MM/DD/YYYY)"
-  @focus="showDatePicker($event)"
-/>
+                <div class="date-field-wrap">
+                  <input
+                    v-model="milestone.timeline"
+                    type="date"
+                    :min="minDate"
+                    class="milestone-date-input"
+                  />
+                  <span v-if="milestone.timeline && !isDateValid(milestone.timeline)" class="date-error">
+                    Completion date cannot be in the past
+                  </span>
+                </div>
               </div>
             </div>
             <button class="btn btn--ghost btn--small" @click="commons.removeMilestone(index)">✕</button>
           </div>
           <button class="btn btn--ghost" @click="commons.addMilestone()">+ Add Milestone</button>
         </div>
-        <<div class="burn-preview">
+        <div class="burn-preview">
   <p>On submission: <strong>{{ config.PROPOSAL_FEE_XOR }} XOR burned</strong> — non-refundable, recorded on-chain</p>
   <p>On each milestone: <strong>1% of tranche burns on confirmation</strong></p>
 </div>
@@ -293,27 +298,23 @@ const minDate = computed(() => {
   tomorrow.setDate(tomorrow.getDate() + 1);
   return tomorrow.toISOString().split('T')[0];
 });
+const isDateValid = (dateStr: string): boolean => {
+  if (!dateStr) return true;
+  // Only validate complete dates (YYYY-MM-DD with 4-digit year)
+  const match = /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
+  if (!match) return true; // incomplete date — don't flag yet
+  const year = parseInt(dateStr.slice(0, 4), 10);
+  if (year < 1000) return true; // still typing the year
+  const date = new Date(dateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return !isNaN(date.getTime()) && date > today;
+};
 const activeTab = ref<"live" | "submit" | "completed" | "detail">("live");
 const discussionContent = ref("");
 const briefContent = ref("");
 const remarksContent = ref("");
 const panelFeedback = ref("");
-
-const showDatePicker = (event: FocusEvent) => {
-  const input = event.target as HTMLInputElement;
-  input.type = 'date';
-  input.min = minDate.value;
-  input.addEventListener('blur', () => {
-    if (!input.value) input.type = 'text';
-  }, { once: true });
-  input.addEventListener('change', () => {
-    const date = new Date(input.value);
-    input.type = 'text';
-    input.value = date.toLocaleDateString('en-US', {
-      month: '2-digit', day: '2-digit', year: 'numeric'
-    });
-  }, { once: true });
-};
 
 const tabs = computed(() => [
   { id: "live" as const, label: "Live Proposals", count: commons.liveProposals.length },
@@ -367,8 +368,7 @@ const handleSubmit = () => {
 .milestone-hint { font-size: 0.78rem; opacity: 0.5; margin-bottom: 0.75rem; }
 .delta { font-size: 0.8rem; font-weight: 400; opacity: 0.6; }
 .delta--error { color: #ff6464; opacity: 1; }
-.milestone-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: flex-start; }
-.milestone-row__number { font-size: 0.8rem; opacity: 0.4; padding-top: 0.75rem; min-width: 16px; }
+.milestone-row { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; align-items: flex-start; }.milestone-row__number { font-size: 0.8rem; opacity: 0.4; padding-top: 0.75rem; min-width: 16px; }
 .milestone-row__fields { flex: 1; display: flex; flex-direction: column; gap: 0.4rem; }
 .milestone-row__fields input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0.65rem 0.75rem; color: inherit; font-family: "Sora", sans-serif; font-size: 0.85rem; width: 100%; box-sizing: border-box; }
 .milestone-row__inline { display: flex; gap: 0.4rem; }
@@ -454,5 +454,9 @@ const handleSubmit = () => {
 .signal-bar__threshold-label { position: absolute; top: 10px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; white-space: nowrap; }
 .threshold-arrow { color: #C9A84C; font-size: 0.6rem; line-height: 1; }
 .threshold-text { color: #C9A84C; font-size: 0.7rem; opacity: 0.85; margin-top: 1px; }
+.date-field-wrap { flex: 1; position: relative; }
+.milestone-date-input { color-scheme: dark; width: 100%; box-sizing: border-box; }
+.date-error { position: absolute; top: 100%; left: 0; margin-top: 0.2rem; font-size: 0.72rem; color: #ff6464; white-space: nowrap; }
 </style>
+
 

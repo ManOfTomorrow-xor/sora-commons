@@ -242,8 +242,14 @@ export const useCommonsStore = defineStore("commons", () => {
     if (isNaN(xor) || xor <= 0) return false;
     if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.PROPOSAL_FEE_XOR)) return false;
     if (draftMilestones.value.length === 0) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const milestonesValid = draftMilestones.value.every(
-      (m) => m.description.trim() && parseFloat(m.xorAmount) > 0 && m.timeline.trim(),
+      (m) => {
+        if (!m.description.trim() || parseFloat(m.xorAmount) <= 0 || !m.timeline.trim()) return false;
+        const date = new Date(m.timeline);
+        return !isNaN(date.getTime()) && date > today;
+      },
     );
     if (!milestonesValid) return false;
     return Math.abs(parseFloat(milestoneTotal.value) - xor) < 0.0001;
