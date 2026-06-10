@@ -306,6 +306,7 @@ export const useCommonsStore = defineStore("commons", () => {
       sortitionEndsAt: null,
       revisionCount: 0,
       xorBurned: COMMONS_CONFIG.PROPOSAL_FEE_XOR,
+      createdAt: now.toISOString(),
     };
     proposals.value.unshift(newProposal);
     resetDraft();
