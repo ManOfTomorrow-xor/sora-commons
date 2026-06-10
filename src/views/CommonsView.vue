@@ -145,7 +145,14 @@
       <div v-if="commons.activeProposal.status === 'sortition'" class="stage-panel">
         <h3>Sortition — Binding Decision <span class="days-remaining">{{ commons.daysRemaining(commons.activeProposal.sortitionEndsAt) }} days remaining</span></h3>
         <p class="stage-note">5 randomly selected citizens make the binding funding decision. 3 of 5 needed to approve.</p>
-        <div class="panel-votes"><div class="panel-votes__count">{{ commons.activeProposal.panelVotes.length }} votes cast</div></div>
+        <div class="panel-votes">
+  <div class="panel-votes__breakdown">
+    <span class="vote-tally vote-tally--approve">Approve: {{ commons.activeProposal.panelVotes.filter(v => v.decision === 'approve').length }}</span>
+    <span class="vote-tally vote-tally--reject">Reject: {{ commons.activeProposal.panelVotes.filter(v => v.decision === 'reject').length }}</span>
+    <span class="vote-tally vote-tally--revision">Revision: {{ commons.activeProposal.panelVotes.filter(v => v.decision === 'revision').length }}</span>
+  </div>
+  <div class="panel-votes__count">{{ commons.activeProposal.panelVotes.length }} of {{ config.SORTITION_PANEL_SIZE }} votes cast · {{ config.SORTITION_APPROVAL_THRESHOLD }} to approve</div>
+</div>
         <div v-if="commons.isOperator" class="panel-actions">
           <h4>Cast Vote</h4>
           <textarea v-model="panelFeedback" rows="3" placeholder="Feedback..." />
@@ -417,4 +424,9 @@ const handleSubmit = () => {
 .rejection-reasons__label { font-size: 0.72rem; opacity: 0.5; margin: 0 0 0.25rem; text-transform: uppercase; }
 .rejection-reasons__item { font-size: 0.82rem; opacity: 0.7; margin: 0.2rem 0; font-style: italic; }
 .demo-banner { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; font-size: 0.78rem; color: #C9A84C; line-height: 1.6; text-align: center; }
+.panel-votes__breakdown { display: flex; gap: 1rem; margin-bottom: 0.5rem; }
+.vote-tally { font-size: 0.85rem; font-weight: 600; }
+.vote-tally--approve { color: #64dcaa; }
+.vote-tally--reject { color: #ff6464; }
+.vote-tally--revision { color: #C9A84C; }
 </style>

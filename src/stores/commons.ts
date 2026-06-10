@@ -464,7 +464,8 @@ export const useCommonsStore = defineStore("commons", () => {
   };
 
   // Advance to Stage 4 — Sortition
-  const advanceToSortition = (proposalId: string): boolean => {
+ const advanceToSortition = (proposalId: string): boolean => {
+    const proposal = proposals.value.find((p) => p.id === proposalId);
     if (!proposal || proposal.status !== "deliberation") return false;
     proposal.status = "sortition";
     const sortitionEnd = new Date(
