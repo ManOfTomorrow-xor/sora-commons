@@ -155,6 +155,18 @@
         <h3>Sortition — Binding Decision <span class="days-remaining">{{ commons.daysRemaining(commons.activeProposal.sortitionEndsAt) }} days remaining</span></h3>
         <p class="stage-note">{{ config.SORTITION_PANEL_SIZE }} citizens drawn by lot make the binding funding decision. {{ config.SORTITION_APPROVAL_THRESHOLD }} of {{ config.SORTITION_PANEL_SIZE }} needed to approve.</p>
         <p v-if="config.DEMO_MODE" class="stage-note demo-note">Demo note: This proposal needs {{ config.SORTITION_APPROVAL_THRESHOLD }} separate panel members to approve. With one wallet you can cast one vote — invite others to test the full sortition, or the proposal will wait at this stage until {{ config.SORTITION_APPROVAL_THRESHOLD }} approvals are reached.</p>
+        <div v-if="commons.activeProposal.parliamentRemarks" class="parliament-remarks">
+  <h4>Parliament Final Remarks</h4>
+  <p>{{ commons.activeProposal.parliamentRemarks }}</p>
+</div>
+<div v-if="commons.activeProposal.parliamentBrief" class="parliament-brief-collapse">
+  <button class="brief-toggle" @click="showBrief = !showBrief">
+    {{ showBrief ? '▾' : '▸' }} View full Parliament Brief
+  </button>
+  <div v-if="showBrief" class="parliament-brief">
+    <p>{{ commons.activeProposal.parliamentBrief }}</p>
+  </div>
+</div>
         <div class="panel-votes">
   <div class="panel-votes__breakdown">
     <span class="vote-tally vote-tally--approve">Approve: {{ commons.activeProposal.panelVotes.filter(v => v.decision === 'approve').length }}</span>
@@ -292,6 +304,7 @@ import { useCommonsStore } from "@/stores/commons";
 import { COMMONS_CONFIG as config } from "@/constants/commonsConfig";
 
 const commons = useCommonsStore();
+const showBrief = ref(false);
 const minDate = computed(() => {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -456,6 +469,11 @@ const handleSubmit = () => {
 .date-field-wrap { flex: 1; position: relative; }
 .milestone-date-input { color-scheme: dark; width: 100%; box-sizing: border-box; }
 .date-error { position: absolute; top: 100%; left: 0; margin-top: 0.2rem; font-size: 0.72rem; color: #ff6464; white-space: nowrap; }
+.parliament-remarks { background: rgba(201,168,76,0.05); border: 1px solid rgba(201,168,76,0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+.parliament-remarks h4 { margin: 0 0 0.5rem; font-size: 0.85rem; color: #C9A84C; }
+.parliament-brief-collapse { margin-bottom: 1rem; }
+.brief-toggle { background: none; border: none; color: #8b949e; cursor: pointer; font-family: "Sora", sans-serif; font-size: 0.8rem; padding: 0.4rem 0; opacity: 0.7; transition: opacity 0.2s; }
+.brief-toggle:hover { opacity: 1; }
 </style>
 
 

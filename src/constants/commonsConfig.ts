@@ -13,7 +13,7 @@ export const COMMONS_CONFIG = {
   // Stage 2 — Community Signal
   MINIMUM_SIGNAL_BALANCE: "10",
   COMMUNITY_SIGNAL_DAYS: 5,
-  MINIMUM_AYE_SIGNALS: 10, // lowered from 10 for testing
+  MINIMUM_AYE_SIGNALS: 10, 
   MINIMUM_AYE_PERCENT: 60,
 
   // Stage 3 — Parliament Deliberation

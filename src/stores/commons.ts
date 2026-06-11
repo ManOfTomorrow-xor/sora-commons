@@ -508,21 +508,34 @@ export const useCommonsStore = defineStore("commons", () => {
     const rejections = proposal.panelVotes.filter((v) => v.decision === "reject").length;
     const revisions = proposal.panelVotes.filter((v) => v.decision === "revision").length;
     const threshold = COMMONS_CONFIG.SORTITION_APPROVAL_THRESHOLD;
+    const panelSize = COMMONS_CONFIG.SORTITION_PANEL_SIZE;
+
+    const sendToRevision = () => {
+      proposal.revisionCount += 1;
+      proposal.status = "deliberation";
+      proposal.panelVotes = [];
+      const revisionEnd = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
+      proposal.deliberationEndsAt = revisionEnd.toISOString();
+    };
 
     if (approvals >= threshold) {
       proposal.status = "funded";
     } else if (rejections >= threshold) {
       proposal.status = "rejected";
     } else if (revisions >= threshold && proposal.revisionCount < 1) {
-      // Send back to deliberation once only
-      proposal.revisionCount += 1;
-      proposal.status = "deliberation";
-      proposal.panelVotes = [];
-      const revisionEnd = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
-      proposal.deliberationEndsAt = revisionEnd.toISOString();
+      sendToRevision();
+    } else if (proposal.panelVotes.length >= panelSize) {
+      // All panel members have voted but no option reached the threshold —
+      // deadlock (e.g. 2 Approve / 2 Reject / 1 Revision).
+      // First deadlock → Revision (refine, try once more).
+      // Already revised → Reject (cannot agree twice = no funding).
+      if (proposal.revisionCount < 1) {
+        sendToRevision();
+      } else {
+        proposal.status = "rejected";
+      }
     }
     return true;
-  };
   // Stage 5 — Confirm Milestone
   const confirmMilestone = (proposalId: string, milestoneId: string): boolean => {
     const accountId = currentAccountId.value;
