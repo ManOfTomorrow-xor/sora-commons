@@ -535,7 +535,9 @@ export const useCommonsStore = defineStore("commons", () => {
         proposal.status = "rejected";
       }
     }
-    return true;
+   return true;
+  };
+
   // Stage 5 — Confirm Milestone
   const confirmMilestone = (proposalId: string, milestoneId: string): boolean => {
     const accountId = currentAccountId.value;

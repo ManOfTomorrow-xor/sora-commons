@@ -88,11 +88,12 @@
     <div class="signal-bar__nay" :style="`width: ${commons.getSignalStats(commons.activeProposal).total > 0 ? (100 - commons.getSignalStats(commons.activeProposal).ayePercent) : 0}%`"></div>
     <div class="signal-bar__threshold" :style="`left: ${config.MINIMUM_AYE_PERCENT}%`"></div>
   </div>
-  <div class="signal-bar__threshold-label" :style="`left: ${config.MINIMUM_AYE_PERCENT}%`">
-    <span class="threshold-arrow">▲</span>
-    <span class="threshold-text">{{ config.MINIMUM_AYE_PERCENT }}% needed to pass</span>
-  </div>
-</div>       <div class="signal-numbers">
+  <div class="signal-bar__threshold-marker" :style="`left: ${config.MINIMUM_AYE_PERCENT}%`"></div>
+<div class="signal-bar__threshold-text" :style="`left: ${config.MINIMUM_AYE_PERCENT}%`">
+  {{ config.MINIMUM_AYE_PERCENT }}% needed to pass
+</div>
+</div>
+<div class="signal-numbers">
             <span class="aye">{{ commons.getSignalStats(commons.activeProposal).aye }} Aye</span>
             <span class="percent">{{ commons.getSignalStats(commons.activeProposal).ayePercent }}%</span>
             <span class="nay">{{ commons.getSignalStats(commons.activeProposal).nay }} Nay</span>
@@ -173,7 +174,11 @@
     <span class="vote-tally vote-tally--reject">Reject: {{ commons.activeProposal.panelVotes.filter(v => v.decision === 'reject').length }}</span>
     <span class="vote-tally vote-tally--revision">Revision: {{ commons.activeProposal.panelVotes.filter(v => v.decision === 'revision').length }}</span>
   </div>
-  <div class="panel-votes__count">{{ commons.activeProposal.panelVotes.length }} of {{ config.SORTITION_PANEL_SIZE }} votes cast · {{ config.SORTITION_APPROVAL_THRESHOLD }} to approve</div>
+  <div class="panel-votes__count">
+  {{ commons.activeProposal.panelVotes.length }} of {{ config.SORTITION_PANEL_SIZE }} votes cast
+  <span v-if="approvalsNeeded > 0" class="votes-needed">· {{ approvalsNeeded }} more approval{{ approvalsNeeded === 1 ? '' : 's' }} needed to fund</span>
+  <span v-else class="votes-met">· approval threshold reached</span>
+</div>
 </div>
         <div v-if="commons.isOperator" class="panel-actions">
           <h4>Cast Vote</h4>
@@ -188,8 +193,8 @@
 
       <!-- Stage 5 Milestones -->
       <div v-if="commons.activeProposal.status === 'funded' || commons.activeProposal.status === 'complete'" class="stage-panel">
-        <h3>Milestone Execution</h3>
-        <p class="stage-note">XOR releases per milestone on panel confirmation. 1% burns automatically.</p>
+  <h3>Milestone Execution</h3>
+  <p class="stage-note">Confirmation by the <strong>Sortition Panel</strong> — the same members drawn by lot in Stage 4 oversee delivery. XOR releases per milestone on their confirmation. 1% burns automatically.</p>
         <div class="milestones">
           <div v-for="milestone in commons.activeProposal.milestones" :key="milestone.id" class="milestone-item" :class="{ 'milestone-item--complete': milestone.completed }">
             <div class="milestone-item__check">{{ milestone.completed ? "✓" : "○" }}</div>
@@ -303,6 +308,12 @@ import { computed, ref } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import { COMMONS_CONFIG as config } from "@/constants/commonsConfig";
 
+const approvalsNeeded = computed(() => {
+  const p = commons.activeProposal;
+  if (!p) return 0;
+  const approvals = p.panelVotes.filter(v => v.decision === 'approve').length;
+  return Math.max(0, config.SORTITION_APPROVAL_THRESHOLD - approvals);
+});
 const commons = useCommonsStore();
 const showBrief = ref(false);
 const minDate = computed(() => {
@@ -415,7 +426,7 @@ const handleSubmit = () => {
 .signal-bar { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-bottom: 0.5rem; overflow: hidden; position: relative; display: flex; }
 .signal-bar__aye { height: 100%; background: #64dcaa; transition: width 0.3s; }
 .signal-bar__nay { height: 100%; background: #ff6464; transition: width 0.3s; }
-.signal-bar__threshold { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #C9A84C; z-index: 2; }
+.signal-bar__threshold { position: absolute; top: -3px; bottom: -3px; width: 3px; background: #fff; box-shadow: 0 0 0 1px #C9A84C, 0 0 4px rgba(201,168,76,0.8); z-index: 2; border-radius: 1px; }
 .signal-numbers { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.5rem; }
 .aye { color: #64dcaa; font-weight: 600; }
 .nay { color: #ff6464; font-weight: 600; }
@@ -464,8 +475,8 @@ const handleSubmit = () => {
 .milestone-warning--under { color: #C9A84C; background: rgba(201,168,76,0.05); border-color: rgba(201,168,76,0.15); }
 .signal-bar-wrap { margin-bottom: 1.75rem; position: relative; }
 .signal-bar__threshold-label { position: absolute; top: 10px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; white-space: nowrap; }
-.threshold-arrow { color: #C9A84C; font-size: 0.6rem; line-height: 1; }
-.threshold-text { color: #C9A84C; font-size: 0.7rem; opacity: 0.85; margin-top: 1px; }
+.signal-bar__threshold-marker { position: absolute; top: 10px; transform: translateX(calc(-50% + 2px)); width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 5px solid #C9A84C; }
+.signal-bar__threshold-text { position: absolute; top: 17px; transform: translateX(-50%); color: #C9A84C; font-size: 0.7rem; opacity: 0.85; white-space: nowrap; }
 .date-field-wrap { flex: 1; position: relative; }
 .milestone-date-input { color-scheme: dark; width: 100%; box-sizing: border-box; }
 .date-error { position: absolute; top: 100%; left: 0; margin-top: 0.2rem; font-size: 0.72rem; color: #ff6464; white-space: nowrap; }
@@ -474,6 +485,9 @@ const handleSubmit = () => {
 .parliament-brief-collapse { margin-bottom: 1rem; }
 .brief-toggle { background: none; border: none; color: #8b949e; cursor: pointer; font-family: "Sora", sans-serif; font-size: 0.8rem; padding: 0.4rem 0; opacity: 0.7; transition: opacity 0.2s; }
 .brief-toggle:hover { opacity: 1; }
+.votes-needed { color: #C9A84C; }
+.votes-met { color: #64dcaa; }
+.signal-bar__threshold { position: absolute; top: -3px; bottom: -3px; width: 3px; background: #C9A84C; box-shadow: 0 0 0 1px rgba(0,0,0,0.4); z-index: 2; border-radius: 1px; }
 </style>
 
 
