@@ -99,6 +99,22 @@ export type CommonsRole =
   | "panel_member"
   | "proposer"
   | "operator";
+
+// ─── Reputation (Decision 40) ───────────────────────────────────────────────
+// Scoped, decaying, floored, presence-only. There is deliberately NO field and
+// NO code path that records absence or subtracts points. Absence is expressed
+// solely by read-side decay, which never falls below the floor — dignity lives
+// in the math, not in restraint. `points`/`events` only ever increase.
+
+export type ReputationScope = "panel" | "proposer";
+
+export type ReputationRecord = {
+  accountId: string;
+  scope: ReputationScope;
+  points: number;
+  lastActiveAt: string;
+  events: number;
+};
   // ─── Store ────────────────────────────────────────────────────────────────────
 
 export const useCommonsStore = defineStore("commons", () => {
@@ -107,6 +123,7 @@ export const useCommonsStore = defineStore("commons", () => {
   // ── State ──────────────────────────────────────────────────────────────────
 
   const proposals = ref<CommonsProposal[]>([]);
+  const reputation = ref<ReputationRecord[]>([]);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const activeProposalId = ref<string | null>(null);
@@ -471,8 +488,7 @@ export const useCommonsStore = defineStore("commons", () => {
   };
 
   // Advance to Stage 4 — Sortition
- const advanceToSortition = (proposalId: string): boolean => {
-    const proposal = proposals.value.find((p) => p.id === proposalId);
+  const advanceToSortition = (proposalId: string): boolean => {
     if (!proposal || proposal.status !== "deliberation") return false;
     proposal.status = "sortition";
     const sortitionEnd = new Date(
@@ -502,7 +518,10 @@ export const useCommonsStore = defineStore("commons", () => {
       feedback: feedback.trim(),
       votedAt: new Date().toISOString(),
     });
-
+    // On-time panel vote → panel reputation. This runs only while status is still
+    // "sortition" (window open). A late juror reaches a transitioned proposal and
+    // earns nothing — never a penalty.
+    creditReputation(accountId, "panel", COMMONS_CONFIG.REPUTATION_PANEL_VOTE_POINTS);
     // Check if threshold reached
     const approvals = proposal.panelVotes.filter((v) => v.decision === "approve").length;
     const rejections = proposal.panelVotes.filter((v) => v.decision === "reject").length;
@@ -557,7 +576,8 @@ export const useCommonsStore = defineStore("commons", () => {
     milestone.completed = true;
     milestone.completedAt = new Date().toISOString();
     milestone.xorBurned = burn.toFixed(4);
-
+    // Confirming a delivered milestone is panel oversight → panel reputation.
+    creditReputation(accountId, "panel", COMMONS_CONFIG.REPUTATION_MILESTONE_CONFIRM_POINTS);
     // Add to proposal total burn
     proposal.xorBurned = (
       parseFloat(proposal.xorBurned) + burn
@@ -566,6 +586,12 @@ export const useCommonsStore = defineStore("commons", () => {
     // Check if all milestones complete
     if (proposal.milestones.every((m) => m.completed)) {
       proposal.status = "complete";
+    // Completion → proposer reputation (separate scope, never blended with panel).
+      creditReputation(
+        proposal.proposerAccountId,
+        "proposer",
+        COMMONS_CONFIG.REPUTATION_PROPOSAL_COMPLETE_POINTS,
+      );
     }
 
     console.log(
@@ -575,8 +601,61 @@ export const useCommonsStore = defineStore("commons", () => {
 
     return true;
   };
+// ── Reputation ───────────────────────────────────────────────────────────
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  const MS_PER_MONTH = 30.4375 * 24 * 60 * 60 * 1000;
+
+  const reputationRecord = (accountId: string, scope: ReputationScope) =>
+    reputation.value.find((r) => r.accountId === accountId && r.scope === scope) ?? null;
+
+  // effective = points × ( floor% + (1 − floor%) × 2^(−Δmonths / halfLife) )
+  // Δ=0 → full points · Δ→∞ → floor% × points (never zero) · any credit resets Δ→0.
+  const effectiveReputation = (
+    accountId: string,
+    scope: ReputationScope,
+    now: number = Date.now(),
+  ): number => {
+    const rec = reputationRecord(accountId, scope);
+    if (!rec || rec.points <= 0) return 0;
+    const floor = COMMONS_CONFIG.REPUTATION_FLOOR_PERCENT / 100;
+    const halfLife = COMMONS_CONFIG.REPUTATION_HALF_LIFE_MONTHS;
+    const elapsedMonths = Math.max(
+      0,
+      (now - new Date(rec.lastActiveAt).getTime()) / MS_PER_MONTH,
+    );
+    const decayable = (1 - floor) * Math.pow(2, -elapsedMonths / halfLife);
+    return rec.points * (floor + decayable);
+  };
+
+  // The ONLY writer of reputation. It can only ADD — no caller may decrement.
+  const creditReputation = (
+    accountId: string,
+    scope: ReputationScope,
+    points: number,
+  ): void => {
+    if (!accountId || points <= 0) return;
+    const now = new Date().toISOString();
+    const rec = reputationRecord(accountId, scope);
+    if (rec) {
+      rec.points += points;
+      rec.events += 1;
+      rec.lastActiveAt = now;
+    } else {
+      reputation.value.push({ accountId, scope, points, lastActiveAt: now, events: 1 });
+    }
+  };
+
+  const myReputation = computed(() => {
+    const id = currentAccountId.value;
+    return {
+      panel: effectiveReputation(id, "panel"),
+      proposer: effectiveReputation(id, "proposer"),
+      panelEvents: reputationRecord(id, "panel")?.events ?? 0,
+      proposerEvents: reputationRecord(id, "proposer")?.events ?? 0,
+    };
+  });
+
+   // ── Helpers ────────────────────────────────────────────────────────────────
 
   const statusLabel = (status: ProposalStatus): string => ({
     draft: "Draft",
@@ -677,6 +756,8 @@ export const useCommonsStore = defineStore("commons", () => {
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
     formatDate, daysRemaining,
+    // Reputation
+    reputation, effectiveReputation, reputationRecord, creditReputation, myReputation,
   };
 });
   

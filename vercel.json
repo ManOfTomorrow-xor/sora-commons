@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/taira/:path*", "destination": "https://taira.sora.org/:path*" },
+    { "source": "/minamoto/:path*", "destination": "https://minamoto.sora.org/:path*" }
+  ]
+}

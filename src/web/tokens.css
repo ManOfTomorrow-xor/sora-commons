@@ -1,0 +1,24 @@
+/* SORA Commons — design tokens (seal-derived) */
+@import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --navy-900:#0B1220; --navy-850:#0F1626; --navy-800:#131C2E; --navy-700:#1B2740;
+  --line:rgba(201,168,76,.14); --line-soft:rgba(255,255,255,.07);
+  --gold-600:#A8842F; --gold-500:#C9A84C; --gold-300:#E4C77A; --crimson-600:#8B1E2D;
+  --affirm:#64DCAA; --negate:#FF6464; --info:#7E9BE0;
+  --ink:#EAF0FB; --ink-dim:rgba(234,240,251,.62); --ink-faint:rgba(234,240,251,.40);
+  --display:'Spectral',Georgia,serif; --body:'Sora',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+  --r-sm:8px; --r:12px; --r-lg:18px; --pad:clamp(16px,4vw,28px); --ease:cubic-bezier(.22,.61,.36,1);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: var(--body); color: var(--ink); line-height: 1.5;
+  -webkit-font-smoothing: antialiased; min-height: 100vh;
+  background:
+    radial-gradient(1100px 700px at 50% -10%, #16213a 0%, transparent 60%),
+    radial-gradient(900px 600px at 90% 110%, #14111c 0%, transparent 55%),
+    var(--navy-900);
+}
+a { color: inherit; text-decoration: none; }

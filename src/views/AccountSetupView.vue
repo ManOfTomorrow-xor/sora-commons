@@ -1094,15 +1094,18 @@ const persistGeneratedIdentity = async (localOnly: boolean) => {
   const i105AccountId = accountSummary.i105AccountId || accountId;
   const i105DefaultAccountId = accountSummary.i105DefaultAccountId || "";
   const vaultAvailable = await isSecureVaultAvailable().catch(() => false);
-  if (!vaultAvailable) {
-    throw new Error(
-      t("Secure OS-backed key storage is unavailable on this device."),
-    );
+  if (vaultAvailable) {
+    await storeAccountSecret({
+      accountId,
+      privateKeyHex: generatedKeys.value.privateKeyHex,
+    });
+  } else {
+    // Browser/web build: no OS keychain. Hold the key in session memory.
+    (window as any).iroha?.rememberSessionSecret?.({
+      accountId,
+      privateKeyHex: generatedKeys.value.privateKeyHex,
+    });
   }
-  await storeAccountSecret({
-    accountId,
-    privateKeyHex: generatedKeys.value.privateKeyHex,
-  });
   if (pendingConfidentialWalletBackup.value && recoveryMnemonic.value) {
     await importConfidentialWalletBackup({
       toriiUrl: connectionForm.toriiUrl,

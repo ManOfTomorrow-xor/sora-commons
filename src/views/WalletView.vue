@@ -515,6 +515,8 @@ const activeNetworkIsKnownMinamoto = computed(() => {
 const activeNetworkXorAssetDefinitionIds = computed(() => [
   shieldedXorResolvedAssetId.value,
   configuredShieldAssetDefinitionId.value,
+  session.connection.assetDefinitionId,
+  "6TEAJqbb8oEPmLncoNiMRbLEK6tw",
   ...(activeNetworkIsKnownMinamoto.value
     ? [MINAMOTO_CHAIN_PRESET.connection.assetDefinitionId]
     : []),

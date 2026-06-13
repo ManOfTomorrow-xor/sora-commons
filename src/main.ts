@@ -1,3 +1,6 @@
+import { Buffer } from "buffer";
+(globalThis as any).Buffer = (globalThis as any).Buffer ?? Buffer;
+import "@/services/irohaBrowserBridge";
 import { createApp, watch } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";

@@ -61,6 +61,8 @@
     "@vue/eslint-config-typescript": "^13.0.0",
     "@vue/test-utils": "^2.4.5",
     "@vue/tsconfig": "^0.5.1",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
     "electron": "^39.1.2",
     "electron-builder": "^26.0.12",
     "electron-vite": "^4.0.1",
@@ -71,6 +73,7 @@
     "playwright": "^1.58.2",
     "typescript": "^5.4.5",
     "vite": "^7.2.2",
+    "vite-plugin-node-polyfills": "^0.28.0",
     "vitest": "^4.0.8",
     "vue-tsc": "^2.0.21"
   },

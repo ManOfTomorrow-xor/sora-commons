@@ -26,6 +26,20 @@
     <div class="role-banner" :class="`role-banner--${commons.commonsRole}`">
       <span class="role-banner__role">{{ commons.roleLabel(commons.commonsRole) }}</span>
       <span class="role-banner__hint">{{ commons.roleHint(commons.commonsRole) }}</span>
+    <span class="role-banner__hint">{{ commons.roleHint(commons.commonsRole) }}</span>
+      <span
+        v-if="myRep.panelEvents > 0 || myRep.proposerEvents > 0"
+        class="role-banner__rep"
+        title="Standing reflects recent, on-time service and gently decays when idle — it never goes negative."
+      >
+        <span v-if="myRep.panelEvents > 0" class="rep-chip">
+          Panel service · {{ myRep.panelEvents }} · standing {{ myRep.panel.toFixed(1) }}
+        </span>
+        <span v-if="myRep.proposerEvents > 0" class="rep-chip">
+          Delivered · {{ myRep.proposerEvents }} · standing {{ myRep.proposer.toFixed(1) }}
+        </span>
+      </span>
+    </div>
     </div>
     <div class="commons-tabs">
       <button
@@ -300,7 +314,6 @@
   </div>
 </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -315,6 +328,7 @@ const approvalsNeeded = computed(() => {
   return Math.max(0, config.SORTITION_APPROVAL_THRESHOLD - approvals);
 });
 const commons = useCommonsStore();
+const myRep = computed(() => commons.myReputation);
 const showBrief = ref(false);
 const minDate = computed(() => {
   const tomorrow = new Date();
@@ -488,6 +502,8 @@ const handleSubmit = () => {
 .votes-needed { color: #C9A84C; }
 .votes-met { color: #64dcaa; }
 .signal-bar__threshold { position: absolute; top: -3px; bottom: -3px; width: 3px; background: #C9A84C; box-shadow: 0 0 0 1px rgba(0,0,0,0.4); z-index: 2; border-radius: 1px; }
+.role-banner__rep { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.rep-chip { font-size: 0.72rem; padding: 0.15rem 0.5rem; border-radius: 10px; background: rgba(100,220,150,0.08); border: 1px solid rgba(100,220,150,0.2); color: #64dcaa; }
 </style>
 
 

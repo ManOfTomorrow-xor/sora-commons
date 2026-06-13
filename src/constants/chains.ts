@@ -19,7 +19,7 @@ export const TAIRA_CHAIN_PRESET: ChainPreset = {
   connection: {
     toriiUrl: "https://taira.sora.org",
     chainId: TAIRA_CHAIN_ID,
-    assetDefinitionId: "",
+    assetDefinitionId: SORA_XOR_ASSET_DEFINITION_ID,
     networkPrefix: TAIRA_NETWORK_PREFIX,
   },
 };
