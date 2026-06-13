@@ -17,8 +17,11 @@
 
     <!-- PAGE BODY (placeholder for now) -->
     <main class="wrap">
-      <h1 class="page-title">{{ tabs.find(t => t.id === active)?.label }}</h1>
-      <p class="muted">This page is coming next. The shell works.</p>
+      <Overview v-if="active === 'overview'" @nav="go" />
+      <template v-else>
+        <h1 class="page-title">{{ tabs.find(t => t.id === active)?.label }}</h1>
+        <p class="muted">This page is coming next.</p>
+      </template>
     </main>
 
     <!-- MOBILE BOTTOM TAB BAR -->
@@ -35,6 +38,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import sealUrl from "./assets/seal.png";
+import Overview from "./views/Overview.vue";
 
 const active = ref("overview");
 const go = (id: string) => { active.value = id; window.scrollTo(0, 0); };

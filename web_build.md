@@ -1,43 +1,60 @@
 # SORA Commons — Web Build Status
 
-The real Commons web app, built as a NEW browser entry inside this repo (`src/web/`),
+The real Commons web app, built as a NEW browser entry inside this repo (src/web/),
 reusing the proven Iroha browser bridge + Vite config. The Electron app is untouched.
 
 ## How to run
-```bash
 cd /mnt/c/Users/ntorr/iroha-demo-javascript
 npx vite --config vite.config.ts      # serves http://localhost:5174
 # after config changes: rm -rf node_modules/.vite first, then hard-reload (Ctrl+Shift+R)
-```
+# Test in incognito (clean, no extension noise). No fake/seed data — drive real Taira activity.
 
 ## DONE (proven working)
-- [x] CORS proxy: `vercel.json` (prod) + Vite `server.proxy` for /taira & /minamoto (dev)
-- [x] Web Vite config: `vite.config.ts` (browser SDK resolution, node polyfills, native-file stubs)
-- [x] Browser bridge: `src/services/irohaBrowserBridge.ts` (window.iroha shim) + `nativeStub.ts`
-      - deriveAccountAddress, derivePublicKey, isSecureVaultAvailable, rememberSessionSecret,
-        getSessionSecret, fetchAccountAssets (real Taira reads via /taira proxy — PROVEN: returned 25,000 XOR)
-- [x] New web entry: `src/web/index.html`, `src/web/main.ts`, `src/web/App.vue`
-- [x] Design tokens: `src/web/tokens.css` (seal colors, Spectral/Sora/JetBrains Mono)
-- [x] Seal asset: `src/web/assets/seal.png` (transparent)
-- [x] App shell: sticky top bar (seal + wordmark + TAIRA chip), desktop nav, mobile bottom tab bar (X-style, gold Submit FAB)
+- CORS proxy: vercel.json (prod) + Vite server.proxy for /taira & /minamoto (dev)
+- Web Vite config: vite.config.ts (browser SDK resolution, node polyfills, native-file stubs)
+- Browser bridge: src/services/irohaBrowserBridge.ts + nativeStub.ts
+  - deriveAccountAddress, derivePublicKey, isSecureVaultAvailable, rememberSessionSecret,
+    getSessionSecret, fetchAccountAssets (real Taira reads via /taira proxy — PROVEN: 25,000 XOR)
+- New web entry: src/web/index.html, main.ts, App.vue, tokens.css, assets/seal.png
+- App shell: sticky top bar (seal + wordmark + TAIRA chip), desktop nav, mobile bottom tab bar (X-style, gold Submit FAB)
+- CountUp component: count-up animation, re-animates on value change, reduced-motion safe
+- OVERVIEW PAGE DONE: real store-wired KPIs (count-up), My Proposals, Closest-to-decision,
+  5-stage strip, burn ledger — all real data with empty states. No fake/seed data.
 
-## NEXT
-- [ ] Step 7a: `src/web/views/Overview.vue` with PLACEHOLDER data
-      (order: KPI strip -> My Proposals -> 5-stage strip -> recent burns)
-- [ ] Step 7b: wire `useCommonsStore` (real in-memory numbers)
-- [ ] Views: Proposals, Submit, Treasury, Citizens, About (+ Commons-only router)
-- [ ] Remaining bridge methods as views need them:
-      getGovernanceCitizenCount, getGovernanceCouncilCurrent, requestFaucetFunds,
-      registerCitizen, submitGovernancePlainBallot
-- [ ] Deploy on Vercel (vercel.json already in place)
+## PAGE-BY-PAGE PLAN (finish each fully before next)
+- [x] Overview
+- [ ] About (pure content: philosophy, 3Gi, how-it-works)
+- [ ] Proposals (full list + stage filters; read-only)
+- [ ] Top-bar utilities: notifications bell (CLIENT-DERIVED from store state, no backend)
+      + feedback icon (next to bell) + connect/wallet button
+- [ ] Treasury (burn ledger / treasury; read-only)
+- [ ] Citizens (hub; read + become-a-citizen)
+- [ ] Submit (form; needs write path)
+- [ ] Commons-only router
+
+## WRITE METHODS TO WIRE (bridge) — when their page needs them
+- requestFaucetFunds (FIRST write; test only needs to cover 5 XOR proposal fee)
+- submitProposal (Submit page — create proposal, burn 5 XOR)
+- castSignal, deliberation posts, castPanelVote, confirmMilestone
+- registerCitizen, submitGovernancePlainBallot
+- getGovernanceCitizenCount, getGovernanceCouncilCurrent
+
+## FEATURE NOTES
+- FEEDBACK: icon in top bar by notifications, opens panel. Start in-app storage,
+  upgrade to shared backend at deploy, on-chain possible Phase 2.
+- NOTIFICATIONS: client-derived from real proposal/store state. No backend for test.
+
+## TEST-PHASE SCOPING
+- Faucet only needs to cover the 5 XOR proposal fee.
+- Citizens page open to all; DEMO_MODE:true relaxes role/sortition gates.
+- FINAL RELEASE (Minamoto): 10,000 XOR citizen bond + role enforcement apply.
 
 ## KEY FACTS
-- Taira XOR asset id: 6TEAJqbb8oEPmLncoNiMRbLEK6tw  (set in src/constants/chains.ts line ~22)
-- Citizen bond: 10,000 XOR. Submit fee: 5 XOR (100% burned). Signal: >=60% Aye.
-  Sortition: 5-panel, 3-of-5. Milestone burn: 1%.
-- "i105" = Iroha account-address format (SDK encodeI105AccountAddress). Your account holds 25,000 test XOR.
-- DEMO_MODE: true on Taira -> Commons store runs in-memory, 5-stage flow walkable solo.
-- Test in a normal tab (new app has no wallet legacy). Ignore browser-extension console noise.
+- Taira XOR asset id: 6TEAJqbb8oEPmLncoNiMRbLEK6tw  (src/constants/chains.ts line ~22)
+- Citizen bond: 10,000 XOR. Submit fee: 5 XOR. Signal: >=60% Aye. Sortition: 5-panel, 3-of-5. Milestone burn: 1%.
+- "i105" = Iroha account-address format (SDK encodeI105AccountAddress).
+- Store: stores/commons.ts (in-memory) -> parliament.ts -> services/iroha -> window.iroha bridge.
+  Status: draft|signal|deliberation|sortition|funded|complete|rejected|archived.
 
 ## WORKING STYLE
-One small step at a time. Reuse logic from src/stores/commons.ts + parliament.ts; redesign UI in src/web/.
+One small step at a time. Reuse logic from stores/commons.ts + parliament.ts; redesign UI in src/web/.
