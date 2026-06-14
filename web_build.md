@@ -53,6 +53,24 @@ npx vite --config vite.config.ts      # serves http://localhost:5174
   - FLAME ANIMATION (final motion pass): subtle continuous flicker on the Treasury hero
   flame (gentle scale/sway + glow pulse, "breathing"); brief flare on a new burn (the
   "burn pulse"). Reduced-motion → static flame. Flame icon = src/web/components/Flame.vue.
+  - i18n: support major commonly-spoken languages (not all). Candidate: English (default),
+  Spanish, Mandarin, Hindi, Arabic, Portuguese, Russian, Japanese, French (final list TBD).
+  Move UI text into translation files; language switcher in top bar. Dedicated pass NEAR END.
+  Arabic is RTL -> needs layout mirroring if included.
+- FLAME: src/web/components/Flame.vue (gold flame icon). Final motion pass: subtle flicker
+  on Treasury hero, brief flare on new burn; reduced-motion -> static.
+  ## SORTITION / COLD-START (Phase 1B — chain pool-assembly, NOT web app)
+- The chain draw picks N from whatever pool it is handed; it does NOT inspect who deliberated.
+- Exclusion is enforced by POOL ASSEMBLY before the draw: eligible = citizens − sortitionExcluded.
+  (Store already builds sortitionExcluded: proposer @ create, deliberators @ post, brief author.)
+- Replace commons.ts ~line 499 placeholder with the real Parliament sortition contract call,
+  handing it the pre-filtered eligible pool.
+- COLD-START DECISION = B (SHRINK PANEL): when eligible < SORTITION_PANEL_SIZE, draw a smaller
+  panel sized to the eligible pool rather than relaxing the deliberator-exclusion invariant.
+  Approval threshold scales with panel size. Full 5-of-N / 3-of-5 resumes once enough citizens
+  exist. Keeps "no deliberator ever judges" intact at all pool sizes. Implement in pool-assembly.
+- Web app only DISPLAYS chain state: panel-vote controls gated to panelMembers; show
+  "excluded from this draw" when in sortitionExcluded. UI never enforces the draw.
 
 ## TEST-PHASE SCOPING
 - Faucet only needs to cover the 5 XOR proposal fee.
