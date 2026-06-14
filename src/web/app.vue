@@ -18,6 +18,7 @@
     <!-- PAGE BODY (placeholder for now) -->
     <main class="wrap">
       <Overview v-if="active === 'overview'" @nav="go" />
+       <About v-else-if="active === 'about'" />
       <template v-else>
         <h1 class="page-title">{{ tabs.find(t => t.id === active)?.label }}</h1>
         <p class="muted">This page is coming next.</p>
@@ -39,6 +40,7 @@
 import { ref } from "vue";
 import sealUrl from "./assets/seal.png";
 import Overview from "./views/Overview.vue";
+import About from "./views/About.vue";
 
 const active = ref("overview");
 const go = (id: string) => { active.value = id; window.scrollTo(0, 0); };
