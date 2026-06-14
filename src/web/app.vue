@@ -22,6 +22,7 @@
       <Proposals v-else-if="active === 'proposals'" @nav="go" />
       <Treasury v-else-if="active === 'treasury'" />
       <Citizens v-else-if="active === 'citizens'" @nav="go" />
+       <Submit v-else-if="active === 'submit'" @nav="go" />
       <template v-else>
         <h1 class="page-title">{{ tabs.find(t => t.id === active)?.label }}</h1>
         <p class="muted">This page is coming next.</p>
@@ -47,6 +48,7 @@ import About from "./views/About.vue";
 import Proposals from "./views/Proposals.vue";
 import Treasury from "./views/Treasury.vue";
 import Citizens from "./views/Citizens.vue";
+import Submit from "./views/Submit.vue";
 
 const active = ref("overview");
 const go = (id: string) => { active.value = id; window.scrollTo(0, 0); };
