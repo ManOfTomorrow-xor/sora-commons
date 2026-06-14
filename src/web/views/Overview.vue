@@ -87,7 +87,7 @@
       <div class="ledger">
         <p v-if="burns.length === 0" class="muted" style="padding:14px 16px;margin:0;">No burns recorded yet.</p>
         <div v-for="(b, i) in burns" :key="i" class="ledger__row">
-          <span class="ledger__flame">&#9650;</span>
+          <Flame :size="14" />
           <span class="ledger__amt">{{ b.amt }} XOR</span>
           <span class="ledger__what">{{ b.what }}</span>
           <span class="ledger__time">{{ b.time }}</span>
@@ -102,6 +102,7 @@ import sealUrl from "../assets/seal.png";
 import { computed } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import CountUp from "../components/CountUp.vue";
+import Flame from "../components/Flame.vue";
 
 defineEmits<{ (e: "nav", id: string): void }>();
 

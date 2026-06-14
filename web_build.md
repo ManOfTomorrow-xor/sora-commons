@@ -43,6 +43,16 @@ npx vite --config vite.config.ts      # serves http://localhost:5174
 - FEEDBACK: icon in top bar by notifications, opens panel. Start in-app storage,
   upgrade to shared backend at deploy, on-chain possible Phase 2.
 - NOTIFICATIONS: client-derived from real proposal/store state. No backend for test.
+- INTERNATIONALIZATION (i18n): support multiple languages — the major commonly-spoken
+  ones, not every language. Candidate set: English (default), Spanish, Mandarin Chinese,
+  Hindi, Arabic, Portuguese, Russian, Japanese, French (final list TBD). Implementation:
+  move all hardcoded UI text into translation files keyed by language; add a language
+  switcher in the top bar. Do this as a dedicated pass NEAR THE END, after page structure
+  is settled (translating text that's still changing wastes effort). Note: Arabic is
+  right-to-left → needs RTL layout support (CSS mirroring) if included.
+  - FLAME ANIMATION (final motion pass): subtle continuous flicker on the Treasury hero
+  flame (gentle scale/sway + glow pulse, "breathing"); brief flare on a new burn (the
+  "burn pulse"). Reduced-motion → static flame. Flame icon = src/web/components/Flame.vue.
 
 ## TEST-PHASE SCOPING
 - Faucet only needs to cover the 5 XOR proposal fee.

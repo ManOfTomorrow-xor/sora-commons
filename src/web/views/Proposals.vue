@@ -42,7 +42,7 @@
 
         <div class="card__foot">
           <span class="req">{{ p.xorRequested }} XOR requested</span>
-          <span v-if="Number(p.xorBurned) > 0" class="burned">▲ {{ p.xorBurned }} burned</span>
+          <span class="burned"><Flame :size="12" /> {{ p.xorBurned }} burned</span>
         </div>
       </article>
     </div>
@@ -53,6 +53,7 @@
 import { ref, computed } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import type { ProposalStatus } from "@/stores/commons";
+import Flame from "../components/Flame.vue";
 
 defineEmits<{ (e: "nav", id: string): void }>();
 
