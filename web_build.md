@@ -70,7 +70,25 @@ npx vite --config vite.config.ts      # serves http://localhost:5174
   Approval threshold scales with panel size. Full 5-of-N / 3-of-5 resumes once enough citizens
   exist. Keeps "no deliberator ever judges" intact at all pool sizes. Implement in pool-assembly.
 - Web app only DISPLAYS chain state: panel-vote controls gated to panelMembers; show
-  "excluded from this draw" when in sortitionExcluded. UI never enforces the draw.
+  "excluded from this draw" when in sortitionExcluded. UI never enforces the draw.+
+  ## PROPOSAL = UNDERWRITING FILE (decided; full draft in proposal-underwriting-file-DRAFT.md)
+- Submit captures a "file": S1 Identity (title, summary, *category: Production OR
+  Productivity/Public-good), S2 Productive future (claim, inputs financed, expected
+  output/capacity, demand signal), S3 Ask + milestones each with EVIDENCE that releases it.
+  S1–S3 REQUIRED. S4 Risk/failure + S5 Public spillovers OPTIONAL (test).
+- Heavy machinery = Phase 2: proposer/underwriter bonding, auditors, dispute path,
+  post-funding tracking ("did suppliers get paid, did output appear"), Treasury Desk roles.
+- 5 stages reframed as underwriting (not popularity): Submit=open file; Signal=seriousness
+  filter (NOT popularity vote, say so in copy); Deliberate=underwriting exam (are inputs/
+  demand real? capacity vs re-labeled claims?); Sortition=verdict on file (fund/reject/revise);
+  Milestone=evidence-gated release.
+- Vocabulary: UI says "proposal"; Submit framed as "open the file on your claim."
+- NOTE (Nick): dApp may become where proposals are WRITTEN, with scrutiny happening
+  elsewhere as SORA infra unfolds — so keep Submit focused on capturing a clean file,
+  not enforcing heavy judgment. Categories changeable later.
+- Infra essays (finality/lanes/dataspaces/fragmentation/neutral-rails) = About CONTEXT only,
+  NOT Commons features. Treasury page (burn ledger) stays "Treasury"; "Treasury Desk"
+  (issuance underwriting) reserved as Phase 2 concept.
 
 ## TEST-PHASE SCOPING
 - Faucet only needs to cover the 5 XOR proposal fee.
@@ -85,4 +103,4 @@ npx vite --config vite.config.ts      # serves http://localhost:5174
   Status: draft|signal|deliberation|sortition|funded|complete|rejected|archived.
 
 ## WORKING STYLE
-One small step at a time. Reuse logic from stores/commons.ts + parliament.ts; redesign UI in src/web/.
+One small st-ep at a time. Reuse logic from stores/commons.ts + parliament.ts; redesign UI in src/web/.

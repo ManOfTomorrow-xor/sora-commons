@@ -27,6 +27,7 @@ export type Milestone = {
   description: string;
   xorAmount: string;
   timeline: string;
+  evidence?: string;          // proof that releases this milestone (underwriting)
   completed: boolean;
   completedAt: string | null;
   xorBurned: string;
@@ -63,11 +64,10 @@ export type CommonsProposal = {
   id: string;
   proposerAccountId: string;
   title: string;
-  description: string;
+  publicBenefit?: string;     // who else gains (S5, optional)
   xorRequested: string;
-  milestones: Milestone[];
+ milestones: Milestone[];
   status: ProposalStatus;
-
   // Stage 2
   signals: Signal[];
   signalEndsAt: string | null;
@@ -131,6 +131,14 @@ export const useCommonsStore = defineStore("commons", () => {
   // Draft state
   const draftTitle = ref("");
   const draftDescription = ref("");
+  const draftCategory = ref<"production" | "productivity_public_good" | "">("");
+  const draftProductiveClaim = ref("");
+  const draftInputs = ref("");
+  const draftExpectedOutput = ref("");
+  const draftDemandSignal = ref("");
+  const draftRiskBearer = ref("");
+  const draftFailureHandling = ref("");
+  const draftPublicBenefit = ref("");
   const draftXorRequested = ref("");
   const draftMilestones = ref<
     Omit<Milestone, "id" | "completed" | "completedAt" | "xorBurned">[]
@@ -289,8 +297,16 @@ export const useCommonsStore = defineStore("commons", () => {
   const resetDraft = () => {
     draftTitle.value = "";
     draftDescription.value = "";
+    draftCategory.value = "";
+    draftProductiveClaim.value = "";
+    draftInputs.value = "";
+    draftExpectedOutput.value = "";
+    draftDemandSignal.value = "";
+    draftRiskBearer.value = "";
+    draftFailureHandling.value = "";
+    draftPublicBenefit.value = "";
     draftXorRequested.value = "";
-    draftMilestones.value = [{ description: "", xorAmount: "", timeline: "" }];
+    draftMilestones.value = [{ description: "", xorAmount: "", timeline: "", evidence: "" }];
   };
 
   // Stage 1 — Submit Proposal
@@ -305,12 +321,21 @@ export const useCommonsStore = defineStore("commons", () => {
       proposerAccountId: currentAccountId.value,
       title: draftTitle.value.trim(),
       description: draftDescription.value.trim(),
+      category: draftCategory.value || undefined,
+      productiveClaim: draftProductiveClaim.value.trim() || undefined,
+      inputs: draftInputs.value.trim() || undefined,
+      expectedOutput: draftExpectedOutput.value.trim() || undefined,
+      demandSignal: draftDemandSignal.value.trim() || undefined,
+      riskBearer: draftRiskBearer.value.trim() || undefined,
+      failureHandling: draftFailureHandling.value.trim() || undefined,
+      publicBenefit: draftPublicBenefit.value.trim() || undefined,
       xorRequested: String(draftXorRequested.value).trim(),
       milestones: draftMilestones.value.map((m, i) => ({
         id: `m-${i}-${Date.now()}`,
         description: String(m.description).trim(),
         xorAmount: String(m.xorAmount).trim(),
         timeline: String(m.timeline).trim(),
+        evidence: String(m.evidence ?? "").trim() || undefined,
         completed: false,
         completedAt: null,
         xorBurned: "0",
@@ -728,7 +753,9 @@ export const useCommonsStore = defineStore("commons", () => {
   return {
     // State
     proposals, isLoading, error, activeProposalId,
-    draftTitle, draftDescription, draftXorRequested, draftMilestones,
+  draftTitle, draftDescription, draftXorRequested, draftMilestones,
+    draftCategory, draftProductiveClaim, draftInputs, draftExpectedOutput,
+    draftDemandSignal, draftRiskBearer, draftFailureHandling, draftPublicBenefit,
 
     // Derived from Parliament
     currentAccountId, isConnected, isCitizen, isOperator,
