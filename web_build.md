@@ -1,106 +1,147 @@
 # SORA Commons — Web Build Status
 
-The real Commons web app, built as a NEW browser entry inside this repo (src/web/),
-reusing the proven Iroha browser bridge + Vite config. The Electron app is untouched.
+Browser web-app inside this repo (src/web/), reusing the proven Iroha browser bridge + Vite
+config. Electron app untouched.
 
-## How to run
+## >>> READ FIRST: DIRECTION RESET <
+Commons was reframed. The OLD plan (vote-to-fund proposals, 5 XOR post fee) is PARKED.
+The NEW direction (followable public record of real work, social layer, donate/boost burns)
+is below and DECIDED. Next concrete step: build a shareable demo, then real code.
+
+## HOW TO RUN
 cd /mnt/c/Users/ntorr/iroha-demo-javascript
-npx vite --config vite.config.ts      # serves http://localhost:5174
-# after config changes: rm -rf node_modules/.vite first, then hard-reload (Ctrl+Shift+R)
-# Test in incognito (clean, no extension noise). No fake/seed data — drive real Taira activity.
+npx vite --config vite.config.ts      # http://localhost:5174
+# after config changes: rm -rf node_modules/.vite, then hard-reload (Ctrl+Shift+R)
+# Paste big files directly into VS Code, NOT via terminal heredoc (heredoc corrupts files).
 
-## DONE (proven working)
-- CORS proxy: vercel.json (prod) + Vite server.proxy for /taira & /minamoto (dev)
-- Web Vite config: vite.config.ts (browser SDK resolution, node polyfills, native-file stubs)
+# ============================================================
+# THE VISION (all DECIDED)
+# ============================================================
+
+## WHAT COMMONS IS
+A public place where every proposal is a STORY you can follow start to finish.
+- Proposers tell their story, log verifiable milestones (chapters), connect with people.
+- People FOLLOW, LIKE, COMMENT, BOOST, and DONATE — proposer<->community connection.
+- The permanent, trusted public record of productive work that the rest of SORA
+  (incl. a future Treasury Desk) can read from. Useful even before the Desk exists.
+- Sortition repurposed: NOT voting on funding — it ADJUDICATES DISPUTES about whether a
+  milestone/claim really happened. Preserves the anti-capture role of the lot.
+- Treasury Desk (currently 1 essay) = future allocation layer that plugs into this record.
+  Commons does NOT try to be the funding decider.
+
+## BURN MODEL
+- PRINCIPLE: burn rides on real value flow, never a toll. Free to post/follow/like/comment.
+- Burn always comes from the DEMAND side (people backing/amplifying work), never the SUPPLY
+  side (proposers are never charged to appear). "Productive work burns true."
+- DONATE: supporter -> proposer. 1% burns, 99% to proposer. Connected accounts only.
+  Start as a DIRECT TIP; milestone-linked escrow = later phase.
+- BOOST: flat amount (TBD), a cut burns. Ranks by NUMBER OF BOOSTS, not XOR spent
+  (isonomia for attention; whales can't buy the top). Lightning rating 1->4 bolts.
+- LIKE: free, instant warmth (heart). Distinct from boost (paid, committed support).
+
+## SOCIAL LAYER ("social warmth in service of real work")
+TAKE: feed/spotlight main page, following, threaded comments (proposer replies highlighted),
+visible REAL momentum (bolts, donation totals, followers, milestone progress), proposer profiles.
+LEAVE: engagement-maximizing algorithms, dopamine loops, vanity metrics, pay-to-rank.
+Every number reflects real value or real people. Never optimize for time-on-app or spectacle.
+
+# ============================================================
+# PAGES (all DECIDED)
+# ============================================================
+
+## NAV (~5): Feed / Explore / [Post] / Treasury / About
+Profile, Story, Archive (under Explore), Citizens = reached contextually / secondary.
+
+## FEED (main page)
+- Single main column (X-style), generous spacing, filled-not-crammed.
+- Top Boosted = distinct horizontal band at top, separated from feed below.
+- Default sort = MIX (recency + activity). Filters: Newest / Most boosted / Most active / Category.
+- STORY CARD hierarchy (loud->quiet): [who] avatar+name + category tag; [hook] BIG title +
+  1 truncated story line; [progress] slim milestone bar "Chapter 2 of 4"; [engagement] small
+  muted row: likes / bolts / comments / total donated.
+- Desktop: optional quiet side rail. Mobile: clean single column. "Post your work" CTA -> Compose.
+
+## STORY PAGE (heart of the app)
+Order: 1) HERO: title, proposer(->profile), category, stage; engagement bar =
+Like/Boost/DONATE + totals (donated, burned-from-story, backers, followers, Follow); progress.
+2) STORY: proposer's full narrative + ATTACHED FILES.
+3) FACTS: structured claim fields (productive claim, inputs, output...) = "facts behind the story."
+4) CHAPTERS: each milestone (desc, XOR, timeline, EVIDENCE, status: upcoming/in-progress/
+verified/disputed). Visual spine = followable progress.
+5) CONVERSATION: threaded comments, proposer replies highlighted.
+Donate/Boost/Like in BOTH header and bottom.
+
+## EXPLORE
+Feed-style cards + strong filters/sort + search + Top Boosted band.
+ARCHIVE merged in as Active/Archive toggle (archive = every proposal ever, final outcomes, compact rows).
+
+## PROFILE
+Proposer page: avatar, bio, totals (stories, raised, burned, followers), all their stories
+w/ outcomes. Future reputation home. Reached by tapping a proposer.
+
+## COMPOSE / POST
+Reuse Submit form + rich STORY narrative field + FILE attachments. "Tell the story of your work."
+Button/FAB, not a nav tab.
+
+## TREASURY
+Burn record fed by real donations + boosts (posting is free). Total burned, recent burns, why-burn explainer.
+
+## ABOUT
+Philosophy / 3Gi + "Built on SORA Nexus" context. Reframe to "follow the story of real work."
+
+## CITIZENS (light)
+Quick info only: current citizen count + who is currently in sortition (drawn to adjudicate
+active disputes). Transparency window, no heavy machinery.
+
+# ============================================================
+# DEMO (next concrete step — before real code)
+# ============================================================
+- SHAREABLE clickable visual mockup (prototype, NOT real app) of the reframed Commons.
+- Real design (seal, tokens), feed, story page, donate/boost/like, comments, Top Boosted.
+- Populated with believable example stories (MIX: crypto/technical + real-economy).
+- Single self-contained HTML file -> host free (Vercel/Pages/Netlify) -> share a link.
+- Purpose: community awareness + feel the whole flow before committing to code.
+- Simulated interactions, no real chain/XOR. Clearly marked PREVIEW.
+
+# ============================================================
+# DONE / REUSABLE (carries over regardless of direction)
+# ============================================================
+- CORS proxy: vercel.json + Vite server.proxy (/taira, /minamoto)
+- Vite config: browser SDK resolution, node polyfills, native-file stubs
 - Browser bridge: src/services/irohaBrowserBridge.ts + nativeStub.ts
-  - deriveAccountAddress, derivePublicKey, isSecureVaultAvailable, rememberSessionSecret,
-    getSessionSecret, fetchAccountAssets (real Taira reads via /taira proxy — PROVEN: 25,000 XOR)
-- New web entry: src/web/index.html, main.ts, App.vue, tokens.css, assets/seal.png
-- App shell: sticky top bar (seal + wordmark + TAIRA chip), desktop nav, mobile bottom tab bar (X-style, gold Submit FAB)
-- CountUp component: count-up animation, re-animates on value change, reduced-motion safe
-- OVERVIEW PAGE DONE: real store-wired KPIs (count-up), My Proposals, Closest-to-decision,
-  5-stage strip, burn ledger — all real data with empty states. No fake/seed data.
+  (deriveAccountAddress, derivePublicKey, rememberSessionSecret, getSessionSecret,
+   fetchAccountAssets — PROVEN real Taira read: 25,000 XOR)
+- Shell: src/web/ index.html, main.ts, App.vue, tokens.css, assets/seal.png, assets/flame.png
+- Components: CountUp.vue (animated, reduced-motion safe), Flame.vue (gold flame icon)
+- PAGES BUILT (will be reframed, not deleted): Overview, About, Proposals, Treasury,
+  Citizens, Submit. All real store data + empty states.
+- Store: src/stores/commons.ts has first-class underwriting-file fields (category,
+  productiveClaim, inputs, expectedOutput, demandSignal, riskBearer, failureHandling,
+  publicBenefit) + milestone.evidence + draft refs. discussionPosts field EXISTS (reuse for comments).
 
-## PAGE-BY-PAGE PLAN (finish each fully before next)
-- [x] Overview
-- [ ] About (pure content: philosophy, 3Gi, how-it-works)
-- [ ] Proposals (full list + stage filters; read-only)
-- [ ] Top-bar utilities: notifications bell (CLIENT-DERIVED from store state, no backend)
-      + feedback icon (next to bell) + connect/wallet button
-- [ ] Treasury (burn ledger / treasury; read-only)
-- [ ] Citizens (hub; read + become-a-citizen)
-- [ ] Submit (form; needs write path)
-- [ ] Commons-only router
+# ============================================================
+# PARKED / LATER
+# ============================================================
+- PARKED: "vote-to-fund" framing; 5 XOR post fee; Signal=60% aye; Submit as the main event.
+  Reference draft: proposal-underwriting-file-DRAFT.md.
+- REPUTATION: designed, not built — gets real DATA once stories/milestones are verified here.
+- REAL ON-CHAIN WRITES (bridge methods TBD): donate, boost, milestone verify, dispute, faucet.
+- SHARED BACKEND (at deploy): likes, comments, boosts, donations, follows, file storage need
+  shared persistence (in-memory works for demo/one session only).
+- SORTITION COLD-START (Phase 1B, chain pool-assembly): decision = B (shrink panel) when
+  eligible < panel size; never relax deliberator-exclusion. UI only displays chain state.
+- TOP-BAR UTILITIES: notifications (client-derived) + feedback icon + connect/wallet button.
+- i18n pass NEAR END: English(default), Spanish, Mandarin, Hindi, Arabic(RTL), Portuguese,
+  Russian, Japanese, French. Translation files + language switcher.
+- MOTION pass: flame flicker on Treasury hero + burn pulse; reduced-motion safe.
+- Commons-only router.
 
-## WRITE METHODS TO WIRE (bridge) — when their page needs them
-- requestFaucetFunds (FIRST write; test only needs to cover 5 XOR proposal fee)
-- submitProposal (Submit page — create proposal, burn 5 XOR)
-- castSignal, deliberation posts, castPanelVote, confirmMilestone
-- registerCitizen, submitGovernancePlainBallot
-- getGovernanceCitizenCount, getGovernanceCouncilCurrent
-
-## FEATURE NOTES
-- FEEDBACK: icon in top bar by notifications, opens panel. Start in-app storage,
-  upgrade to shared backend at deploy, on-chain possible Phase 2.
-- NOTIFICATIONS: client-derived from real proposal/store state. No backend for test.
-- INTERNATIONALIZATION (i18n): support multiple languages — the major commonly-spoken
-  ones, not every language. Candidate set: English (default), Spanish, Mandarin Chinese,
-  Hindi, Arabic, Portuguese, Russian, Japanese, French (final list TBD). Implementation:
-  move all hardcoded UI text into translation files keyed by language; add a language
-  switcher in the top bar. Do this as a dedicated pass NEAR THE END, after page structure
-  is settled (translating text that's still changing wastes effort). Note: Arabic is
-  right-to-left → needs RTL layout support (CSS mirroring) if included.
-  - FLAME ANIMATION (final motion pass): subtle continuous flicker on the Treasury hero
-  flame (gentle scale/sway + glow pulse, "breathing"); brief flare on a new burn (the
-  "burn pulse"). Reduced-motion → static flame. Flame icon = src/web/components/Flame.vue.
-  - i18n: support major commonly-spoken languages (not all). Candidate: English (default),
-  Spanish, Mandarin, Hindi, Arabic, Portuguese, Russian, Japanese, French (final list TBD).
-  Move UI text into translation files; language switcher in top bar. Dedicated pass NEAR END.
-  Arabic is RTL -> needs layout mirroring if included.
-- FLAME: src/web/components/Flame.vue (gold flame icon). Final motion pass: subtle flicker
-  on Treasury hero, brief flare on new burn; reduced-motion -> static.
-  ## SORTITION / COLD-START (Phase 1B — chain pool-assembly, NOT web app)
-- The chain draw picks N from whatever pool it is handed; it does NOT inspect who deliberated.
-- Exclusion is enforced by POOL ASSEMBLY before the draw: eligible = citizens − sortitionExcluded.
-  (Store already builds sortitionExcluded: proposer @ create, deliberators @ post, brief author.)
-- Replace commons.ts ~line 499 placeholder with the real Parliament sortition contract call,
-  handing it the pre-filtered eligible pool.
-- COLD-START DECISION = B (SHRINK PANEL): when eligible < SORTITION_PANEL_SIZE, draw a smaller
-  panel sized to the eligible pool rather than relaxing the deliberator-exclusion invariant.
-  Approval threshold scales with panel size. Full 5-of-N / 3-of-5 resumes once enough citizens
-  exist. Keeps "no deliberator ever judges" intact at all pool sizes. Implement in pool-assembly.
-- Web app only DISPLAYS chain state: panel-vote controls gated to panelMembers; show
-  "excluded from this draw" when in sortitionExcluded. UI never enforces the draw.+
-  ## PROPOSAL = UNDERWRITING FILE (decided; full draft in proposal-underwriting-file-DRAFT.md)
-- Submit captures a "file": S1 Identity (title, summary, *category: Production OR
-  Productivity/Public-good), S2 Productive future (claim, inputs financed, expected
-  output/capacity, demand signal), S3 Ask + milestones each with EVIDENCE that releases it.
-  S1–S3 REQUIRED. S4 Risk/failure + S5 Public spillovers OPTIONAL (test).
-- Heavy machinery = Phase 2: proposer/underwriter bonding, auditors, dispute path,
-  post-funding tracking ("did suppliers get paid, did output appear"), Treasury Desk roles.
-- 5 stages reframed as underwriting (not popularity): Submit=open file; Signal=seriousness
-  filter (NOT popularity vote, say so in copy); Deliberate=underwriting exam (are inputs/
-  demand real? capacity vs re-labeled claims?); Sortition=verdict on file (fund/reject/revise);
-  Milestone=evidence-gated release.
-- Vocabulary: UI says "proposal"; Submit framed as "open the file on your claim."
-- NOTE (Nick): dApp may become where proposals are WRITTEN, with scrutiny happening
-  elsewhere as SORA infra unfolds — so keep Submit focused on capturing a clean file,
-  not enforcing heavy judgment. Categories changeable later.
-- Infra essays (finality/lanes/dataspaces/fragmentation/neutral-rails) = About CONTEXT only,
-  NOT Commons features. Treasury page (burn ledger) stays "Treasury"; "Treasury Desk"
-  (issuance underwriting) reserved as Phase 2 concept.
-
-## TEST-PHASE SCOPING
-- Faucet only needs to cover the 5 XOR proposal fee.
-- Citizens page open to all; DEMO_MODE:true relaxes role/sortition gates.
-- FINAL RELEASE (Minamoto): 10,000 XOR citizen bond + role enforcement apply.
-
-## KEY FACTS
-- Taira XOR asset id: 6TEAJqbb8oEPmLncoNiMRbLEK6tw  (src/constants/chains.ts line ~22)
-- Citizen bond: 10,000 XOR. Submit fee: 5 XOR. Signal: >=60% Aye. Sortition: 5-panel, 3-of-5. Milestone burn: 1%.
+# ============================================================
+# KEY FACTS
+# ============================================================
+- Taira XOR asset id: 6TEAJqbb8oEPmLncoNiMRbLEK6tw (src/constants/chains.ts ~line 22)
 - "i105" = Iroha account-address format (SDK encodeI105AccountAddress).
-- Store: stores/commons.ts (in-memory) -> parliament.ts -> services/iroha -> window.iroha bridge.
-  Status: draft|signal|deliberation|sortition|funded|complete|rejected|archived.
+- DEMO_MODE:true relaxes gates so flow is walkable solo on Taira.
 
 ## WORKING STYLE
-One small st-ep at a time. Reuse logic from stores/commons.ts + parliament.ts; redesign UI in src/web/.
+One small step at a time. Paste big files in VS Code, not terminal. Commit at each checkpoint.
