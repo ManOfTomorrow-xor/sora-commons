@@ -145,3 +145,14 @@ active disputes). Transparency window, no heavy machinery.
 
 ## WORKING STYLE
 One small step at a time. Paste big files in VS Code, not terminal. Commit at each checkpoint.
+
+## COMMONS <-> TREASURY DESK RELATIONSHIP (decided)
+- Commons is the FRONT DOOR + public record for ALL proposals, regardless of how they're funded.
+- Work routes by scale: smaller efforts seek COMMUNITY DONATIONS here; larger/serious-capital
+  proposals route to the TREASURY DESK (underwriting). Commons holds the story either way.
+- Every card + story page shows a TRACK/STATUS tag so it's clear at a glance:
+  "Seeking donations" (community track) vs "Under Treasury Desk review" (underwriting track),
+  plus outcome states (Funded / In progress / Complete / etc.).
+- This resolves the old redundancy worry: Commons and the Desk are not competitors —
+  Commons is the universal record + small-scale donation venue; the Desk is the large-scale
+  allocation layer that reads from it.
