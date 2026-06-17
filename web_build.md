@@ -147,3 +147,28 @@ One small step at a time. Paste big files in VS Code, not terminal. Commit at ea
 4. Explore, Profile, Compose (reuse card + form).
 5. Social/burn mechanics (in-memory first; real chain + shared backend later).
 6. Reframe Treasury/About/Citizens.
+
+## DONATE MODAL (TODO)
+- Quick-pick buttons (10/50/100/500) PLUS a manual amount input (any amount).
+- SUPPORT FRACTIONS: decimals allowed (e.g. 0.5, 2.75) — keeps small donors able to
+  participate as XOR value rises.
+- Quick-picks fill/sync the field; typing in field deselects picks. Live 1% burn shown on
+  whatever amount is entered.
+- Validate: positive, > 0, within balance, within token precision.
+- (Boost stays a FLAT amount — no custom field — to preserve isonomia/ranked-by-count.)
+
+## MONEY CODE — DISCIPLINE (non-negotiable)
+The donation/burn path moves real XOR irreversibly. Treat it differently from UI code.
+- INTEGER/BigInt math only for amounts. Never floating-point on currency. Compute in base
+  units using the token's exact decimal precision; format to decimal only for display.
+- Confirm XOR's exact decimal precision from chain config before building (don't assume 18).
+- 1% burn split computed in base units; verify burn + proposer portions sum EXACTLY to input.
+- Validate input rigorously: positive, > 0, within balance, within precision; reject malformed/overflow.
+- Explicit confirmation step showing exact amounts (to proposer / burned) before signing.
+- Handle every failure path: rejected signature, insufficient balance, network error,
+  partial/timeout — clear state, never leave the user unsure if funds moved.
+- TEST EXHAUSTIVELY ON TAIRA FIRST: edge amounts (tiny fractions, max, precision limits),
+  failures, double-submit. Money code earns its way to mainnet by proving itself on testnet.
+- Independent verification: read back the on-chain result; show the actual settled tx, not an
+  optimistic UI assumption.
+
