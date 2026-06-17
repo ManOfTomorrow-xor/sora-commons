@@ -31,8 +31,8 @@
 
     <!-- MOBILE BOTTOM TAB BAR -->
     <nav class="tabbar">
-      <a v-for="t in mobileTabs" :key="t.id" class="tab" :class="{ active: active === t.id, 'tab-fab': t.id === 'submit' }" @click="go(t.id)">
-        <span v-if="t.id === 'submit'" class="fabc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+      <a v-for="t in mobileTabs" :key="t.id" class="tab" :class="{ active: active === t.id, 'tab-fab': t.id === 'post' }" @click="go(t.id)">
+        <span v-if="t.id === 'post'" class="fabc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
         <span v-else class="tab__ic" v-html="t.icon"></span>
         <span class="tab__lbl">{{ t.label }}</span>
       </a>
@@ -50,15 +50,13 @@ import Treasury from "./views/Treasury.vue";
 import Citizens from "./views/Citizens.vue";
 import Submit from "./views/Submit.vue";
 
-const active = ref("overview");
+const active = ref("feed");
 const go = (id: string) => { active.value = id; window.scrollTo(0, 0); };
 
 const tabs = [
-  { id: "overview", label: "Overview" },
-  { id: "proposals", label: "Proposals" },
-  { id: "submit", label: "Submit" },
+  { id: "feed", label: "Feed" },
+  { id: "explore", label: "Explore" },
   { id: "treasury", label: "Treasury" },
-  { id: "citizens", label: "Citizens" },
   { id: "about", label: "About" },
 ];
 
@@ -67,13 +65,15 @@ const ic = {
   list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="14" y2="17"/></svg>',
   people: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M2.5 20c0-3.3 2.9-5.5 6.5-5.5s6.5 2.2 6.5 5.5"/></svg>',
   flame: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1.8 2.8 4.5 4.4 4.5 8.2A4.5 4.5 0 0 1 7.5 11C7.5 9.4 8.2 8.3 9 7.5c.2 1.8 1.2 2.8 3 2.8 0-2.8-1-4.5 0-7.3z"/></svg>',
+  compass: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="16 8 14 14 8 16 10 10"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.5" fill="currentColor"/></svg>',
 };
 const mobileTabs = [
-  { id: "overview", label: "Home", icon: ic.home },
-  { id: "proposals", label: "Proposals", icon: ic.list },
-  { id: "submit", label: "Submit", icon: "" },
-  { id: "citizens", label: "Citizens", icon: ic.people },
+  { id: "feed", label: "Feed", icon: ic.home },
+  { id: "explore", label: "Explore", icon: ic.compass },
+  { id: "post", label: "Post", icon: "" },
   { id: "treasury", label: "Treasury", icon: ic.flame },
+  { id: "about", label: "About", icon: ic.info },
 ];
 </script>
 
