@@ -17,7 +17,8 @@
 
     <!-- PAGE BODY (placeholder for now) -->
     <main class="wrap">
-      <Overview v-if="active === 'overview'" @nav="go" />
+      <Feed v-if="active === 'feed'" @nav="go" />
+      <Overview v-else-if="active === 'overview'" @nav="go" />
       <About v-else-if="active === 'about'" />
       <Proposals v-else-if="active === 'proposals'" @nav="go" />
       <Treasury v-else-if="active === 'treasury'" />
@@ -41,6 +42,7 @@
 </template>
 
 <script setup lang="ts">
+import Feed from "./views/Feed.vue";
 import { ref } from "vue";
 import sealUrl from "./assets/seal.png";
 import Overview from "./views/Overview.vue";

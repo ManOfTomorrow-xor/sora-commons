@@ -123,6 +123,7 @@ export const useCommonsStore = defineStore("commons", () => {
   // ── State ──────────────────────────────────────────────────────────────────
 
   const proposals = ref<CommonsProposal[]>([]);
+  const savedProposals = ref<string[]>([]); // proposal ids the user has bookmarked
   const reputation = ref<ReputationRecord[]>([]);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
@@ -514,6 +515,7 @@ export const useCommonsStore = defineStore("commons", () => {
 
   // Advance to Stage 4 — Sortition
   const advanceToSortition = (proposalId: string): boolean => {
+    const proposal = proposals.value.find((p) => p.id === proposalId);
     if (!proposal || proposal.status !== "deliberation") return false;
     proposal.status = "sortition";
     const sortitionEnd = new Date(
@@ -722,11 +724,20 @@ export const useCommonsStore = defineStore("commons", () => {
     operator: "Parliament operator. You can submit briefs and confirm escalated milestones.",
   }[role]);
 
-  const formatDate = (iso: string | null): string => {
+ const formatDate = (iso: string | null): string => {
     if (!iso) return "—";
     return new Date(iso).toLocaleDateString("en-US", {
       month: "short", day: "numeric", year: "numeric",
     });
+  };
+
+  const isSaved = (proposalId: string): boolean =>
+    savedProposals.value.includes(proposalId);
+
+  const toggleSave = (proposalId: string): void => {
+    const i = savedProposals.value.indexOf(proposalId);
+    if (i >= 0) savedProposals.value.splice(i, 1);
+    else savedProposals.value.push(proposalId);
   };
 
   const daysRemaining = (iso: string | null): number => {
@@ -782,7 +793,7 @@ export const useCommonsStore = defineStore("commons", () => {
 
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
-    formatDate, daysRemaining,
+    formatDate, daysRemaining, savedProposals, isSaved, toggleSave,
     // Reputation
     reputation, effectiveReputation, reputationRecord, creditReputation, myReputation,
   };

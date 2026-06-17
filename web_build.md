@@ -172,3 +172,17 @@ The donation/burn path moves real XOR irreversibly. Treat it differently from UI
 - Independent verification: read back the on-chain result; show the actual settled tx, not an
   optimistic UI assumption.
 
+[updates]
+- Bookmark/SAVE icon on every story card from the start; wired to store savedProposals (list of ids).
+  Saved proposals visible on your own Profile.
+- BUILD ORDER bump: Profile -> step 4 (reached by tapping a proposer; shows public facet +
+  your-activity facet when it's you).
+
+Revised build order:
+1. Shell + nav (DONE)
+2. Feed (cards w/ bookmark, Top Boosted side panel)
+3. Story detail
+4. Profile (public + own-activity: avatar, proposals, status/rep, donated/boosted/burned, saved)
+5. Explore, Compose
+6. Social/burn mechanics (likes/boosts/donations/follows/saves -> totals; in-memory then chain+backend)
+7. Reframe Treasury/About/Citizens
