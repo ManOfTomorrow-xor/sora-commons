@@ -66,6 +66,7 @@ export type CommonsProposal = {
   title: string;
   description: string;        // short summary — shows on the feed card
   story?: string;             // full narrative — shows on the Story page
+  track?: "donations" | "desk";   // funding track; "desk" requires Desk signal (later)
   publicBenefit?: string;     // who else gains (S5, optional)
   xorRequested: string;
  milestones: Milestone[];
@@ -326,7 +327,8 @@ export const useCommonsStore = defineStore("commons", () => {
       title: draftTitle.value.trim(),
       description: draftDescription.value.trim(),
        story: draftStory.value.trim() || undefined,
-      category: draftCategory.value || undefined,
+       track: "donations",   // only community track available now; Desk track unlocked via signal later
+       category: draftCategory.value || undefined,
       productiveClaim: draftProductiveClaim.value.trim() || undefined,
       inputs: draftInputs.value.trim() || undefined,
       expectedOutput: draftExpectedOutput.value.trim() || undefined,

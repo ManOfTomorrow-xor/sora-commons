@@ -24,6 +24,12 @@
             <button type="button" class="cat" :class="{ 'cat--on': commons.draftCategory === 'productivity_public_good' }" @click="commons.draftCategory = 'productivity_public_good'"><strong>Productivity / Public-good</strong><span>Infrastructure that lowers cost for many.</span></button>
           </div>
         </div>
+        <div class="field"><span class="field__label">Funding track</span>
+          <div class="cats">
+            <button type="button" class="cat cat--on"><strong>⚡ Seeking donations</strong><span>Community supports your work directly. Available now.</span></button>
+            <button type="button" class="cat cat--disabled" disabled><strong>🏛 Treasury Desk review</strong><span>Unlocks once the Desk is reviewing your proposal and issues a signal. Coming soon.</span></button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -45,9 +51,9 @@
           <div v-for="(m, i) in commons.draftMilestones" :key="i" class="ms__row">
             <div class="ms__head"><span class="ms__tag">Chapter {{ i + 1 }}</span><button v-if="commons.draftMilestones.length > 1" type="button" class="ms__rm" @click="commons.removeMilestone(i)">Remove</button></div>
             <input v-model="m.description" type="text" placeholder="What gets delivered in this chapter?" />
-            <div class="ms__grid"><input v-model="m.xorAmount" type="number" min="0" placeholder="XOR amount" /><input v-model="m.timeline" type="text" placeholder="Timeline" /></div>
+            <div class="ms__grid"><input v-model="m.xorAmount" type="number" min="0" placeholder="XOR amount" /><label class="ms__date"><span>Evidence due by</span><input v-model="m.timeline" type="date" :min="minDate(i)" /></label></div>
             <textarea v-model="m.evidence" rows="2" placeholder="Evidence that proves this chapter is done"></textarea>
-          </div>
+            </div>
           <button type="button" class="ms__add" @click="commons.addMilestone()">+ Add chapter</button>
         </div>
         <div class="tally" :class="{ 'tally--bad': milestoneMismatch }">Chapters total: {{ milestoneSum }} XOR. Requested: {{ commons.draftXorRequested || 0 }} XOR<span v-if="milestoneMismatch"> (must match)</span></div>
@@ -88,7 +94,15 @@ const milestoneMismatch = computed(() => {
   const req = Number(commons.draftXorRequested || 0);
   return req > 0 && milestoneSum.value > 0 && req !== milestoneSum.value;
 });
-
+const datesOutOfOrder = computed(() => {
+  const ms = commons.draftMilestones;
+  for (let i = 1; i < ms.length; i++) {
+    const prev = ms[i - 1].timeline;
+    const cur = ms[i].timeline;
+    if (prev && cur && cur < prev) return true; // chapter i is before chapter i-1
+  }
+  return false;
+});
 const ready = computed(() =>
   !!commons.draftTitle.trim() &&
   !!commons.draftDescription.trim() &&
@@ -97,7 +111,8 @@ const ready = computed(() =>
   Number(commons.draftXorRequested) > 0 &&
   commons.draftMilestones.length > 0 &&
   commons.draftMilestones.every((m: any) => m.description.trim() && Number(m.xorAmount) > 0 && m.timeline.trim()) &&
-  !milestoneMismatch.value
+  !milestoneMismatch.value &&
+  !datesOutOfOrder.value
 );
 
 const todo = computed(() => {
@@ -108,10 +123,21 @@ const todo = computed(() => {
   if (!(Number(commons.draftXorRequested) > 0)) return "Set the XOR requested";
   if (!commons.draftMilestones.every((m: any) => m.description.trim() && Number(m.xorAmount) > 0 && m.timeline.trim())) return "Complete each chapter";
   if (milestoneMismatch.value) return "Chapter amounts must equal the total";
+  if (datesOutOfOrder.value) return "Each chapter's date must be on or after the previous chapter's";
   return "Complete the required fields";
 });
 
 function filesNote() { message.value = "File attachments are coming soon."; isError.value = false; }
+
+function minDate(i: number): string {
+  // a chapter's date can't be before the previous chapter's date
+  if (i === 0) {
+    const today = new Date();
+    return today.toISOString().split("T")[0]; // first chapter: not in the past
+  }
+  const prev = commons.draftMilestones[i - 1]?.timeline;
+  return prev || new Date().toISOString().split("T")[0];
+}
 
 function onPost() {
   if (!ready.value) return;
@@ -127,7 +153,7 @@ function onPost() {
 </script>
 
 <style scoped>
-.compose { display: flex; flex-direction: column; gap: 16px; max-width: 760px; }
+.compose { display: flex; flex-direction: column; gap: 16px; max-width: 760px; margin: 0 auto; width: 100%; }
 .head h1 { font-family: var(--display); font-size: 2rem; font-weight: 800; letter-spacing: -.02em; margin: 0 0 6px; }
 .sub { color: var(--ink-dim); margin: 0; line-height: 1.6; }
 .notice { background: rgba(126,155,224,.08); border: 1px solid var(--line-soft); border-radius: var(--r); padding: 14px 16px; color: var(--ink-dim); font-size: .9rem; }
@@ -148,7 +174,8 @@ input:focus, textarea:focus { outline: none; border-color: var(--gold-600); }
 .cat strong { color: var(--ink); font-size: .95rem; }
 .cat span { color: var(--ink-faint); font-size: .8rem; }
 .cat--on { border-color: var(--gold-500); background: rgba(201,168,76,.08); }
-.cat--on strong { color: var(--gold-300); }
+.cat--disabled { opacity: .45; cursor: not-allowed; }
+.cat--disabled:hover { border-color: var(--line); }
 .ms { display: flex; flex-direction: column; gap: 12px; }
 .ms__row { background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: flex; flex-direction: column; gap: 8px; }
 .ms__head { display: flex; justify-content: space-between; align-items: center; }
@@ -156,6 +183,11 @@ input:focus, textarea:focus { outline: none; border-color: var(--gold-600); }
 .ms__rm { background: none; border: none; color: var(--negate); font-size: .8rem; cursor: pointer; width: auto; }
 .ms__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .ms__add { background: none; border: 1px dashed var(--line); border-radius: var(--r-sm); color: var(--gold-300); padding: 10px; cursor: pointer; width: 100%; }
+.ms__date { display: flex; flex-direction: column; gap: 4px; }
+.ms__date span { font-size: .7rem; color: var(--ink-faint); }
+.ms__date input { width: 100%; }
+.ms__date input::-webkit-calendar-picker-indicator { filter: invert(1) sepia(1) saturate(3) hue-rotate(5deg); opacity: .7; cursor: pointer; }
+.ms__date input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 .tally { font-family: var(--mono); font-size: .82rem; color: var(--ink-dim); margin-top: 12px; }
 .tally--bad { color: var(--negate); }
 .bar { position: sticky; bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 14px; background: rgba(11,18,32,.92); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 16px 20px; }

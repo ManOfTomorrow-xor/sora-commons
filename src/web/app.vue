@@ -7,8 +7,9 @@
           <img class="brand__seal" :src="sealUrl" alt="SORA Commons seal" />
           <span class="brand__name">SORA <b>Commons</b></span>
         </a>
-        <nav class="nav">
+       <nav class="nav">
           <a v-for="t in tabs" :key="t.id" :class="{ active: active === t.id }" @click="go(t.id)">{{ t.label }}</a>
+          <button class="nav-post" :class="{ active: active === 'post' }" @click="go('post')">Post</button>
         </nav>
         <span class="spacer"></span>
         <div class="netchip"><span class="dot"></span>TAIRA</div>
@@ -93,6 +94,8 @@ const mobileTabs = [
 .nav a { padding: 7px 12px; border-radius: var(--r-sm); color: var(--ink-dim); font-size: .9rem; font-weight: 500; cursor: pointer; }
 .nav a:hover { color: var(--ink); background: var(--line-soft); }
 .nav a.active { color: var(--gold-300); background: rgba(201,168,76,.10); }
+.nav-post { margin-left: 6px; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 7px 16px; font-family: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; }
+.nav-post:hover { filter: brightness(1.05); }
 .spacer { flex: 1; }
 .netchip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; font-family: var(--mono); font-size: .72rem; color: var(--ink-dim); }
 .netchip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--affirm); }
