@@ -413,9 +413,7 @@ export const useCommonsStore = defineStore("commons", () => {
     const accountId = currentAccountId.value;
     if (!accountId || !content.trim()) return false;
     const proposal = proposals.value.find((p) => p.id === proposalId);
-    if (!proposal || proposal.status !== "deliberation") return false;
-    // Panel members cannot post in discussion
-    if (proposal.panelMembers.includes(accountId)) return false;
+    if (!proposal) return false;
 
     const post: DiscussionPost = {
       id: generateId(),
@@ -426,15 +424,6 @@ export const useCommonsStore = defineStore("commons", () => {
       createdAt: new Date().toISOString(),
     };
     proposal.discussionPosts.push(post);
-
-    // Add to sortition excluded list if citizen and not proposer
-    if (
-      isCitizen.value &&
-      accountId !== proposal.proposerAccountId &&
-      !proposal.sortitionExcluded.includes(accountId)
-    ) {
-      proposal.sortitionExcluded.push(accountId);
-    }
     return true;
   };
 
