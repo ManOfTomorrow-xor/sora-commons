@@ -15,21 +15,21 @@
       </div>
     </header>
 
-    <!-- PAGE BODY (placeholder for now) -->
     <main class="wrap">
       <Feed v-if="active === 'feed'" @nav="go" />
+      <Story v-else-if="active === 'story'" @nav="go" />
       <Overview v-else-if="active === 'overview'" @nav="go" />
       <About v-else-if="active === 'about'" />
       <Proposals v-else-if="active === 'proposals'" @nav="go" />
       <Treasury v-else-if="active === 'treasury'" />
       <Citizens v-else-if="active === 'citizens'" @nav="go" />
-       <Submit v-else-if="active === 'submit'" @nav="go" />
+      <Submit v-else-if="active === 'submit'" @nav="go" />
       <template v-else>
         <h1 class="page-title">{{ tabs.find(t => t.id === active)?.label }}</h1>
         <p class="muted">This page is coming next.</p>
       </template>
     </main>
-
+    
     <!-- MOBILE BOTTOM TAB BAR -->
     <nav class="tabbar">
       <a v-for="t in mobileTabs" :key="t.id" class="tab" :class="{ active: active === t.id, 'tab-fab': t.id === 'post' }" @click="go(t.id)">
@@ -42,6 +42,7 @@
 </template>
 
 <script setup lang="ts">
+import Story from "./views/Story.vue";
 import Feed from "./views/Feed.vue";
 import { ref } from "vue";
 import sealUrl from "./assets/seal.png";
