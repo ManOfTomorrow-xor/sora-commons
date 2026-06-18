@@ -3,7 +3,7 @@
     <!-- TOP BAR -->
     <header class="topbar">
       <div class="topbar__inner">
-        <a class="brand" @click="go('overview')">
+        <a class="brand" @click="go('feed')">
           <img class="brand__seal" :src="sealUrl" alt="SORA Commons seal" />
           <span class="brand__name">SORA <b>Commons</b></span>
         </a>

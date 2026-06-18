@@ -219,3 +219,23 @@ Build path: frontend experience first -> shared backend (makes it real + persist
 - Center the form (max-width + margin auto — currently hugs left).
 - Chapter "timeline" -> real DATE picker, single target date "Evidence due by [date]".
   Store captures chapter dueDate (full deadline/overdue feature comes later).
+
+## TRACK TAG / TREASURY DESK STATUS (decided)
+- Two tracks: "Seeking donations" (community) and "Under Treasury Desk review" (underwriting).
+- "Seeking donations" = the default/only track available now (Desk doesn't exist yet).
+- "Under Treasury Desk review" is NOT self-claimable and NOT manually dished out by the Desk.
+  Instead: when the Desk reviews a proposal, that review produces a SIGNAL (verifiable
+  attestation/credential — exact mechanism TBD when Desk is built). The PROPOSER's
+  responsibility is to obtain that signal and present it to unlock the Desk track on their
+  proposal; the system VERIFIES the signal before allowing the badge. Evidence-gated, like
+  milestones — consistent with the whole "claims require evidence" philosophy. No Desk bottleneck.
+- COMPOSE NOW: show both options; "Treasury Desk review" VISIBLE but DISABLED ("coming as the
+  Desk launches"). "Seeking donations" is the only selectable track for now.
+
+  [Light mode — deferred to end-stage polish pass]
+- Add a light theme via the existing CSS-variable system (theme-swappable tokens).
+- KEEP gold as the brand accent (gold on warm off-white/cream — NOT stark white, NOT gold→red).
+  Red/crimson STAYS reserved for danger/negative (don't collide brand color with error color).
+- Invert neutrals: dark navy text on light bg instead of light text on navy.
+- Dedicated pass NEAR END (like i18n) — theme a finished set of pages, not re-theme as we build.
+- Add a light/dark toggle in the top bar.

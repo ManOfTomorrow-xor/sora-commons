@@ -151,8 +151,11 @@ export const useCommonsStore = defineStore("commons", () => {
 
   // ── Derived from Parliament ────────────────────────────────────────────────
 
-  const currentAccountId = computed(
-    () => parliament.activeAccountDisplayId || parliament.requestAccountId || "",
+ const currentAccountId = computed(
+    () =>
+      parliament.activeAccountDisplayId ||
+      parliament.requestAccountId ||
+      (COMMONS_CONFIG.DEMO_MODE ? "demo.commons.test" : ""),
   );
   const isConnected = computed(() => Boolean(currentAccountId.value));
   const isCitizen = computed(() => parliament.hasCitizenRecord);
@@ -270,7 +273,6 @@ export const useCommonsStore = defineStore("commons", () => {
     if (!draftDescription.value.trim()) return false;
     const xor = parseFloat(draftXorRequested.value);
     if (isNaN(xor) || xor <= 0) return false;
-    if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.PROPOSAL_FEE_XOR)) return false;
     if (draftMilestones.value.length === 0) return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
