@@ -64,6 +64,8 @@ export type CommonsProposal = {
   id: string;
   proposerAccountId: string;
   title: string;
+  description: string;        // short summary — shows on the feed card
+  story?: string;             // full narrative — shows on the Story page
   publicBenefit?: string;     // who else gains (S5, optional)
   xorRequested: string;
  milestones: Milestone[];
@@ -132,6 +134,7 @@ export const useCommonsStore = defineStore("commons", () => {
   // Draft state
   const draftTitle = ref("");
   const draftDescription = ref("");
+ const draftStory = ref("");
   const draftCategory = ref<"production" | "productivity_public_good" | "">("");
   const draftProductiveClaim = ref("");
   const draftInputs = ref("");
@@ -322,6 +325,7 @@ export const useCommonsStore = defineStore("commons", () => {
       proposerAccountId: currentAccountId.value,
       title: draftTitle.value.trim(),
       description: draftDescription.value.trim(),
+       story: draftStory.value.trim() || undefined,
       category: draftCategory.value || undefined,
       productiveClaim: draftProductiveClaim.value.trim() || undefined,
       inputs: draftInputs.value.trim() || undefined,
@@ -751,6 +755,7 @@ export const useCommonsStore = defineStore("commons", () => {
     if (!proposal || proposal.status !== "rejected") return;
     draftTitle.value = proposal.title;
     draftDescription.value = proposal.description;
+    draftStory.value = proposal.story;
     draftXorRequested.value = proposal.xorRequested;
     draftMilestones.value = proposal.milestones.map((m) => ({
       description: m.description,
@@ -764,7 +769,7 @@ export const useCommonsStore = defineStore("commons", () => {
   return {
     // State
     proposals, isLoading, error, activeProposalId,
-  draftTitle, draftDescription, draftXorRequested, draftMilestones,
+  draftTitle, draftDescription, draftStory, draftXorRequested, draftMilestones,
     draftCategory, draftProductiveClaim, draftInputs, draftExpectedOutput,
     draftDemandSignal, draftRiskBearer, draftFailureHandling, draftPublicBenefit,
 

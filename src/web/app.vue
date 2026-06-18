@@ -18,6 +18,7 @@
     <main class="wrap">
       <Feed v-if="active === 'feed'" @nav="go" />
       <Story v-else-if="active === 'story'" @nav="go" />
+      <Compose v-else-if="active === 'post'" @nav="go" />
       <Overview v-else-if="active === 'overview'" @nav="go" />
       <About v-else-if="active === 'about'" />
       <Proposals v-else-if="active === 'proposals'" @nav="go" />
@@ -29,7 +30,7 @@
         <p class="muted">This page is coming next.</p>
       </template>
     </main>
-    
+
     <!-- MOBILE BOTTOM TAB BAR -->
     <nav class="tabbar">
       <a v-for="t in mobileTabs" :key="t.id" class="tab" :class="{ active: active === t.id, 'tab-fab': t.id === 'post' }" @click="go(t.id)">
@@ -52,6 +53,7 @@ import Proposals from "./views/Proposals.vue";
 import Treasury from "./views/Treasury.vue";
 import Citizens from "./views/Citizens.vue";
 import Submit from "./views/Submit.vue";
+import Compose from "./views/Compose.vue";
 
 const active = ref("feed");
 const go = (id: string) => { active.value = id; window.scrollTo(0, 0); };
