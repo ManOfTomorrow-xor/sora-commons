@@ -186,3 +186,36 @@ Revised build order:
 5. Explore, Compose
 6. Social/burn mechanics (likes/boosts/donations/follows/saves -> totals; in-memory then chain+backend)
 7. Reframe Treasury/About/Citizens
+
+# ============================================================
+# ARCHITECTURE — FRONTEND / BACKEND / CHAIN (important)
+# ============================================================
+The app has three layers. We're building the FRONTEND now against an in-memory store
+(a stand-in) so we can design and see the whole experience before the backend exists.
+- FRONTEND: the Vue app each person runs in their browser (what we're building).
+- SHARED BACKEND (build before/at deploy): a server + database holding ALL shared/social
+  data — stories, milestones, comments, likes, boosts, follows, saved proposals, DRAFTS.
+  Required because every user must see the same data across all devices. In-memory store
+  and localStorage do NOT scale (single-session / single-device) — localStorage is a dead
+  end for a multi-user app; we skip it.
+- SORA NEXUS CHAIN: source of truth for MONEY (donations, burns) and later disputes/sortition.
+Build path: frontend experience first -> shared backend (makes it real + persistent for all)
+-> chain integration for money.
+
+# ============================================================
+# DEFERRED FEATURES (build once, properly — no throwaway versions)
+# ============================================================
+- DRAFTS: live in the SHARED BACKEND tied to account (NOT localStorage). "Save draft" button +
+  "My Drafts" on Profile to resume any incomplete proposal. Build WITH the backend.
+- EVIDENCE DEADLINE + OVERDUE FLAG: each chapter has an evidence due-date; if it passes and the
+  milestone isn't complete, the story card + story page show "Evidence overdue" (anti-fraud
+  transparency — makes silence visible). Build the FULL version later with the evidence-UPLOAD
+  flow + file storage. For now: just CAPTURE chapter due-date (data ready, no half-version).
+- EVIDENCE UPLOAD / FILE ATTACHMENTS: need file storage (deploy-time backend). Placeholder for now.
+
+# ============================================================
+# COMPOSE — IMMEDIATE TODO (now)
+# ============================================================
+- Center the form (max-width + margin auto — currently hugs left).
+- Chapter "timeline" -> real DATE picker, single target date "Evidence due by [date]".
+  Store captures chapter dueDate (full deadline/overdue feature comes later).
