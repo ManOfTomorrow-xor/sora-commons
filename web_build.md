@@ -239,3 +239,68 @@ Build path: frontend experience first -> shared backend (makes it real + persist
 - Invert neutrals: dark navy text on light bg instead of light text on navy.
 - Dedicated pass NEAR END (like i18n) — theme a finished set of pages, not re-theme as we build.
 - Add a light/dark toggle in the top bar.
+
+# ============================================================
+# CARD UI — FEEDBACK & TODO (from live testing)
+# ============================================================
+BUGS FIXED:
+- Removed stale 5 XOR burn on new proposals (submitProposal now stamps xorBurned "0" —
+  posting is FREE; the old PROPOSAL_FEE_XOR stamp contradicted the model).
+
+CARD — DO NOW:
+- CATEGORY (Production / Productivity-Public-good): was too subtle (small corner text).
+  Make a proper VISIBLE badge. Show on closed card AND open story page.
+- PROPOSER LABEL (Newcomer/Delivered/Veteran/Treasury Desk/Flagged): was MISSING. Add as a
+  distinct badge near proposer name, closed card + story. Computed from track record
+  (proposerLabel helper): completed>=3 Veteran, >=1 Delivered, rejected=Flagged(placeholder), else Newcomer.
+  Keep visually distinct from category (category = what kind of work; label = who/track record).
+- BOOST ICON: use ⚡ lightning, NOT flame. Reserve flame strictly for BURN (was confusing — same
+  flame meant boost and burn).
+- DONATED COUNT: "0 XOR" bottom-right was unlabeled. Label it "donated" OR hide engagement
+  counts (likes/bolts/comments/donated) when all zero, to declutter new cards.
+
+CARD — LATER (step 6 / backend):
+- LIKE PERSISTENCE: like currently local-only visual state on Story page; vanishes on
+  back/refresh. Wire with social mechanics + shared backend (in-memory now would just be redone).
+- PROPOSER DISPLAY NAME: cards show raw account id (e.g. "demo.com...test"). Real display
+  name comes with Profile/avatar work + backend.
+
+# ============================================================
+# TRACK TAG / TREASURY DESK STATUS (decided)
+# ============================================================
+- Two tracks: "Seeking donations" (community) and "Under Treasury Desk review" (underwriting).
+- "Seeking donations" = default/only track available now (Desk doesn't exist yet).
+- "Under Treasury Desk review" is NOT self-claimable and NOT manually dished out by the Desk.
+  When the Desk reviews a proposal, that review produces a SIGNAL (verifiable attestation/
+  credential — mechanism TBD when Desk is built). The PROPOSER obtains that signal and presents
+  it to unlock the Desk track; the system VERIFIES it before allowing the badge. Evidence-gated,
+  consistent with "claims require evidence." No Desk bottleneck.
+- COMPOSE NOW: both options shown; "Treasury Desk review" VISIBLE but DISABLED ("coming as the
+  Desk launches"). "Seeking donations" only selectable track. Store stamps track:"donations".
+
+# ============================================================
+# LIGHT MODE (deferred to end-stage polish pass)
+# ============================================================
+- Add a light theme via the existing CSS-variable token system (theme-swappable tokens).
+- KEEP gold as the brand accent (gold on warm off-white/cream — NOT stark white, NOT gold->red).
+  Red/crimson STAYS reserved for danger/negative (don't collide brand color with error color).
+- Invert neutrals: dark navy text on light bg instead of light text on navy.
+- Dedicated pass NEAR END (like i18n) — theme a finished set of pages. Add light/dark toggle in top bar.
+
+# ============================================================
+# DEMO / TEST MODE (current state)
+# ============================================================
+- DEMO_MODE bypass lets posting work without a connected account (currentAccountId falls back to
+  "demo.commons.test" when DEMO_MODE). EXPERIENCE-ONLY — touches NO XOR (real or test).
+  In-memory only (vanishes on refresh). Gate so it never ships.
+- Real test-XOR / on-chain writes = step 6, built carefully per MONEY CODE discipline, Taira first.
+
+# ============================================================
+# COMPOSE — refinements done
+# ============================================================
+- Story-first form: title, one-line summary (card), THE STORY (big narrative, gold border, Story
+  page), file attach (placeholder), category, funding track, facts, chapters, risk, public benefit.
+- Chapter "timeline" = real DATE picker "Evidence due by"; sequential validation (each chapter's
+  date >= previous chapter's; blocks post + shows message); date-picker icon recolored gold.
+- Form centered. Gold "Post" button in desktop nav (create from anywhere).
+- isDraftValid: removed stale proposal-fee balance check (posting free).
