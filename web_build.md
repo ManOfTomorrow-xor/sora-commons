@@ -304,3 +304,12 @@ CARD — LATER (step 6 / backend):
   date >= previous chapter's; blocks post + shows message); date-picker icon recolored gold.
 - Form centered. Gold "Post" button in desktop nav (create from anywhere).
 - isDraftValid: removed stale proposal-fee balance check (posting free).
+
+[Proposer label / reputation — status]
+- proposerLabel helper EXISTS and grades: completed>=3 Veteran, >=1 Delivered, rejected=Flagged(placeholder), else Newcomer.
+- NOT yet meaningful: nothing completes proposals yet (needs milestone-verification flow) and
+  history doesn't persist (needs backend). Today everyone = Newcomer (correct — no deliveries yet).
+- Becomes real with: (1) milestone verification/evidence flow, (2) shared backend (persistent
+  history), (3) disputes (real Flagged state).
+- TODO when data exists: revisit thresholds — "Veteran" should likely weigh completion RATE,
+  time active, clean disputes (delivery-weighted), not just raw count of 3.

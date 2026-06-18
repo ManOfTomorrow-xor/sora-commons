@@ -362,7 +362,7 @@ export const useCommonsStore = defineStore("commons", () => {
       panelVotes: [],
       sortitionEndsAt: null,
       revisionCount: 0,
-      xorBurned: COMMONS_CONFIG.PROPOSAL_FEE_XOR,
+      xorBurned: "0",
       createdAt: now.toISOString(),
     };
     proposals.value.unshift(newProposal);
@@ -739,6 +739,16 @@ export const useCommonsStore = defineStore("commons", () => {
     });
   };
 
+  const proposerLabel = (accountId: string): string => {
+    const theirs = proposals.value.filter((p) => p.proposerAccountId === accountId);
+    const completed = theirs.filter((p) => p.status === "complete").length;
+    const flagged = theirs.some((p) => p.status === "rejected"); // placeholder; real dispute flag later
+    if (flagged) return "Flagged";
+    if (completed >= 3) return "Veteran";
+    if (completed >= 1) return "Delivered";
+    return "Newcomer";
+  };
+
   const isSaved = (proposalId: string): boolean =>
     savedProposals.value.includes(proposalId);
 
@@ -802,7 +812,7 @@ export const useCommonsStore = defineStore("commons", () => {
 
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
-    formatDate, daysRemaining, savedProposals, isSaved, toggleSave,
+    formatDate, daysRemaining, savedProposals, isSaved, toggleSave, proposerLabel,
     // Reputation
     reputation, effectiveReputation, reputationRecord, creditReputation, myReputation,
   };

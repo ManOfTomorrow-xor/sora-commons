@@ -31,11 +31,11 @@
         </p>
 
         <!-- story cards -->
-        <article v-for="p in visible" :key="p.id" class="card" @click="open(p)">
+       <article v-for="p in visible" :key="p.id" class="card" @click="open(p)">
           <div class="card__top">
             <span class="av" :style="avStyle(p.proposerAccountId)">{{ initials(p.proposerAccountId) }}</span>
             <span class="card__who">{{ shortId(p.proposerAccountId) }}</span>
-            <span v-if="p.category" class="card__cat">{{ catLabel(p.category) }}</span>
+            <span class="card__label" :class="labelClass(p)">{{ commons.proposerLabel(p.proposerAccountId) }}</span>
             <button class="card__save" :class="{ on: commons.isSaved(p.id) }" @click.stop="commons.toggleSave(p.id)" :title="commons.isSaved(p.id) ? 'Saved' : 'Save'">
               <svg viewBox="0 0 24 24" :fill="commons.isSaved(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2"><path d="M6 4h12v16l-6-4-6 4z"/></svg>
             </button>
@@ -44,7 +44,10 @@
           <h3 class="card__title">{{ p.title }}</h3>
           <p class="card__snip">{{ p.description }}</p>
 
-          <span class="track" :class="trackClass(p)">{{ trackLabel(p) }}</span>
+          <div class="badges">
+            <span v-if="p.category" class="badge" :class="catBadgeClass(p.category)">{{ catLabel(p.category) }}</span>
+            <span class="badge" :class="trackClass(p)">{{ trackLabel(p) }}</span>
+          </div>
 
           <div class="prog">
             <div class="prog__lab"><span>{{ chapterText(p) }}</span><span>{{ pct(p) }}%</span></div>
@@ -52,10 +55,10 @@
           </div>
 
           <div class="eng">
-            <span>♥ {{ p.likes || 0 }}</span>
-            <span class="bolts"><Flame :size="11" /> {{ p.boostCount || 0 }}</span>
-            <span>💬 {{ (p.discussionPosts && p.discussionPosts.length) || 0 }}</span>
-            <span class="donated">{{ p.totalDonated || 0 }} XOR</span>
+            <span><svg class="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21z"/></svg>{{ p.likes || 0 }}</span>
+            <span class="bolts"><svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>{{ p.boostCount || 0 }}</span>
+            <span><svg class="i-cmt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.5A8 8 0 1 1 21 12z"/></svg>{{ (p.discussionPosts && p.discussionPosts.length) || 0 }}</span>
+            <span class="donated">{{ p.totalDonated || 0 }} XOR donated</span>
           </div>
         </article>
       </div>
@@ -136,8 +139,15 @@ function chapterText(p: any) {
 function catLabel(c: string) {
   return c === "production" ? "Production" : c === "productivity_public_good" ? "Productivity / Public-good" : c;
 }
+function catBadgeClass(c: string) {
+  return c === "production" ? "cat--production" : "cat--publicgood";
+}
 function trackLabel(p: any) {
   return p.track === "desk" ? "🏛 Under Treasury Desk review" : "⚡ Seeking donations";
+}
+function labelClass(p: any) {
+  const l = commons.proposerLabel(p.proposerAccountId).toLowerCase();
+  return "lbl--" + l;
 }
 function trackClass(p: any) {
   return p.track === "desk" ? "track--desk" : "track--don";
@@ -180,12 +190,23 @@ function avStyle(id: string) {
 .card__top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .av { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #22180a; font-size: .8rem; flex: none; }
 .card__who { font-size: .86rem; color: var(--ink); font-weight: 600; }
-.card__cat { margin-left: auto; font-family: var(--mono); font-size: .62rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .05em; border: 1px solid var(--line-soft); padding: 3px 8px; border-radius: 999px; }
-.card__save { background: none; border: none; color: var(--ink-faint); cursor: pointer; padding: 4px; display: flex; }
+.card__label { font-family: var(--mono); font-size: .6rem; text-transform: uppercase; letter-spacing: .05em; padding: 3px 8px; border-radius: 999px; }
+.card__label.lbl--newcomer { color: var(--info); border: 1px solid rgba(126,155,224,.4); }
+.card__label.lbl--delivered { color: var(--affirm); border: 1px solid rgba(100,220,170,.4); }
+.card__label.lbl--veteran { color: var(--gold-300); border: 1px solid var(--gold-600); }
+.card__label.lbl--flagged { color: var(--negate); border: 1px solid rgba(255,100,100,.4); }
+.card__save { margin-left: auto; background: none; border: none; color: var(--ink-faint); cursor: pointer; padding: 4px; display: flex; }
 .card__save svg { width: 18px; height: 18px; }
-.card__save:hover { color: var(--gold-300); }
-.card__save.on { color: var(--gold-300); }
-.card__cat + .card__save { margin-left: 0; }
+.card__save:hover, .card__save.on { color: var(--gold-300); }
+
+.badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-family: var(--mono); padding: 4px 10px; border-radius: 999px; }
+.cat--production { background: rgba(168,132,47,.12); color: #D9B871; border: 1px solid rgba(168,132,47,.4); }
+.cat--publicgood { background: rgba(100,220,170,.10); color: #8FE0C0; border: 1px solid rgba(100,220,170,.35); }.track--don { background: rgba(201,168,76,.12); color: var(--gold-300); border: 1px solid var(--gold-600); }
+.track--desk { background: rgba(126,155,224,.12); color: var(--info); border: 1px solid rgba(126,155,224,.4); }
+
+.i-heart, .i-cmt, .i-bolt { width: 13px; height: 13px; vertical-align: -2px; margin-right: 4px; }
+.i-bolt { color: var(--gold-300); }
 .card__title { font-family: var(--display); font-size: 1.3rem; font-weight: 700; margin: 0 0 6px; line-height: 1.2; }
 .card__snip { color: var(--ink-dim); font-size: .92rem; margin: 0 0 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .track { display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-family: var(--mono); padding: 4px 10px; border-radius: 999px; margin-bottom: 14px; }
