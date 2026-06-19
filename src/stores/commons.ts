@@ -27,7 +27,9 @@ export type Milestone = {
   description: string;
   xorAmount: string;
   timeline: string;
-  evidence?: string;          // proof that releases this milestone (underwriting)
+  evidence?: string;              // the PROMISE — "evidence you'll present" (set at creation)
+  deliveredEvidence?: string;     // the ACTUAL evidence submitted at delivery (the claim)
+  deliveredAt?: string | null;    // when the proposer marked it delivered
   completed: boolean;
   completedAt: string | null;
   xorBurned: string;
@@ -587,11 +589,9 @@ export const useCommonsStore = defineStore("commons", () => {
     const proposal = proposals.value.find((p) => p.id === proposalId);
     if (!proposal) return false;
     if (proposal.status !== "funded") return false;
-    if (!proposal.panelMembers.includes(accountId) && !isOperator.value) return false;
-
+   if (!proposal.panelMembers.includes(accountId) && !isOperator.value) return false;
     const milestone = proposal.milestones.find((m) => m.id === milestoneId);
     if (!milestone || milestone.completed) return false;
-
     // Calculate burn — 1% of tranche
     const tranche = parseFloat(milestone.xorAmount);
     const burn = (tranche * COMMONS_CONFIG.MILESTONE_BURN_PERCENT) / 100;
@@ -623,6 +623,24 @@ export const useCommonsStore = defineStore("commons", () => {
       `Burned: ${burn.toFixed(4)} XOR. Received: ${received.toFixed(4)} XOR.`
     );
 
+    return true;
+  };
+  // Proposer marks their own chapter delivered + submits actual evidence.
+  // This is a CLAIM on the public record — NOT a trustless verification.
+  const markChapterDelivered = (proposalId: string, milestoneId: string, evidence: string): boolean => {
+    const proposal = proposals.value.find((p) => p.id === proposalId);
+    if (!proposal) return false;
+    if (proposal.proposerAccountId !== currentAccountId.value) return false;
+    const milestone = proposal.milestones.find((m) => m.id === milestoneId);
+    if (!milestone || milestone.completed) return false;
+    if (!evidence.trim()) return false;
+    milestone.deliveredEvidence = evidence.trim();
+    milestone.deliveredAt = new Date().toISOString();
+    milestone.completed = true;
+    milestone.completedAt = new Date().toISOString();
+    if (proposal.milestones.every((m) => m.completed)) {
+      proposal.status = "complete";
+    }
     return true;
   };
 // ── Reputation ───────────────────────────────────────────────────────────
@@ -734,7 +752,7 @@ export const useCommonsStore = defineStore("commons", () => {
     const flagged = theirs.some((p) => p.status === "rejected"); // placeholder; real dispute flag later
     if (flagged) return "Flagged";
     if (completed >= 3) return "Veteran";
-    if (completed >= 1) return "Delivered";
+    if (completed >= 1) return "Proven";
     return "Newcomer";
   };
 
@@ -797,7 +815,7 @@ export const useCommonsStore = defineStore("commons", () => {
     setActiveProposal, addMilestone, removeMilestone,
     resetDraft, submitProposal, castSignal,
     postDiscussion, submitAmendment, submitParliamentBrief, submitParliamentRemarks, reviseAndResubmit,
-   advanceToSortition, castPanelVote, confirmMilestone,
+    advanceToSortition, castPanelVote, confirmMilestone, markChapterDelivered,
 
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,

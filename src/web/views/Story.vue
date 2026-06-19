@@ -56,7 +56,7 @@
       </div>
     </section>
 
-    <!-- CHAPTERS -->
+  <!-- CHAPTERS -->
     <section class="sec">
       <h2>The chapters</h2>
       <p v-if="!p.milestones || p.milestones.length === 0" class="muted">No chapters yet.</p>
@@ -66,11 +66,24 @@
         </div>
         <div class="ch__b">
           <h4>{{ m.description }}</h4>
-          <div class="ch__meta">{{ m.xorAmount }} XOR · {{ m.timeline || "—" }}</div>
-          <div v-if="m.evidence" class="ch__ev">Evidence: {{ m.evidence }}</div>
+          <div class="ch__meta">{{ m.xorAmount }} XOR · due {{ m.timeline || "—" }}</div>
+
+          <!-- the promise -->
+          <div v-if="m.evidence" class="ch__ev"><span class="ch__evlab">Evidence to present:</span> {{ m.evidence }}</div>
+
+          <!-- the delivered claim -->
+          <div v-if="m.completed && m.deliveredEvidence" class="ch__ev ch__ev--delivered">
+            <span class="ch__evlab">Evidence presented:</span> {{ m.deliveredEvidence }}
+          </div>
+
+          <!-- proposer-only: submit evidence & mark delivered (own proposal, current chapter) -->
+          <div v-if="isMine && !m.completed && i === firstIncomplete" class="ch__deliver">
+            <textarea v-model="deliverText" rows="2" placeholder="Present the actual evidence this chapter is done (link, receipt, photo description...)"></textarea>
+            <button class="ch__deliverbtn" :disabled="!deliverText.trim()" @click="submitDelivery(m.id)">Submit evidence &amp; mark delivered</button>
+          </div>
         </div>
         <span class="ch__st" :class="m.completed ? 'st-done' : (i === firstIncomplete ? 'st-now' : 'st-up')">
-          {{ m.completed ? "Verified" : (i === firstIncomplete ? "In progress" : "Upcoming") }}
+          {{ m.completed ? "Evidence submitted" : (i === firstIncomplete ? "In progress" : "Upcoming") }}
         </span>
       </div>
     </section>
@@ -160,6 +173,13 @@ function shortId(id?: string) {
   if (!id) return "Unknown";
   return id.length > 16 ? id.slice(0, 8) + "…" + id.slice(-4) : id;
 }
+const deliverText = ref("");
+const isMine = computed(() => p.value && p.value.proposerAccountId === commons.currentAccountId);
+function submitDelivery(milestoneId: string) {
+  if (!p.value || !deliverText.value.trim()) return;
+  const ok = commons.markChapterDelivered(p.value.id, milestoneId, deliverText.value.trim());
+  if (ok) deliverText.value = "";
+}
 function initials(id?: string) { return (id || "?").slice(0, 2).toUpperCase(); }
 function avStyle(id?: string) {
   const colors = ["#C9A84C", "#7E9BE0", "#64DCAA", "#E4C77A", "#A8842F"];
@@ -180,7 +200,7 @@ function avStyle(id?: string) {
 .sd__name { display: inline-flex; align-items: center; gap: 8px; }
 .sd__label { font-family: var(--mono); font-size: .58rem; text-transform: uppercase; letter-spacing: .05em; padding: 2px 7px; border-radius: 999px; }
 .sd__label.lbl--newcomer { color: var(--info); border: 1px solid rgba(126,155,224,.4); }
-.sd__label.lbl--delivered { color: var(--affirm); border: 1px solid rgba(100,220,170,.4); }
+.sd__label.lbl--proven { color: var(--affirm); border: 1px solid rgba(100,220,170,.4); }
 .sd__label.lbl--veteran { color: var(--gold-300); border: 1px solid var(--gold-600); }
 .sd__label.lbl--flagged { color: var(--negate); border: 1px solid rgba(255,100,100,.4); }
 .sd__chap { color: var(--ink-dim); font-size: .82rem; }
@@ -225,6 +245,13 @@ function avStyle(id?: string) {
 .ch__meta { font-size: .78rem; color: var(--ink-faint); margin-bottom: 6px; font-family: var(--mono); }
 .ch__ev { font-size: .82rem; color: var(--ink-dim); background: var(--navy-900); border-left: 2px solid var(--gold-600); padding: 8px 12px; border-radius: 0 var(--r-sm) var(--r-sm) 0; overflow-wrap: anywhere; }
 .ch__st { font-size: .72rem; font-family: var(--mono); padding: 2px 8px; border-radius: 999px; align-self: flex-start; }
+.ch__evlab { color: var(--ink-faint); font-weight: 600; }
+.ch__ev--delivered { border-left-color: var(--affirm); }
+.ch__deliver { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.ch__deliver textarea { width: 100%; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 9px 11px; color: var(--ink); font-family: inherit; font-size: .88rem; resize: vertical; }
+.ch__deliver textarea:focus { outline: none; border-color: var(--gold-600); }
+.ch__deliverbtn { align-self: flex-start; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 8px 14px; font-weight: 700; font-size: .84rem; cursor: pointer; }
+.ch__deliverbtn:disabled { opacity: .45; cursor: not-allowed; }
 .st-done { background: rgba(100,220,170,.14); color: var(--affirm); }
 .st-now { background: rgba(201,168,76,.14); color: var(--gold-300); }
 .st-up { background: var(--line-soft); color: var(--ink-faint); }

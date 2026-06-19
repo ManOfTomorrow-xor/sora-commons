@@ -52,7 +52,8 @@
             <div class="ms__head"><span class="ms__tag">Chapter {{ i + 1 }}</span><button v-if="commons.draftMilestones.length > 1" type="button" class="ms__rm" @click="commons.removeMilestone(i)">Remove</button></div>
             <input v-model="m.description" type="text" placeholder="What gets delivered in this chapter?" />
             <div class="ms__grid"><input v-model="m.xorAmount" type="number" min="0" placeholder="XOR amount" /><label class="ms__date"><span>Evidence due by</span><input v-model="m.timeline" type="date" :min="minDate(i)" /></label></div>
-            <textarea v-model="m.evidence" rows="2" placeholder="Evidence that proves this chapter is done"></textarea>
+            <label class="ms__evlabel">Evidence you'll present</label>
+            <textarea v-model="m.evidence" rows="2" placeholder="What proof will you show when this chapter is done? (e.g. receipts, photos, a working link)"></textarea>
             </div>
           <button type="button" class="ms__add" @click="commons.addMilestone()">+ Add chapter</button>
         </div>
@@ -188,6 +189,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--gold-600); }
 .ms__date input { width: 100%; }
 .ms__date input::-webkit-calendar-picker-indicator { filter: invert(1) sepia(1) saturate(3) hue-rotate(5deg); opacity: .7; cursor: pointer; }
 .ms__date input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+.ms__evlabel { font-size: .7rem; color: var(--ink-faint); }
 .tally { font-family: var(--mono); font-size: .82rem; color: var(--ink-dim); margin-top: 12px; }
 .tally--bad { color: var(--negate); }
 .bar { position: sticky; bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 14px; background: rgba(11,18,32,.92); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 16px 20px; }

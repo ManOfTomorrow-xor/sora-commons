@@ -370,3 +370,13 @@ record (in-memory). The challenge/flag layer comes with the backend.
 - VERDICT: only viable LATER, as an incentive layer ON TOP of a proven challenge/adjudication
   mechanism, with anti-abuse safeguards (stake-to-accuse, false-claim penalties). NOT a launch
   feature. Does NOT replace the base verification model above.
+
+  [VERIFICATION STATUS LABELS — progression (build fully with backend)]
+- Chapter evidence submitted, challenge window OPEN -> "Delivered" (honest: claim made, window open).
+- Window closes (e.g. 7 days) with no successful challenge -> "Confirmed" (stronger; stood unchallenged).
+  NOTE: use "Confirmed"/"Unchallenged", NOT "Verified" — silence isn't proof; "Verified" overclaims
+  for an optimistic system. Stay honest about what the window actually establishes.
+- Challenged + upheld -> "Disputed"/"Challenged".
+- CARD badge: "✓ Delivered" while windows open; "✓ Confirmed" once all closed cleanly.
+- BUILD: only "Delivered" buildable now (in-memory claim). The window timer, flagging, and the
+  Delivered->Confirmed graduation need the SHARED BACKEND (time-based state + multi-user flags).

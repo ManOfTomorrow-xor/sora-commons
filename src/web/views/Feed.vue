@@ -50,8 +50,12 @@
           </div>
 
           <div class="prog">
-            <div class="prog__lab"><span>{{ chapterText(p) }}</span><span>{{ pct(p) }}%</span></div>
-            <div class="prog__bar"><div class="prog__fill" :style="{ width: pct(p) + '%' }"></div></div>
+            <div class="prog__lab">
+              <span v-if="p.status === 'complete'" class="prog__done">✓ Delivered</span>
+              <span v-else>{{ chapterText(p) }}</span>
+              <span>{{ pct(p) }}%</span>
+            </div>
+            <div class="prog__bar"><div class="prog__fill" :class="{ 'prog__fill--done': p.status === 'complete' }" :style="{ width: pct(p) + '%' }"></div></div>
           </div>
 
           <div class="eng">
@@ -192,7 +196,7 @@ function avStyle(id: string) {
 .card__who { font-size: .86rem; color: var(--ink); font-weight: 600; }
 .card__label { font-family: var(--mono); font-size: .6rem; text-transform: uppercase; letter-spacing: .05em; padding: 3px 8px; border-radius: 999px; }
 .card__label.lbl--newcomer { color: var(--info); border: 1px solid rgba(126,155,224,.4); }
-.card__label.lbl--delivered { color: var(--affirm); border: 1px solid rgba(100,220,170,.4); }
+.card__label.lbl--proven { color: var(--affirm); border: 1px solid rgba(100,220,170,.4); }
 .card__label.lbl--veteran { color: var(--gold-300); border: 1px solid var(--gold-600); }
 .card__label.lbl--flagged { color: var(--negate); border: 1px solid rgba(255,100,100,.4); }
 .card__save { margin-left: auto; background: none; border: none; color: var(--ink-faint); cursor: pointer; padding: 4px; display: flex; }
@@ -216,6 +220,8 @@ function avStyle(id: string) {
 .prog__lab { display: flex; justify-content: space-between; font-size: .74rem; color: var(--ink-faint); margin-bottom: 5px; }
 .prog__bar { height: 5px; background: var(--navy-700); border-radius: 99px; overflow: hidden; }
 .prog__fill { height: 100%; background: linear-gradient(90deg, var(--gold-500), var(--gold-300)); border-radius: 99px; }
+.prog__fill--done { background: linear-gradient(90deg, var(--affirm), #8FE0C0); }
+.prog__done { color: var(--affirm); font-weight: 700; }
 .eng { display: flex; align-items: center; gap: 18px; font-size: .82rem; color: var(--ink-faint); }
 .eng span { display: inline-flex; align-items: center; gap: 5px; }
 .eng .bolts { color: var(--gold-300); }
