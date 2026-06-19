@@ -313,3 +313,60 @@ CARD — LATER (step 6 / backend):
   history), (3) disputes (real Flagged state).
 - TODO when data exists: revisit thresholds — "Veteran" should likely weigh completion RATE,
   time active, clean disputes (delivery-weighted), not just raw count of 3.
+
+  [Story page — fixes]
+NOW:
+- Fix text overflow: overflow-wrap:anywhere on story/facts/evidence; + sensible char caps on form fields.
+- Category -> color-coded badge (match card); add proposer label badge (Newcomer) to hero.
+- Rework action bar: Donate = primary (big gold), demote Like/Boost/Save/Follow to tidy icon row
+  (declutter; matches crowdfunding/social platforms). Fixes boost "0" alignment.
+- Center the "0" in backers/followers totals.
+- Relabel evidence field in Compose -> "Evidence you'll present" (promise framing).
+- Add proposer-only "Mark chapter complete" control on own proposals (in-memory now via confirmMilestone).
+- Fix comments: relax postDiscussion stage-gate so anyone can comment on any story (social, not deliberation-gated).
+LATER (backend/files):
+- Actual evidence UPLOAD at completion + "promised vs delivered" display + persistence.
+- Comment persistence across sessions/users.
+
+1. Quick CSS/alignment — overflow, centering, totals ✅ DONE
+2. Category + proposer label badges on hero (match the card)
+3. Comments fix (relax postDiscussion stage-gate)
+4. Evidence relabel ("Evidence you'll present") + proposer-only "Mark chapter complete" control
+5. Action bar -> sticky right support rail (Donate primary), fixes layout + clutter — LAST
+
+# ============================================================
+# VERIFICATION MODEL (decided — Option B: optimistic challenge window)
+# ============================================================
+Commons is the small-project layer, so verification is HONEST and lightweight — it does NOT
+claim trustless proof that real-world work happened (impossible — oracle problem). It provides:
+- TRANSPARENCY: proposer submits evidence for a chapter; it's on the permanent public record.
+- OPTIMISTIC CHALLENGE WINDOW: when a chapter's evidence is submitted, it enters a public review
+  window (e.g. ~7 days) where ANYONE can flag it. No flag -> chapter is "confirmed (unchallenged)."
+  Flagged -> escalates to scrutiny/dispute. Silence = acceptance. Doesn't require active verifiers
+  in the common case, but gives a real chance to object.
+- REPUTATION CONSEQUENCES: a proposer's claim+evidence history is permanent and visible; bad
+  actors accumulate a visible record.
+UI MUST BE CLEAR/HONEST about what a status means:
+- Don't show "Verified" as if guaranteed-true. Use honest language like "Evidence submitted",
+  "Unchallenged" / "Confirmed (unchallenged)", "Challenged / Disputed".
+- Make the challenge window + "flag this" visible so the optimistic model is transparent.
+- Real money verification lives at the TREASURY DESK, not here.
+NOTE: full challenge-window mechanics need the SHARED BACKEND (persistent state) — build then.
+For now (frontend): proposer can submit evidence + "mark chapter complete" as a CLAIM on the
+record (in-memory). The challenge/flag layer comes with the backend.
+
+# ============================================================
+# FRAUD-BOUNTY IDEA — ⚠️ RISKY / PARKED (do NOT build at launch)
+# ============================================================
+- Idea (Nick): take ~5% of donations/boosts -> 2.5% burn + 2.5% to a "treasury pot"; pay a small
+  reward to anyone who catches fraud, to incentivize policing bad actors.
+- ⚠️ FLAGGED RISKY because:
+  * Changes core split (proposer gets 95%, not 99%) — a real tax on proposers; must be deliberate/honest.
+  * REQUIRES reliable adjudication of fraud claims — without it: false accusations, extortion
+    ("pay or I flag you"), collusion to farm bounties. A bounty without trustworthy judgment makes
+    fraud WORSE, not better.
+  * Standing pot needs custody + governance (who controls/sizes/pays it) — attack surface.
+  * Regulatory: fee-collecting pot + payouts looks like a managed financial mechanism — needs legal review.
+- VERDICT: only viable LATER, as an incentive layer ON TOP of a proven challenge/adjudication
+  mechanism, with anti-abuse safeguards (stake-to-accuse, false-claim penalties). NOT a launch
+  feature. Does NOT replace the base verification model above.
