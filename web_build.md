@@ -449,3 +449,11 @@ TEETH / HONESTY:
 BUILD NOTE: all of this needs the SHARED BACKEND (persistent state, timers, multi-user flags,
 notifications). Frontend now only shows "Delivered" (the proposer's claim). Window/flags/
 cadence/Confirmed-graduation come with the backend.
+
+[Compose — validation UX (TODO, focused pass)]
+- NOW: sticky bar shows a single "what's missing" message (todo computed) + disables Post.
+  Functional, but passive — doesn't point to the specific bad field.
+- BETTER (later pass): inline field-level validation — red border + message on the specific
+  empty/invalid field, so the user sees exactly where the problem is. Standard good-form pattern.
+- Do this as a focused pass, ideally alongside REAL submission + money-code validation (where
+  rigorous field-level validation matters most). Avoid building twice against the demo flow.

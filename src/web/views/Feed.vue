@@ -63,9 +63,9 @@
           </div>
 
           <div class="eng">
-            <span><svg class="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21z"/></svg>{{ p.likes || 0 }}</span>
+            <span><svg class="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5C12 20.5 3.5 15 3.5 8.8 3.5 6 5.7 4 8.2 4c1.7 0 3 .9 3.8 2.2C12.8 4.9 14.1 4 15.8 4c2.5 0 4.7 2 4.7 4.8C20.5 15 12 20.5 12 20.5z"/></svg>{{ p.likes || 0 }}</span>
             <span class="bolts"><svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>{{ p.boostCount || 0 }}</span>
-            <span><svg class="i-cmt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.5A8 8 0 1 1 21 12z"/></svg>{{ (p.discussionPosts && p.discussionPosts.length) || 0 }}</span>
+            <span><svg class="i-cmt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>{{ (p.discussionPosts && p.discussionPosts.length) || 0 }}</span>
             <span class="donated">{{ p.totalDonated || 0 }} XOR donated</span>
           </div>
         </article>
@@ -230,7 +230,7 @@ function avStyle(id: string) {
 .prog__done { color: var(--affirm); font-weight: 700; }
 .eng { display: flex; align-items: center; gap: 18px; font-size: .82rem; color: var(--ink-faint); }
 .eng span { display: inline-flex; align-items: center; gap: 5px; }
-.eng .bolts { color: var(--gold-300); }
+.eng .bolts { color: var(--ink-faint); }
 .eng .donated { margin-left: auto; font-family: var(--mono); color: var(--gold-300); }
 
 .rail { display: flex; flex-direction: column; gap: 16px; }
