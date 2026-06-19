@@ -26,7 +26,7 @@
         </div>
         <div class="field"><span class="field__label">Funding track</span>
           <div class="cats">
-            <button type="button" class="cat cat--on"><strong>⚡ Seeking donations</strong><span>Community supports your work directly. Available now.</span></button>
+            <button type="button" class="cat cat--on"><strong><svg class="track__ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="7" rx="7" ry="3"/><path d="M5 7v5c0 1.7 3.1 3 7 3s7-1.3 7-3V7"/><path d="M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/></svg> Seeking donations</strong><span>Community supports your work directly. Available now.</span></button>
             <button type="button" class="cat cat--disabled" disabled><strong>🏛 Treasury Desk review</strong><span>Unlocks once the Desk is reviewing your proposal and issues a signal. Coming soon.</span></button>
           </div>
         </div>
@@ -154,6 +154,7 @@ function onPost() {
 </script>
 
 <style scoped>
+.track__ic { width: 15px; height: 15px; vertical-align: -2px; }
 .compose { display: flex; flex-direction: column; gap: 16px; max-width: 760px; margin: 0 auto; width: 100%; }
 .head h1 { font-family: var(--display); font-size: 2rem; font-weight: 800; letter-spacing: -.02em; margin: 0 0 6px; }
 .sub { color: var(--ink-dim); margin: 0; line-height: 1.6; }

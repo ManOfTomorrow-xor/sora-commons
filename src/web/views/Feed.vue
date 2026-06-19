@@ -46,7 +46,11 @@
 
           <div class="badges">
             <span v-if="p.category" class="badge" :class="catBadgeClass(p.category)">{{ catLabel(p.category) }}</span>
-            <span class="badge" :class="trackClass(p)">{{ trackLabel(p) }}</span>
+            <span class="badge" :class="trackClass(p)">
+              <svg v-if="p.track === 'desk'" class="badge__ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg>
+             <svg v-else class="badge__ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="7" rx="7" ry="3"/><path d="M5 7v5c0 1.7 3.1 3 7 3s7-1.3 7-3V7"/><path d="M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/></svg>
+              {{ trackLabel(p) }}
+            </span>
           </div>
 
           <div class="prog">
@@ -147,7 +151,7 @@ function catBadgeClass(c: string) {
   return c === "production" ? "cat--production" : "cat--publicgood";
 }
 function trackLabel(p: any) {
-  return p.track === "desk" ? "🏛 Under Treasury Desk review" : "⚡ Seeking donations";
+  return p.track === "desk" ? "Under Treasury Desk review" : "Seeking donations";
 }
 function labelClass(p: any) {
   const l = commons.proposerLabel(p.proposerAccountId).toLowerCase();
@@ -204,6 +208,7 @@ function avStyle(id: string) {
 .card__save:hover, .card__save.on { color: var(--gold-300); }
 
 .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.badge__ic { width: 13px; height: 13px; flex: none; }
 .badge { display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-family: var(--mono); padding: 4px 10px; border-radius: 999px; }
 .cat--production { background: rgba(168,132,47,.12); color: #D9B871; border: 1px solid rgba(168,132,47,.4); }
 .cat--publicgood { background: rgba(100,220,170,.10); color: #8FE0C0; border: 1px solid rgba(100,220,170,.35); }.track--don { background: rgba(201,168,76,.12); color: var(--gold-300); border: 1px solid var(--gold-600); }
@@ -211,6 +216,7 @@ function avStyle(id: string) {
 
 .i-heart, .i-cmt, .i-bolt { width: 13px; height: 13px; vertical-align: -2px; margin-right: 4px; }
 .i-bolt { color: var(--gold-300); }
+.eng .i-bolt { color: inherit; }
 .card__title { font-family: var(--display); font-size: 1.3rem; font-weight: 700; margin: 0 0 6px; line-height: 1.2; }
 .card__snip { color: var(--ink-dim); font-size: .92rem; margin: 0 0 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .track { display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-family: var(--mono); padding: 4px 10px; border-radius: 999px; margin-bottom: 14px; }

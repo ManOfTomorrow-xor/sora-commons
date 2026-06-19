@@ -306,6 +306,7 @@ export const useCommonsStore = defineStore("commons", () => {
   const resetDraft = () => {
     draftTitle.value = "";
     draftDescription.value = "";
+    draftStory.value = "";
     draftCategory.value = "";
     draftProductiveClaim.value = "";
     draftInputs.value = "";
