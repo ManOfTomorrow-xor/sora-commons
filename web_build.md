@@ -7,453 +7,265 @@ cd /mnt/c/Users/ntorr/iroha-demo-javascript
 npx vite --config vite.config.ts      # http://localhost:5174
 # after config changes: rm -rf node_modules/.vite, then hard-reload (Ctrl+Shift+R)
 # Paste big files directly into VS Code, NOT terminal heredoc (heredoc corrupts files).
+# One small step at a time. Commit at each checkpoint.
 
 # ============================================================
 # THE VISION (DECIDED)
 # ============================================================
-## WHAT COMMONS IS
 A public place where every proposal is a STORY you can follow start to finish. Proposers tell
-their story, log verifiable milestones (chapters), connect with people. People FOLLOW/LIKE/
-COMMENT/BOOST/DONATE. The permanent public record of productive work the rest of SORA (incl. a
-future Treasury Desk) reads from — useful even before the Desk exists.
-- Sortition repurposed: NOT funding votes — ADJUDICATES disputes about whether work happened.
+their story, log verifiable milestones (chapters), connect with people via FOLLOW/LIKE/COMMENT/
+BOOST/DONATE. The permanent public record of productive work the rest of SORA (incl. a future
+Treasury Desk) reads from — useful even before the Desk exists.
+- Sortition repurposed: NOT funding votes — adjudicates disputes (but see DISPUTE MODEL: Commons
+  itself does NOT issue verdicts; formal adjudication is the Desk's job).
 - IDENTITY: Commons = enabler of SMALLER projects + universal proposer tracker. Large funding
   routes to the Treasury Desk; Commons holds the story either way.
 
-## BURN MODEL
-- Burn rides on real value flow, never a toll. Free to post/follow/like/comment.
-- Burn comes from DEMAND side (backers/amplifiers), never SUPPLY (proposers never charged).
-- DONATE: supporter -> proposer. 1% burns, 99% to proposer. Connected accounts only.
-  Direct tip now; milestone-escrow later (default NO escrow — stays small-project layer).
-- BOOST: flat amount (TBD), a cut burns. Ranks by NUMBER of boosts, not XOR spent. Bolts 1->4.
+# ============================================================
+# BURN MODEL (DECIDED)
+# ============================================================
+- Burn rides on real value flow, never a toll / never an end in itself. Free to post/follow/like/comment.
+- Burn comes from DEMAND side (backers), never SUPPLY (proposers never charged).
+- DONATE: supporter -> proposer. 1% burns, 99% to proposer. Connected accounts only. Direct tip
+  now; milestone-escrow later (default NO escrow — stays small-project layer). Donations are ALSO
+  the conviction signal (bigger donors = higher conviction; "X XOR raised from Y backers").
+- BOOST: FREE but SCARCE (see BOOST MODEL). Ranks by NUMBER of boosts, not XOR. NOT purchasable.
 - LIKE: free instant warmth (heart).
+- (See "BOOST MODEL" for why buy-boost-packages / conviction-burn were DECLINED.)
 
-## SOCIAL LAYER ("warmth in service of real work")
-TAKE: feed/spotlight, following, threaded comments (proposer replies highlighted), real
-momentum (bolts/donations/followers/progress), profiles.
+# ============================================================
+# BOOST MODEL (DECIDED — free but scarce)
+# ============================================================
+- Boosts are FREE but SCARCE — each user gets a limited allotment (~3-5/week, tune later) that
+  replenishes. One boost per proposal. Ranks by boost COUNT.
+- Why scarce: a free UNLIMITED boost carries no signal (boosting everything = meaningless).
+  Scarcity makes each boost a deliberate choice -> real signal. Free + equal allotment -> isonomia
+  intact, no pay-to-rank, no whales. (Original "5 boosters" instinct — kept, but withOUT selling more.)
+- Optional later: decay (fresh rankings) + light reputation-weighting (resist sockpuppets).
+- Needs backend (per-user allotment + replenishment). Design locked; build later.
+- DECLINED (buy-boost-packages / conviction-burn): purchasable boosts break isonomia (buying rank);
+  conviction-burn cannibalizes donations (100% gone, proposer gets nothing) + violates "burn rides
+  on real value flow." Keep burn as a byproduct of donations only.
+
+# ============================================================
+# SOCIAL LAYER ("warmth in service of real work")
+# ============================================================
+TAKE: feed/spotlight, following, threaded comments (proposer replies highlighted), real momentum
+(bolts/donations/followers/progress), profiles.
 LEAVE: engagement algorithms, dopamine loops, vanity metrics, pay-to-rank.
 
-## COMMONS <-> TREASURY DESK
+# ============================================================
+# COMMONS <-> TREASURY DESK
+# ============================================================
 Commons = front door + record for ALL proposals. Small efforts seek donations here; large ones
-route to the Desk. Every card/story shows a TRACK tag: "Seeking donations" vs "Under Treasury
-Desk review" + outcome states. Not competitors — Commons is the record + small-tip venue; Desk
-is the large-scale allocation layer that reads from it.
+route to the Desk. Every card/story shows a TRACK tag: "Seeking donations" vs "Under Treasury Desk
+review" + outcome states. Not competitors — Commons is the record + small-tip venue; Desk is the
+large-scale allocation + real-money verification layer that reads from it.
+
+## TRACK TAG / TREASURY DESK STATUS (decided)
+- "Seeking donations" = default/only track now (Desk doesn't exist yet). Store stamps track:"donations".
+- "Under Treasury Desk review" is NOT self-claimable and NOT manually dished out by the Desk.
+  When the Desk reviews a proposal it produces a SIGNAL (verifiable attestation/credential, mechanism
+  TBD when Desk built); the PROPOSER obtains it and presents it to unlock the Desk track; system
+  VERIFIES it. Evidence-gated, like milestones. No Desk bottleneck.
+- COMPOSE NOW: both shown; "Treasury Desk review" VISIBLE but DISABLED ("coming"). Donations only selectable.
 
 # ============================================================
-# PAGES (DECIDED)
+# PAGES
 # ============================================================
-NAV (~5): Feed / Explore / [Post] / Treasury / About. Profile, Story, Archive(under Explore),
+NAV (~5): Feed / Explore / [Post button] / Treasury / About. Profile, Story, Archive(under Explore),
 Citizens = contextual/secondary.
 
-## FEED
-Single main column, generous spacing. Default sort = MIX (recency+activity). Filters: Newest/
-Most boosted/Most active/Category. STORY CARD (loud->quiet): avatar+name+category tag; BIG
-title + 1 story line; track tag; slim milestone bar; muted engagement row (likes/bolts/comments/
-donated). "Post your work" CTA -> Compose.
-- TODO: Top Boosted = side panel (desktop: top of right rail; mobile: compact strip atop feed),
-  NOT a band across the feed.
+## FEED (DONE)
+Single main column. Sort chips (Active/Newest/Most boosted). STORY CARD: avatar+shortId+proposer
+label badge + color-coded category badge + bookmark; BIG title + 1-line summary; track badge;
+milestone progress bar (green "✓ Delivered" + green bar when complete); muted engagement row
+(like/⚡boost/comment/donated). Top Boosted = right rail (desktop) / strip (mobile), only if boostCount>0.
+"The Commons today" stats + "Tell your story" CTA in rail.
 
-## STORY PAGE (heart)
-1) HERO: title, proposer(->profile), category, stage, track tag; engagement bar Like/Boost/
-DONATE + totals (donated, burned, backers, followers, Follow); progress.
-2) STORY: narrative + ATTACHED FILES. 3) FACTS: structured claim fields. 4) CHAPTERS:
-milestones (desc/XOR/timeline/EVIDENCE/status). 5) CONVERSATION: threaded, proposer replies
-highlighted, softened sentiment tag "I'd back this"/"I have concerns". Donate/Boost/Like in
-header AND bottom.
+## STORY PAGE (DONE)
+Full-width hero (color-coded category badge, title, proposer->profile + label badge, track tag).
+Two-column: MAIN (story narrative+files, FACTS grid [boxed], ACCOUNTABILITY section [risk/failure,
+blue-accented, hides when empty], CHAPTERS, CONVERSATION) + STICKY SUPPORT RAIL (Donate primary,
+clean SVG icon row like/boost/save, +Follow, totals raised/burned/backers/followers). Mobile: rail
+reflows below content (full parity). Honest done-signals (green check-dot + tinted row + "✓ Evidence submitted").
+
+## COMPOSE (DONE)
+Story-first form: title, one-line summary (card), THE STORY (big narrative, gold border), file attach
+(placeholder), category, funding track (donations active / Desk disabled), facts, chapters
+(desc/XOR/"Evidence you'll present"/date picker "Evidence due by" w/ sequential validation), risk+
+public benefit. Centered. Gold "Post" button in desktop nav. Posts via submitProposal -> Story.
+
+## PROFILE (build next — step 4)
+Two facets, one page:
+- PUBLIC (anyone): avatar, bio, label, reputation, their posted proposals + outcomes, track record.
+- OWN (viewing self): set profile picture; totals DONATED + BOOSTED + BURNED-from-contributions;
+  SAVED/tracked proposals; My Drafts (drafts come w/ backend).
+- Reached by tapping a proposer. Picture upload needs storage (backend) — placeholder/generated avatar now.
 
 ## EXPLORE  Feed cards + filters/sort + search + Top Boosted. Archive = Active/Archive toggle.
-## PROFILE  Avatar, bio, totals, all their stories+outcomes, labels, reputation level. 
-## COMPOSE  Submit form + rich STORY narrative + FILE attachments. Button/FAB, not nav tab.
-## TREASURY  Burn record fed by real donations+boosts. Total burned, recent burns, why-burn.
+## TREASURY  Burn record fed by real donations. Total burned, recent burns, why-burn explainer.
 ## ABOUT  Philosophy/3Gi + "Built on SORA Nexus". "Follow the story of real work."
-## CITIZENS (light)  Citizen count + who's currently in sortition (dispute adjudication).
+## CITIZENS (light)  Citizen count + who's currently in sortition.
 
 # ============================================================
 # IDENTITY / REPUTATION / ANTI-FRAUD (DECIDED)
 # ============================================================
-- PROPOSER LABELS (every proposer, on card/story/profile): Newcomer / Delivered /
-  Veteran-Proven / Treasury Desk / Flagged-Disputed.
+- PROPOSER LABELS (every proposer, card/story/profile): Newcomer / Proven / Veteran / Treasury Desk
+  / Flagged. proposerLabel helper grades: completed>=3 Veteran, >=1 Proven, rejected=Flagged
+  (placeholder), else Newcomer. NOT yet meaningful (nothing completes proposals until verification
+  flow + backend exist; today everyone = Newcomer, correct). TODO when data exists: weight completion
+  RATE / time active / clean disputes, not raw count.
 - REPUTATION LEVEL (continuous, separate from labels): DELIVERY-WEIGHTED (verified milestones,
-  completion rate, clean disputes = heavy; donations/sentiment = light, capped). INVARIANT:
-  gates visibility/trust ONLY, NEVER weights a vote or sortition draw.
-- COMMENT SENTIMENT: "I'd back this"/"I have concerns" (softened, not bullish/bearish). Low
-  weight, favor verified-backer sentiment, guard brigading.
-- ANTI-FRAUD: small-project layer -> low stakes -> protection is TRANSPARENCY not escrow.
-  Permanent public track record. Honest UI: tips voluntary, not escrowed, check history.
-  Disputes can freeze remaining + mark fraud on record.
+  completion rate, clean disputes = heavy; donations/sentiment = light, capped). INVARIANT: gates
+  visibility/trust ONLY, NEVER weights a vote or sortition draw.
+- COMMENT SENTIMENT: "I'd back this"/"I have concerns" (softened). Low weight, favor verified-backer.
+- ANTI-FRAUD: small-project layer -> low stakes -> protection is TRANSPARENCY not escrow. Permanent
+  public record. Honest UI: tips voluntary, not escrowed, check history. (Real money protection =
+  escrow/bonds at the Desk.)
 
 # ============================================================
-# HERO REDESIGN (TODO for final)
+# VERIFICATION MODEL (DECIDED — optimistic challenge window)
 # ============================================================
-- Official Sora font (self-hosted, weights incl. ExtraBold 800).
-- KEEP descriptor "Follow the work being built on SORA" as headline.
-- Make MOTTO "Productive work burns true" shine: GOLD on "burns true", bigger/weighted,
-  possibly paired w/ flame + flicker (motion pass). Show Nick options.
+Honest + lightweight. Does NOT claim trustless proof real-world work happened (oracle problem).
+- Proposer submits evidence -> chapter "Delivered" (challenge window opens, ~7 days, countdown).
+- No concern by window close -> "Confirmed" (unchallenged). Use "Confirmed"/"Unchallenged", NEVER
+  "Verified" (silence isn't proof; overclaims).
+- Concern raised -> contested state; does NOT auto-graduate; proposer responds; both on record.
+- CARD badge: "✓ Delivered" while windows open; "✓ Confirmed" once all closed cleanly.
+- BUILD: only "Delivered" buildable now (in-memory claim via markChapterDelivered). Window timer,
+  flagging, Delivered->Confirmed graduation need the SHARED BACKEND.
+
+# ============================================================
+# DISPUTE / CHALLENGE WINDOW (DECIDED — validated vs Kickstarter)
+# ============================================================
+Major platforms deliberately do NOT adjudicate (can't tell honest failure from fraud). Backing =
+"support with risk," not a purchase. Commons follows this.
+CORE: the window is a REPUTATIONAL INTEGRITY mechanism — not fund-recovery (tips aren't escrowed),
+not truth-adjudication. Keeps "Confirmed" meaningful; surfaces concerns; issues NO verdicts.
+- FLAGGING: anyone can flag BUT must give a written reason. Weighted by source (verified backer >
+  random account). A single flag must NOT publicly brand a proposal — opens a concern + notifies
+  proposer to respond first; escalates to visible contested state only on stronger signal.
+- FRAMING (key): NO punitive "Disputed" scarlet letter (most small failures = honest inexperience,
+  not fraud; would punish honest small builders). Use NEUTRAL "concern raised / update requested."
+  REAL trust signal = update/evidence CADENCE, not flags. Show proposer activity (last update,
+  on-time vs overdue, responsiveness). SILENCE is the real red flag.
+- RESOLUTION: NO verdict on Commons. Transparency + proposer response, both permanent. Donors judge.
+  Formal adjudication only at the Desk (real money).
+- PROFILE MARK: track RESPONSIVENESS / SILENCE (behavioral, fair) — "went silent on a chapter" — NOT
+  a raw disputed-count.
+- TEETH: purely reputational. Does NOT stop reputation-indifferent hit-and-run — which is WHY Commons
+  stays small-stakes; real money + escrow/bonds = Desk.
+- UI MUST make risk explicit: supporting is voluntary + carries risk, like backing a project not buying.
+- Needs SHARED BACKEND (timers, multi-user flags, notifications).
+
+# ============================================================
+# FRAUD-BOUNTY IDEA — RISKY / PARKED (do NOT build at launch)
+# ============================================================
+- Idea: ~5% of donations -> 2.5% burn + 2.5% to a "treasury pot"; reward people who catch fraud.
+- RISKY: changes core split (proposer 95% not 99%); REQUIRES reliable fraud adjudication (without it:
+  false accusations / extortion / collusion to farm bounties — makes fraud worse); standing pot needs
+  custody + governance; regulatory (managed financial mechanism). Only viable LATER atop a proven
+  adjudication mechanism w/ anti-abuse safeguards. NOT launch.
 
 # ============================================================
 # STRATEGY (DECIDED)
 # ============================================================
 - LAUNCH: SORA MAINNET as clearly-labeled EARLY BUILD. Live: feed (post/follow/comment/like) +
-  DONATIONS. Money code (transfer + 1% burn + signing) tested EXHAUSTIVELY on Taira FIRST.
-  "Coming": disputes/sortition (needs citizens), Treasury Desk routing (needs Desk). Lock
-  official URL; keep token-scam warning. REGULATORY: Nick to check jurisdiction rules before
-  real donations (Claude not a lawyer — flagged).
-- INCENTIVES: NO airdrop-for-usage (security risk + attracts farmers + pollutes record).
-  Instead: real funnel to funding + founding-builder/supporter badges + white-glove onboarding
-  + great seed stories. IF token ever: reward VERIFIED DELIVERY, later, with legal counsel.
-- REPO: keep building in iroha-demo-javascript/testing. Public `sora-commons` repo stays EMPTY
-  until real code is runnable, then migrate. README drafted & saved.
+  DONATIONS. Money code tested EXHAUSTIVELY on Taira FIRST. "Coming": disputes/sortition, Desk routing.
+  Lock official URL; keep token-scam warning. REGULATORY: Nick checks jurisdiction rules before real
+  donations (Claude not a lawyer — flagged).
+- INCENTIVES: NO airdrop-for-usage (security risk + farmers + pollutes record). Instead: real funnel
+  to funding + founding-builder/supporter badges + white-glove onboarding + great seed stories. IF
+  token ever: reward VERIFIED DELIVERY, later, with legal counsel.
+- REPO: build in iroha-demo-javascript/testing. Public `sora-commons` repo stays EMPTY until real
+  code runnable, then migrate. README drafted & saved.
 - FONT: self-host official Sora (woff2 + OFL.txt required) in real app. Demo used Google Fonts.
+
+# ============================================================
+# MONEY CODE — DISCIPLINE (non-negotiable)
+# ============================================================
+- INTEGER/BigInt math only; never floating-point on currency. Compute in base units at token's exact
+  decimal precision (CONFIRM precision from chain, don't assume 18); format to decimal only for display.
+- 1% split computed in base units; burn + proposer portions sum EXACTLY to input.
+- Rigorous input validation (positive, >0, within balance, within precision, reject malformed/overflow).
+- Explicit confirmation showing exact amounts before signing. Handle every failure path.
+- TEST EXHAUSTIVELY ON TAIRA FIRST (edge amounts, failures, double-submit). Read back on-chain result.
+
+## DONATE MODAL (TODO)
+- Quick-picks (10/50/100/500) + manual amount input (any amount) + SUPPORT FRACTIONS (decimals;
+  matters as XOR rises). Quick-picks fill/sync field; typing deselects picks. Live 1% burn shown.
+- Validate positive/>0/within balance/within precision. (Boost is NOT XOR — no donate-style modal.)
+
+# ============================================================
+# ARCHITECTURE — FRONTEND / BACKEND / CHAIN
+# ============================================================
+- FRONTEND (building now, against in-memory store as stand-in): the Vue app.
+- SHARED BACKEND (before/at deploy): server + DB for ALL social data — stories, milestones, comments,
+  likes, boosts (+allotment/replenish), follows, saved, DRAFTS, cadence/responsiveness, challenge
+  windows. Needed because all users must see same data across devices. localStorage = dead end, skip.
+- SORA NEXUS CHAIN: source of truth for MONEY (donations, burns) + later disputes/sortition.
+Build path: frontend experience -> shared backend (makes it real) -> chain integration (money).
+
+# ============================================================
+# DEFERRED FEATURES (build once, properly)
+# ============================================================
+- DRAFTS: in SHARED BACKEND tied to account (NOT localStorage). "Save draft" + "My Drafts" on Profile.
+- EVIDENCE DEADLINE + OVERDUE FLAG: chapter due-date captured now; full overdue flag + evidence UPLOAD
+  + "promised vs delivered" display + persistence = later w/ backend + file storage. No half-version now.
+- FILE ATTACHMENTS: need storage (backend). Placeholder now.
+- LIKE / COMMENT persistence: currently in-memory (vanish on refresh) — real w/ backend.
+- PROPOSER DISPLAY NAME: cards show raw account id now; real name w/ Profile + backend.
+
+# ============================================================
+# END-STAGE POLISH PASSES (near the end, like i18n)
+# ============================================================
+- LIGHT MODE: via CSS-variable tokens. KEEP gold accent on warm off-white/cream (NOT stark white,
+  NOT gold->red). Red stays for danger. Invert neutrals. Light/dark toggle in top bar.
+- MOBILE PASS: full PARITY required (all actions + info; never punish phone users — most are mobile).
+  Currently reflows/stacks (functional); needs spacing/touch-target/type-scale polish.
+- FONT PASS: self-host official Sora everywhere; decide per-use which small labels stay JetBrains Mono.
+- HERO REDESIGN: keep descriptor headline; make motto "Productive work burns true" shine (GOLD on
+  "burns true", bigger/weighted, maybe flame + flicker).
+- MOTION pass: flame flicker (hero motto + Treasury) + burn pulse; reduced-motion safe.
+- COMPOSE VALIDATION UX: inline field-level errors (red border + message on the bad field), ideally
+  alongside real submission + money-code validation. (Now: passive "what's missing" bar — adequate.)
+- i18n: EN(default), ES, ZH, HI, AR(RTL), PT, RU, JA, FR. Translation files + switcher.
+- Button/icon polish pass: consistent refined button styling app-wide.
 
 # ============================================================
 # DONE / REUSABLE
 # ============================================================
 - CORS proxy (vercel.json + Vite proxy /taira,/minamoto); Vite config; browser bridge
   (irohaBrowserBridge.ts + nativeStub.ts — PROVEN Taira read: 25,000 XOR).
-- Shell src/web/ (index.html, main.ts, App.vue, tokens.css, assets/seal.png, flame.png).
-- Components: CountUp.vue, Flame.vue.
-- PAGES BUILT (to be REFRAMED to new direction): Overview, About, Proposals, Treasury,
-  Citizens, Submit.
-- Store commons.ts: underwriting-file fields + milestone.evidence + draft refs; discussionPosts
-  exists (reuse for comments).
-- DEMO: shareable single-file mockup built & shared as a link (community vision artifact).
+- Shell src/web/ (index.html, main.ts, App.vue [new nav + gold Post btn], tokens.css [+themed
+  scrollbars], assets/seal.png, flame.png). Components: CountUp.vue, Flame.vue.
+- BUILT (new direction): Feed.vue, Story.vue, Compose.vue. (Old Overview/About/Proposals/Treasury/
+  Citizens/Submit dormant, to be reframed/removed.)
+- Store commons.ts: underwriting fields + story + track + milestone.evidence/deliveredEvidence/
+  deliveredAt; savedProposals/isSaved/toggleSave; proposerLabel; markChapterDelivered; draft refs
+  (incl. draftStory, cleared in resetDraft). submitProposal stamps xorBurned "0" (free) + track "donations".
+  postDiscussion relaxed (anyone comments). DEMO_MODE: currentAccountId falls back to "demo.commons.test".
+- DEMO: shareable single-file mockup shared as community link (uses Google Fonts Sora everywhere).
 
 # ============================================================
-# PARKED / LATER
+# BUILD ORDER
 # ============================================================
-- PARKED: vote-to-fund, 5 XOR post fee, Signal=60% aye. Ref: proposal-underwriting-file-DRAFT.md.
-- SHARED BACKEND (at deploy): likes/comments/boosts/donations/follows/files need shared
-  persistence (in-memory = demo/one session only).
-- REAL ON-CHAIN WRITES (bridge TBD): donate, boost, milestone verify, dispute, faucet.
-- SORTITION COLD-START (Phase 1B): decision B (shrink panel); never relax deliberator-exclusion.
-- TOP-BAR: notifications (client-derived) + feedback icon + connect/wallet button.
-- i18n NEAR END: EN(default), ES, ZH, HI, AR(RTL), PT, RU, JA, FR. Translation files + switcher.
-- MOTION pass: flame flicker (hero motto + Treasury) + burn pulse; reduced-motion safe.
+1. Shell + nav .......... DONE
+2. Feed ................. DONE
+3. Story detail ........ DONE
+4. PROFILE (public + own-activity: avatar, proposals, status/rep, donated/boosted/burned, saved) <- NEXT
+5. Explore
+6. Social/burn mechanics (likes/boosts/donations/follows/saves -> totals; in-memory then chain+backend)
+7. Reframe Treasury / About / Citizens
+Then: SHARED BACKEND, CHAIN INTEGRATION (money code, Taira first), end-stage polish passes.
 
 # ============================================================
 # KEY FACTS
 # ============================================================
 - Taira XOR asset id: 6TEAJqbb8oEPmLncoNiMRbLEK6tw (src/constants/chains.ts ~line 22)
 - "i105" = Iroha account-address format (SDK encodeI105AccountAddress).
-- DEMO_MODE:true relaxes gates for solo walkthrough on Taira.
-
-## WORKING STYLE
-One small step at a time. Paste big files in VS Code, not terminal. Commit at each checkpoint.
-
-## BUILD ORDER (next)
-1. Rework App shell + nav (Feed/Explore/[Post]/Treasury/About).
-2. Feed page (cards, Top Boosted side panel, store-wired).
-3. Story detail (story/facts/chapters/comments, like/boost/donate).
-4. Explore, Profile, Compose (reuse card + form).
-5. Social/burn mechanics (in-memory first; real chain + shared backend later).
-6. Reframe Treasury/About/Citizens.
-
-## DONATE MODAL (TODO)
-- Quick-pick buttons (10/50/100/500) PLUS a manual amount input (any amount).
-- SUPPORT FRACTIONS: decimals allowed (e.g. 0.5, 2.75) — keeps small donors able to
-  participate as XOR value rises.
-- Quick-picks fill/sync the field; typing in field deselects picks. Live 1% burn shown on
-  whatever amount is entered.
-- Validate: positive, > 0, within balance, within token precision.
-- (Boost stays a FLAT amount — no custom field — to preserve isonomia/ranked-by-count.)
-
-## MONEY CODE — DISCIPLINE (non-negotiable)
-The donation/burn path moves real XOR irreversibly. Treat it differently from UI code.
-- INTEGER/BigInt math only for amounts. Never floating-point on currency. Compute in base
-  units using the token's exact decimal precision; format to decimal only for display.
-- Confirm XOR's exact decimal precision from chain config before building (don't assume 18).
-- 1% burn split computed in base units; verify burn + proposer portions sum EXACTLY to input.
-- Validate input rigorously: positive, > 0, within balance, within precision; reject malformed/overflow.
-- Explicit confirmation step showing exact amounts (to proposer / burned) before signing.
-- Handle every failure path: rejected signature, insufficient balance, network error,
-  partial/timeout — clear state, never leave the user unsure if funds moved.
-- TEST EXHAUSTIVELY ON TAIRA FIRST: edge amounts (tiny fractions, max, precision limits),
-  failures, double-submit. Money code earns its way to mainnet by proving itself on testnet.
-- Independent verification: read back the on-chain result; show the actual settled tx, not an
-  optimistic UI assumption.
-
-[updates]
-- Bookmark/SAVE icon on every story card from the start; wired to store savedProposals (list of ids).
-  Saved proposals visible on your own Profile.
-- BUILD ORDER bump: Profile -> step 4 (reached by tapping a proposer; shows public facet +
-  your-activity facet when it's you).
-
-Revised build order:
-1. Shell + nav (DONE)
-2. Feed (cards w/ bookmark, Top Boosted side panel)
-3. Story detail
-4. Profile (public + own-activity: avatar, proposals, status/rep, donated/boosted/burned, saved)
-5. Explore, Compose
-6. Social/burn mechanics (likes/boosts/donations/follows/saves -> totals; in-memory then chain+backend)
-7. Reframe Treasury/About/Citizens
-
-# ============================================================
-# ARCHITECTURE — FRONTEND / BACKEND / CHAIN (important)
-# ============================================================
-The app has three layers. We're building the FRONTEND now against an in-memory store
-(a stand-in) so we can design and see the whole experience before the backend exists.
-- FRONTEND: the Vue app each person runs in their browser (what we're building).
-- SHARED BACKEND (build before/at deploy): a server + database holding ALL shared/social
-  data — stories, milestones, comments, likes, boosts, follows, saved proposals, DRAFTS.
-  Required because every user must see the same data across all devices. In-memory store
-  and localStorage do NOT scale (single-session / single-device) — localStorage is a dead
-  end for a multi-user app; we skip it.
-- SORA NEXUS CHAIN: source of truth for MONEY (donations, burns) and later disputes/sortition.
-Build path: frontend experience first -> shared backend (makes it real + persistent for all)
--> chain integration for money.
-
-# ============================================================
-# DEFERRED FEATURES (build once, properly — no throwaway versions)
-# ============================================================
-- DRAFTS: live in the SHARED BACKEND tied to account (NOT localStorage). "Save draft" button +
-  "My Drafts" on Profile to resume any incomplete proposal. Build WITH the backend.
-- EVIDENCE DEADLINE + OVERDUE FLAG: each chapter has an evidence due-date; if it passes and the
-  milestone isn't complete, the story card + story page show "Evidence overdue" (anti-fraud
-  transparency — makes silence visible). Build the FULL version later with the evidence-UPLOAD
-  flow + file storage. For now: just CAPTURE chapter due-date (data ready, no half-version).
-- EVIDENCE UPLOAD / FILE ATTACHMENTS: need file storage (deploy-time backend). Placeholder for now.
-
-# ============================================================
-# COMPOSE — IMMEDIATE TODO (now)
-# ============================================================
-- Center the form (max-width + margin auto — currently hugs left).
-- Chapter "timeline" -> real DATE picker, single target date "Evidence due by [date]".
-  Store captures chapter dueDate (full deadline/overdue feature comes later).
-
-## TRACK TAG / TREASURY DESK STATUS (decided)
-- Two tracks: "Seeking donations" (community) and "Under Treasury Desk review" (underwriting).
-- "Seeking donations" = the default/only track available now (Desk doesn't exist yet).
-- "Under Treasury Desk review" is NOT self-claimable and NOT manually dished out by the Desk.
-  Instead: when the Desk reviews a proposal, that review produces a SIGNAL (verifiable
-  attestation/credential — exact mechanism TBD when Desk is built). The PROPOSER's
-  responsibility is to obtain that signal and present it to unlock the Desk track on their
-  proposal; the system VERIFIES the signal before allowing the badge. Evidence-gated, like
-  milestones — consistent with the whole "claims require evidence" philosophy. No Desk bottleneck.
-- COMPOSE NOW: show both options; "Treasury Desk review" VISIBLE but DISABLED ("coming as the
-  Desk launches"). "Seeking donations" is the only selectable track for now.
-
-  [Light mode — deferred to end-stage polish pass]
-- Add a light theme via the existing CSS-variable system (theme-swappable tokens).
-- KEEP gold as the brand accent (gold on warm off-white/cream — NOT stark white, NOT gold→red).
-  Red/crimson STAYS reserved for danger/negative (don't collide brand color with error color).
-- Invert neutrals: dark navy text on light bg instead of light text on navy.
-- Dedicated pass NEAR END (like i18n) — theme a finished set of pages, not re-theme as we build.
-- Add a light/dark toggle in the top bar.
-
-# ============================================================
-# CARD UI — FEEDBACK & TODO (from live testing)
-# ============================================================
-BUGS FIXED:
-- Removed stale 5 XOR burn on new proposals (submitProposal now stamps xorBurned "0" —
-  posting is FREE; the old PROPOSAL_FEE_XOR stamp contradicted the model).
-
-CARD — DO NOW:
-- CATEGORY (Production / Productivity-Public-good): was too subtle (small corner text).
-  Make a proper VISIBLE badge. Show on closed card AND open story page.
-- PROPOSER LABEL (Newcomer/Delivered/Veteran/Treasury Desk/Flagged): was MISSING. Add as a
-  distinct badge near proposer name, closed card + story. Computed from track record
-  (proposerLabel helper): completed>=3 Veteran, >=1 Delivered, rejected=Flagged(placeholder), else Newcomer.
-  Keep visually distinct from category (category = what kind of work; label = who/track record).
-- BOOST ICON: use ⚡ lightning, NOT flame. Reserve flame strictly for BURN (was confusing — same
-  flame meant boost and burn).
-- DONATED COUNT: "0 XOR" bottom-right was unlabeled. Label it "donated" OR hide engagement
-  counts (likes/bolts/comments/donated) when all zero, to declutter new cards.
-
-CARD — LATER (step 6 / backend):
-- LIKE PERSISTENCE: like currently local-only visual state on Story page; vanishes on
-  back/refresh. Wire with social mechanics + shared backend (in-memory now would just be redone).
-- PROPOSER DISPLAY NAME: cards show raw account id (e.g. "demo.com...test"). Real display
-  name comes with Profile/avatar work + backend.
-
-# ============================================================
-# TRACK TAG / TREASURY DESK STATUS (decided)
-# ============================================================
-- Two tracks: "Seeking donations" (community) and "Under Treasury Desk review" (underwriting).
-- "Seeking donations" = default/only track available now (Desk doesn't exist yet).
-- "Under Treasury Desk review" is NOT self-claimable and NOT manually dished out by the Desk.
-  When the Desk reviews a proposal, that review produces a SIGNAL (verifiable attestation/
-  credential — mechanism TBD when Desk is built). The PROPOSER obtains that signal and presents
-  it to unlock the Desk track; the system VERIFIES it before allowing the badge. Evidence-gated,
-  consistent with "claims require evidence." No Desk bottleneck.
-- COMPOSE NOW: both options shown; "Treasury Desk review" VISIBLE but DISABLED ("coming as the
-  Desk launches"). "Seeking donations" only selectable track. Store stamps track:"donations".
-
-# ============================================================
-# LIGHT MODE (deferred to end-stage polish pass)
-# ============================================================
-- Add a light theme via the existing CSS-variable token system (theme-swappable tokens).
-- KEEP gold as the brand accent (gold on warm off-white/cream — NOT stark white, NOT gold->red).
-  Red/crimson STAYS reserved for danger/negative (don't collide brand color with error color).
-- Invert neutrals: dark navy text on light bg instead of light text on navy.
-- Dedicated pass NEAR END (like i18n) — theme a finished set of pages. Add light/dark toggle in top bar.
-
-# ============================================================
-# DEMO / TEST MODE (current state)
-# ============================================================
-- DEMO_MODE bypass lets posting work without a connected account (currentAccountId falls back to
-  "demo.commons.test" when DEMO_MODE). EXPERIENCE-ONLY — touches NO XOR (real or test).
-  In-memory only (vanishes on refresh). Gate so it never ships.
-- Real test-XOR / on-chain writes = step 6, built carefully per MONEY CODE discipline, Taira first.
-
-# ============================================================
-# COMPOSE — refinements done
-# ============================================================
-- Story-first form: title, one-line summary (card), THE STORY (big narrative, gold border, Story
-  page), file attach (placeholder), category, funding track, facts, chapters, risk, public benefit.
-- Chapter "timeline" = real DATE picker "Evidence due by"; sequential validation (each chapter's
-  date >= previous chapter's; blocks post + shows message); date-picker icon recolored gold.
-- Form centered. Gold "Post" button in desktop nav (create from anywhere).
-- isDraftValid: removed stale proposal-fee balance check (posting free).
-
-[Proposer label / reputation — status]
-- proposerLabel helper EXISTS and grades: completed>=3 Veteran, >=1 Delivered, rejected=Flagged(placeholder), else Newcomer.
-- NOT yet meaningful: nothing completes proposals yet (needs milestone-verification flow) and
-  history doesn't persist (needs backend). Today everyone = Newcomer (correct — no deliveries yet).
-- Becomes real with: (1) milestone verification/evidence flow, (2) shared backend (persistent
-  history), (3) disputes (real Flagged state).
-- TODO when data exists: revisit thresholds — "Veteran" should likely weigh completion RATE,
-  time active, clean disputes (delivery-weighted), not just raw count of 3.
-
-  [Story page — fixes]
-NOW:
-- Fix text overflow: overflow-wrap:anywhere on story/facts/evidence; + sensible char caps on form fields.
-- Category -> color-coded badge (match card); add proposer label badge (Newcomer) to hero.
-- Rework action bar: Donate = primary (big gold), demote Like/Boost/Save/Follow to tidy icon row
-  (declutter; matches crowdfunding/social platforms). Fixes boost "0" alignment.
-- Center the "0" in backers/followers totals.
-- Relabel evidence field in Compose -> "Evidence you'll present" (promise framing).
-- Add proposer-only "Mark chapter complete" control on own proposals (in-memory now via confirmMilestone).
-- Fix comments: relax postDiscussion stage-gate so anyone can comment on any story (social, not deliberation-gated).
-LATER (backend/files):
-- Actual evidence UPLOAD at completion + "promised vs delivered" display + persistence.
-- Comment persistence across sessions/users.
-
-1. Quick CSS/alignment — overflow, centering, totals ✅ DONE
-2. Category + proposer label badges on hero (match the card)
-3. Comments fix (relax postDiscussion stage-gate)
-4. Evidence relabel ("Evidence you'll present") + proposer-only "Mark chapter complete" control
-5. Action bar -> sticky right support rail (Donate primary), fixes layout + clutter — LAST
-
-# ============================================================
-# VERIFICATION MODEL (decided — Option B: optimistic challenge window)
-# ============================================================
-Commons is the small-project layer, so verification is HONEST and lightweight — it does NOT
-claim trustless proof that real-world work happened (impossible — oracle problem). It provides:
-- TRANSPARENCY: proposer submits evidence for a chapter; it's on the permanent public record.
-- OPTIMISTIC CHALLENGE WINDOW: when a chapter's evidence is submitted, it enters a public review
-  window (e.g. ~7 days) where ANYONE can flag it. No flag -> chapter is "confirmed (unchallenged)."
-  Flagged -> escalates to scrutiny/dispute. Silence = acceptance. Doesn't require active verifiers
-  in the common case, but gives a real chance to object.
-- REPUTATION CONSEQUENCES: a proposer's claim+evidence history is permanent and visible; bad
-  actors accumulate a visible record.
-UI MUST BE CLEAR/HONEST about what a status means:
-- Don't show "Verified" as if guaranteed-true. Use honest language like "Evidence submitted",
-  "Unchallenged" / "Confirmed (unchallenged)", "Challenged / Disputed".
-- Make the challenge window + "flag this" visible so the optimistic model is transparent.
-- Real money verification lives at the TREASURY DESK, not here.
-NOTE: full challenge-window mechanics need the SHARED BACKEND (persistent state) — build then.
-For now (frontend): proposer can submit evidence + "mark chapter complete" as a CLAIM on the
-record (in-memory). The challenge/flag layer comes with the backend.
-
-# ============================================================
-# FRAUD-BOUNTY IDEA — ⚠️ RISKY / PARKED (do NOT build at launch)
-# ============================================================
-- Idea (Nick): take ~5% of donations/boosts -> 2.5% burn + 2.5% to a "treasury pot"; pay a small
-  reward to anyone who catches fraud, to incentivize policing bad actors.
-- ⚠️ FLAGGED RISKY because:
-  * Changes core split (proposer gets 95%, not 99%) — a real tax on proposers; must be deliberate/honest.
-  * REQUIRES reliable adjudication of fraud claims — without it: false accusations, extortion
-    ("pay or I flag you"), collusion to farm bounties. A bounty without trustworthy judgment makes
-    fraud WORSE, not better.
-  * Standing pot needs custody + governance (who controls/sizes/pays it) — attack surface.
-  * Regulatory: fee-collecting pot + payouts looks like a managed financial mechanism — needs legal review.
-- VERDICT: only viable LATER, as an incentive layer ON TOP of a proven challenge/adjudication
-  mechanism, with anti-abuse safeguards (stake-to-accuse, false-claim penalties). NOT a launch
-  feature. Does NOT replace the base verification model above.
-
-  [VERIFICATION STATUS LABELS — progression (build fully with backend)]
-- Chapter evidence submitted, challenge window OPEN -> "Delivered" (honest: claim made, window open).
-- Window closes (e.g. 7 days) with no successful challenge -> "Confirmed" (stronger; stood unchallenged).
-  NOTE: use "Confirmed"/"Unchallenged", NOT "Verified" — silence isn't proof; "Verified" overclaims
-  for an optimistic system. Stay honest about what the window actually establishes.
-- Challenged + upheld -> "Disputed"/"Challenged".
-- CARD badge: "✓ Delivered" while windows open; "✓ Confirmed" once all closed cleanly.
-- BUILD: only "Delivered" buildable now (in-memory claim). The window timer, flagging, and the
-  Delivered->Confirmed graduation need the SHARED BACKEND (time-based state + multi-user flags).
-
-  # ============================================================
-# MOBILE — DEDICATED PASS (after web version is complete)
-# ============================================================
-- Once the desktop/web version is fully built, go BACK and give the mobile experience real,
-  focused attention — not just "make it not break," but proper mobile-first polish.
-- Principle (decided): mobile must have FULL PARITY with web — all actions (donate/like/boost/
-  save/follow) and all info (totals, etc.). Never punish phone users; most of the community is
-  on mobile (Telegram audience).
-- Current state: panels reflow/stack on mobile (functional parity), but spacing, touch targets,
-  typography scale, and layout deserve a dedicated polish pass like i18n / light-mode / font.
-
-  # ============================================================
-# DISPUTE / CHALLENGE WINDOW — refined model (DECIDED, build w/ backend)
-# ============================================================
-Validated against how Kickstarter/Indiegogo handle this: after 10+ years, major platforms
-DELIBERATELY do NOT adjudicate disputes — they can't reliably tell honest failure from fraud, so
-they don't pretend to. Backing = "support with risk," not a purchase. Commons follows this.
-
-CORE PRINCIPLE: the challenge window is a REPUTATIONAL INTEGRITY mechanism, not fund-recovery
-(tips aren't escrowed) and not truth-adjudication (impossible). It keeps "Confirmed" meaningful
-and surfaces concerns — it does NOT issue verdicts.
-
-LIFECYCLE:
-- Proposer submits evidence -> chapter = "Delivered" (challenge window opens, e.g. 7 days, countdown visible).
-- No concern raised by window close -> "Confirmed" (unchallenged). (Honest word — NOT "Verified".)
-- Concern raised during window -> chapter enters a contested state (see framing below); does NOT
-  auto-graduate to Confirmed; proposer can respond. Both sides live on the permanent record.
-- A flag does NOT reset/extend the window.
-
-FLAGGING (who/how):
-- Anyone can flag, BUT a flag REQUIRES a written reason (no one-click anonymous smears).
-- Flags weighted/displayed by source: a VERIFIED BACKER's flag carries visible weight; a random
-  account's flag is shown but clearly lower-signal.
-- A single flag must NOT publicly brand a proposal. Flag first opens a concern + notifies proposer
-  to respond BEFORE prominent public display; escalates to a visible contested state only on
-  stronger signal (multiple credible flags, or proposer non-response).
-
-FRAMING (the key lesson — avoids the "Disputed = auto-bad" injustice):
-- DO NOT use punitive "Disputed" scarlet-letter language. Most small-project failures are honest
-  inexperience, NOT fraud (industry data: sub-$1k projects fail most, often from inexperience).
-  A punitive stamp would mostly punish honest small builders — the people Commons exists for.
-- Frame flags NEUTRALLY: "concern raised" / "question / update requested" / "response requested" —
-  normal accountability, not a fraud alert.
-- THE REAL TRUST SIGNAL IS UPDATE/EVIDENCE CADENCE, NOT FLAGS. Show proposer activity prominently
-  (last update, evidence on-time vs overdue, responsiveness). Active proposer = trusted; SILENCE =
-  the real red flag. Lean on cadence + responsiveness over any dispute machinery.
-
-RESOLUTION:
-- NO verdict on the Commons (small-tips) layer. Resolution = transparency + proposer response,
-  both permanent on the record. The market of donors judges. (Formal adjudication only at the
-  TREASURY DESK, where real money + escrow/bonds justify it.)
-
-PROFILE MARK (refined):
-- Profile tracks RESPONSIVENESS / SILENCE (behavioral, fair) — e.g. "unanswered concerns,"
-  "went silent on a chapter" — NOT a raw "disputed count" (which would unfairly count honest
-  questions). Reward responsiveness; surface abandonment.
-
-TEETH / HONESTY:
-- Teeth are purely REPUTATIONAL (permanent record + responsiveness signal + label/reputation
-  impact). Tips can't be clawed back. Does NOT stop a reputation-indifferent hit-and-run scammer —
-  which is WHY Commons stays the small-stakes layer; real money + escrow/bonds = Treasury Desk's job.
-- UI MUST make the risk explicit (industry's #1 hard-won lesson): supporting work is voluntary and
-  carries risk — like backing a project, not buying a product. "Support work + proposers you trust;
-  check their track record + activity." Honest expectation-setting, prominent, not buried.
-
-BUILD NOTE: all of this needs the SHARED BACKEND (persistent state, timers, multi-user flags,
-notifications). Frontend now only shows "Delivered" (the proposer's claim). Window/flags/
-cadence/Confirmed-graduation come with the backend.
-
-[Compose — validation UX (TODO, focused pass)]
-- NOW: sticky bar shows a single "what's missing" message (todo computed) + disables Post.
-  Functional, but passive — doesn't point to the specific bad field.
-- BETTER (later pass): inline field-level validation — red border + message on the specific
-  empty/invalid field, so the user sees exactly where the problem is. Standard good-form pattern.
-- Do this as a focused pass, ideally alongside REAL submission + money-code validation (where
-  rigorous field-level validation matters most). Avoid building twice against the demo flow.
+- DEMO_MODE:true relaxes gates for solo walkthrough; EXPERIENCE-ONLY, touches no XOR, gate before ship.
+- PARKED: vote-to-fund, 5 XOR post fee, Signal=60% aye. Ref: proposal-underwriting-file-DRAFT.md.
+- SORTITION COLD-START (Phase 1B): decision B (shrink panel); never relax deliberator-exclusion.
+- TOP-BAR (later): notifications (client-derived) + feedback icon + connect/wallet button.
