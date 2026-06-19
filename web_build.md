@@ -380,3 +380,72 @@ record (in-memory). The challenge/flag layer comes with the backend.
 - CARD badge: "✓ Delivered" while windows open; "✓ Confirmed" once all closed cleanly.
 - BUILD: only "Delivered" buildable now (in-memory claim). The window timer, flagging, and the
   Delivered->Confirmed graduation need the SHARED BACKEND (time-based state + multi-user flags).
+
+  # ============================================================
+# MOBILE — DEDICATED PASS (after web version is complete)
+# ============================================================
+- Once the desktop/web version is fully built, go BACK and give the mobile experience real,
+  focused attention — not just "make it not break," but proper mobile-first polish.
+- Principle (decided): mobile must have FULL PARITY with web — all actions (donate/like/boost/
+  save/follow) and all info (totals, etc.). Never punish phone users; most of the community is
+  on mobile (Telegram audience).
+- Current state: panels reflow/stack on mobile (functional parity), but spacing, touch targets,
+  typography scale, and layout deserve a dedicated polish pass like i18n / light-mode / font.
+
+  # ============================================================
+# DISPUTE / CHALLENGE WINDOW — refined model (DECIDED, build w/ backend)
+# ============================================================
+Validated against how Kickstarter/Indiegogo handle this: after 10+ years, major platforms
+DELIBERATELY do NOT adjudicate disputes — they can't reliably tell honest failure from fraud, so
+they don't pretend to. Backing = "support with risk," not a purchase. Commons follows this.
+
+CORE PRINCIPLE: the challenge window is a REPUTATIONAL INTEGRITY mechanism, not fund-recovery
+(tips aren't escrowed) and not truth-adjudication (impossible). It keeps "Confirmed" meaningful
+and surfaces concerns — it does NOT issue verdicts.
+
+LIFECYCLE:
+- Proposer submits evidence -> chapter = "Delivered" (challenge window opens, e.g. 7 days, countdown visible).
+- No concern raised by window close -> "Confirmed" (unchallenged). (Honest word — NOT "Verified".)
+- Concern raised during window -> chapter enters a contested state (see framing below); does NOT
+  auto-graduate to Confirmed; proposer can respond. Both sides live on the permanent record.
+- A flag does NOT reset/extend the window.
+
+FLAGGING (who/how):
+- Anyone can flag, BUT a flag REQUIRES a written reason (no one-click anonymous smears).
+- Flags weighted/displayed by source: a VERIFIED BACKER's flag carries visible weight; a random
+  account's flag is shown but clearly lower-signal.
+- A single flag must NOT publicly brand a proposal. Flag first opens a concern + notifies proposer
+  to respond BEFORE prominent public display; escalates to a visible contested state only on
+  stronger signal (multiple credible flags, or proposer non-response).
+
+FRAMING (the key lesson — avoids the "Disputed = auto-bad" injustice):
+- DO NOT use punitive "Disputed" scarlet-letter language. Most small-project failures are honest
+  inexperience, NOT fraud (industry data: sub-$1k projects fail most, often from inexperience).
+  A punitive stamp would mostly punish honest small builders — the people Commons exists for.
+- Frame flags NEUTRALLY: "concern raised" / "question / update requested" / "response requested" —
+  normal accountability, not a fraud alert.
+- THE REAL TRUST SIGNAL IS UPDATE/EVIDENCE CADENCE, NOT FLAGS. Show proposer activity prominently
+  (last update, evidence on-time vs overdue, responsiveness). Active proposer = trusted; SILENCE =
+  the real red flag. Lean on cadence + responsiveness over any dispute machinery.
+
+RESOLUTION:
+- NO verdict on the Commons (small-tips) layer. Resolution = transparency + proposer response,
+  both permanent on the record. The market of donors judges. (Formal adjudication only at the
+  TREASURY DESK, where real money + escrow/bonds justify it.)
+
+PROFILE MARK (refined):
+- Profile tracks RESPONSIVENESS / SILENCE (behavioral, fair) — e.g. "unanswered concerns,"
+  "went silent on a chapter" — NOT a raw "disputed count" (which would unfairly count honest
+  questions). Reward responsiveness; surface abandonment.
+
+TEETH / HONESTY:
+- Teeth are purely REPUTATIONAL (permanent record + responsiveness signal + label/reputation
+  impact). Tips can't be clawed back. Does NOT stop a reputation-indifferent hit-and-run scammer —
+  which is WHY Commons stays the small-stakes layer; real money + escrow/bonds = Treasury Desk's job.
+- UI MUST make the risk explicit (industry's #1 hard-won lesson): supporting work is voluntary and
+  carries risk — like backing a project, not buying a product. "Support work + proposers you trust;
+  check their track record + activity." Honest expectation-setting, prominent, not buried.
+
+BUILD NOTE: all of this needs the SHARED BACKEND (persistent state, timers, multi-user flags,
+notifications). Frontend now only shows "Delivered" (the proposer's claim). Window/flags/
+cadence/Confirmed-graduation come with the backend.

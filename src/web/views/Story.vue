@@ -2,7 +2,7 @@
   <div class="story" v-if="p">
     <a class="back" @click="$emit('nav', 'feed')">← Back to feed</a>
 
-  <!-- HERO -->
+    <!-- HERO (full width) -->
     <div class="sd__badges">
       <span v-if="p.category" class="badge" :class="catBadgeClass(p.category)">{{ catLabel(p.category) }}</span>
     </div>
@@ -16,101 +16,118 @@
     </div>
     <div class="trackline"><span class="track" :class="trackClass">{{ trackLabel }}</span></div>
 
-    <!-- ACTION BAR -->
-    <div class="actbar">
-      <button class="actbtn" :class="{ on: liked }" @click="toggleLike">♥ <span>{{ likeCount }}</span></button>
-      <button class="actbtn" @click="openBoost">⚡ Boost <span>{{ (p.boostCount || 0) }}</span></button>
-      <button class="actbtn donate" @click="openDonate">Donate</button>
-      <button class="actbtn" :class="{ on: commons.isSaved(p.id) }" @click="commons.toggleSave(p.id)">
-        {{ commons.isSaved(p.id) ? "Saved" : "Save" }}
-      </button>
-      <button class="actbtn" @click="following = !following">{{ following ? "Following" : "+ Follow" }}</button>
-    </div>
-    <div class="totals">
-      <div><b>{{ p.totalDonated || 0 }} XOR</b>raised</div>
-      <div><b>{{ p.xorBurned || 0 }} XOR</b>burned</div>
-      <div><b>{{ p.backers || 0 }}</b>backers</div>
-      <div><b>{{ p.followers || 0 }}</b>followers</div>
-    </div>
-
-    <!-- STORY -->
-    <section class="sec">
-      <h2>The story</h2>
-      <p class="narrative">{{ p.description }}</p>
-      <div v-if="p.files && p.files.length" class="files">
-        <span v-for="f in p.files" :key="f" class="file">📎 {{ f }}</span>
-      </div>
-    </section>
-
-    <!-- FACTS -->
-    <section class="sec" v-if="hasFacts">
-      <h2>The facts behind it</h2>
-      <div class="facts">
-        <div v-if="p.productiveClaim"><div class="fact__l">Productive claim</div><div class="fact__v">{{ p.productiveClaim }}</div></div>
-        <div v-if="p.inputs"><div class="fact__l">Inputs financed</div><div class="fact__v">{{ p.inputs }}</div></div>
-        <div v-if="p.expectedOutput"><div class="fact__l">Expected output</div><div class="fact__v">{{ p.expectedOutput }}</div></div>
-        <div v-if="p.demandSignal"><div class="fact__l">Demand signal</div><div class="fact__v">{{ p.demandSignal }}</div></div>
-        <div v-if="p.riskBearer"><div class="fact__l">Who carries the risk</div><div class="fact__v">{{ p.riskBearer }}</div></div>
-        <div v-if="p.failureHandling"><div class="fact__l">On honest failure</div><div class="fact__v">{{ p.failureHandling }}</div></div>
-        <div v-if="p.publicBenefit"><div class="fact__l">Public benefit</div><div class="fact__v">{{ p.publicBenefit }}</div></div>
-      </div>
-    </section>
-
-  <!-- CHAPTERS -->
-    <section class="sec">
-      <h2>The chapters</h2>
-      <p v-if="!p.milestones || p.milestones.length === 0" class="muted">No chapters yet.</p>
-      <div v-for="(m, i) in p.milestones" :key="m.id || i" class="chapter">
-        <div class="ch__dot" :class="m.completed ? 'done' : (i === firstIncomplete ? 'now' : 'up')">
-          {{ m.completed ? "✓" : i + 1 }}
-        </div>
-        <div class="ch__b">
-          <h4>{{ m.description }}</h4>
-          <div class="ch__meta">{{ m.xorAmount }} XOR · due {{ m.timeline || "—" }}</div>
-
-          <!-- the promise -->
-          <div v-if="m.evidence" class="ch__ev"><span class="ch__evlab">Evidence to present:</span> {{ m.evidence }}</div>
-
-          <!-- the delivered claim -->
-          <div v-if="m.completed && m.deliveredEvidence" class="ch__ev ch__ev--delivered">
-            <span class="ch__evlab">Evidence presented:</span> {{ m.deliveredEvidence }}
+    <!-- TWO COLUMN -->
+    <div class="sd__grid">
+      <div class="sd__main">
+        <!-- STORY -->
+        <section class="sec">
+          <h2>The story</h2>
+          <p class="narrative">{{ p.description }}</p>
+          <div v-if="p.files && p.files.length" class="files">
+            <span v-for="f in p.files" :key="f" class="file">📎 {{ f }}</span>
           </div>
+        </section>
 
-          <!-- proposer-only: submit evidence & mark delivered (own proposal, current chapter) -->
-          <div v-if="isMine && !m.completed && i === firstIncomplete" class="ch__deliver">
-            <textarea v-model="deliverText" rows="2" placeholder="Present the actual evidence this chapter is done (link, receipt, photo description...)"></textarea>
-            <button class="ch__deliverbtn" :disabled="!deliverText.trim()" @click="submitDelivery(m.id)">Submit evidence &amp; mark delivered</button>
+        <!-- FACTS -->
+        <section class="sec" v-if="hasFacts">
+          <h2>The facts behind it</h2>
+          <div class="facts">
+            <div v-if="p.productiveClaim"><div class="fact__l">Productive claim</div><div class="fact__v">{{ p.productiveClaim }}</div></div>
+            <div v-if="p.inputs"><div class="fact__l">Inputs financed</div><div class="fact__v">{{ p.inputs }}</div></div>
+            <div v-if="p.expectedOutput"><div class="fact__l">Expected output</div><div class="fact__v">{{ p.expectedOutput }}</div></div>
+            <div v-if="p.demandSignal"><div class="fact__l">Demand signal</div><div class="fact__v">{{ p.demandSignal }}</div></div>
+            <div v-if="p.publicBenefit"><div class="fact__l">Public benefit</div><div class="fact__v">{{ p.publicBenefit }}</div></div>
+          </div>
+        </section>
+        <!-- ACCOUNTABILITY (distinct trust signal) -->
+        <section class="sec accountability" v-if="p.riskBearer || p.failureHandling">
+          <h2>Accountability</h2>
+          <div class="acc__grid">
+            <div v-if="p.riskBearer" class="acc__item">
+              <div class="acc__l">Who carries the risk</div>
+              <div class="acc__v">{{ p.riskBearer }}</div>
+            </div>
+            <div v-if="p.failureHandling" class="acc__item">
+              <div class="acc__l">If this doesn't work out</div>
+              <div class="acc__v">{{ p.failureHandling }}</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CHAPTERS -->
+        <section class="sec">
+          <h2>The chapters</h2>
+          <p v-if="!p.milestones || p.milestones.length === 0" class="muted">No chapters yet.</p>
+          <div v-for="(m, i) in p.milestones" :key="m.id || i" class="chapter" :class="{ 'is-done': m.completed }">
+            <div class="ch__dot" :class="m.completed ? 'done' : (i === firstIncomplete ? 'now' : 'up')">
+              {{ m.completed ? "✓" : i + 1 }}
+            </div>
+            <div class="ch__b">
+              <h4>{{ m.description }}</h4>
+              <div class="ch__meta">{{ m.xorAmount }} XOR · due {{ m.timeline || "—" }}</div>
+              <div v-if="m.evidence" class="ch__ev"><span class="ch__evlab">Evidence to present:</span> {{ m.evidence }}</div>
+              <div v-if="m.completed && m.deliveredEvidence" class="ch__ev ch__ev--delivered">
+                <span class="ch__evlab">Evidence presented:</span> {{ m.deliveredEvidence }}
+              </div>
+              <div v-if="isMine && !m.completed && i === firstIncomplete" class="ch__deliver">
+                <textarea v-model="deliverText" rows="2" placeholder="Present the actual evidence this chapter is done (link, receipt, photo description...)"></textarea>
+                <button class="ch__deliverbtn" :disabled="!deliverText.trim()" @click="submitDelivery(m.id)">Submit evidence &amp; mark delivered</button>
+              </div>
+            </div>
+            <span class="ch__st" :class="m.completed ? 'st-done' : (i === firstIncomplete ? 'st-now' : 'st-up')">
+              {{ m.completed ? "✓ Evidence submitted" : (i === firstIncomplete ? "In progress" : "Upcoming") }}
+            </span>
+          </div>
+        </section>
+
+        <!-- CONVERSATION -->
+        <section class="sec">
+          <h2>Conversation</h2>
+          <p v-if="!p.discussionPosts || p.discussionPosts.length === 0" class="muted">No comments yet. Be the first to weigh in.</p>
+          <div v-for="c in p.discussionPosts" :key="c.id" class="cmt" :class="{ isprop: c.authorAccountId === p.proposerAccountId }">
+            <span class="av sm" :style="avStyle(c.authorAccountId)">{{ initials(c.authorAccountId) }}</span>
+            <div class="cmt__b">
+              <div class="cmt__h"><b>{{ shortId(c.authorAccountId) }}</b><span v-if="c.authorAccountId === p.proposerAccountId" class="prop">PROPOSER</span></div>
+              <div class="cmt__t">{{ c.content }}</div>
+            </div>
+          </div>
+          <div class="cmtbox">
+            <input v-model="newComment" placeholder="Add a comment..." @keyup.enter="postComment" />
+            <button @click="postComment">Post</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- STICKY SUPPORT RAIL -->
+      <aside class="sd__rail">
+        <div class="support">
+          <button class="support__donate" @click="openDonate">Donate</button>
+          <div class="support__row">
+            <button class="iconbtn" :class="{ on: liked }" @click="toggleLike" title="Like">
+              <svg viewBox="0 0 24 24" :fill="liked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5C12 20.5 3.5 15 3.5 8.8 3.5 6 5.7 4 8.2 4c1.7 0 3 .9 3.8 2.2C12.8 4.9 14.1 4 15.8 4c2.5 0 4.7 2 4.7 4.8C20.5 15 12 20.5 12 20.5z"/></svg>
+              <span>{{ likeCount }}</span>
+            </button>
+            <button class="iconbtn" @click="openBoost" title="Boost">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
+              <span>{{ p.boostCount || 0 }}</span>
+            </button>
+            <button class="iconbtn" :class="{ on: commons.isSaved(p.id) }" @click="commons.toggleSave(p.id)" :title="commons.isSaved(p.id) ? 'Saved' : 'Save'">
+              <svg viewBox="0 0 24 24" :fill="commons.isSaved(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2"><path d="M6 4h12v16l-6-4-6 4z"/></svg>
+            </button>
+          </div>
+          <button class="support__follow" :class="{ on: following }" @click="following = !following">{{ following ? "Following" : "+ Follow" }}</button>
+          <div class="support__totals">
+            <div><b>{{ p.totalDonated || 0 }}</b><span>XOR raised</span></div>
+            <div><b>{{ p.xorBurned || 0 }}</b><span>XOR burned</span></div>
+            <div><b>{{ p.backers || 0 }}</b><span>backers</span></div>
+            <div><b>{{ p.followers || 0 }}</b><span>followers</span></div>
           </div>
         </div>
-        <span class="ch__st" :class="m.completed ? 'st-done' : (i === firstIncomplete ? 'st-now' : 'st-up')">
-          {{ m.completed ? "Evidence submitted" : (i === firstIncomplete ? "In progress" : "Upcoming") }}
-        </span>
-      </div>
-    </section>
-
-    <!-- CONVERSATION -->
-    <section class="sec">
-      <h2>Conversation</h2>
-      <p v-if="!p.discussionPosts || p.discussionPosts.length === 0" class="muted">No comments yet. Be the first to weigh in.</p>
-      <div v-for="c in p.discussionPosts" :key="c.id" class="cmt" :class="{ isprop: c.authorAccountId === p.proposerAccountId }">
-        <span class="av sm" :style="avStyle(c.authorAccountId)">{{ initials(c.authorAccountId) }}</span>
-        <div class="cmt__b">
-          <div class="cmt__h"><b>{{ shortId(c.authorAccountId) }}</b><span v-if="c.authorAccountId === p.proposerAccountId" class="prop">PROPOSER</span></div>
-          <div class="cmt__t">{{ c.content }}</div>
-        </div>
-      </div>
-      <div class="cmtbox">
-        <input v-model="newComment" placeholder="Add a comment..." @keyup.enter="postComment" />
-        <button @click="postComment">Post</button>
-      </div>
-    </section>
-
-    <!-- bottom action repeat -->
-    <div class="actbar">
-      <button class="actbtn" :class="{ on: liked }" @click="toggleLike">♥ <span>{{ likeCount }}</span></button>
-      <button class="actbtn" @click="openBoost">⚡ Boost</button>
-      <button class="actbtn donate" @click="openDonate">Donate</button>
+      </aside>
     </div>
+
+    <!-- mobile sticky donate -->
+    <button class="mobile-donate" @click="openDonate">Donate</button>
   </div>
 
   <!-- no story selected -->
@@ -190,7 +207,41 @@ function avStyle(id?: string) {
 </script>
 
 <style scoped>
-.story { max-width: 760px; margin: 0 auto; }
+.story { max-width: 1000px; margin: 0 auto; }
+
+/* two-column layout */
+.sd__grid { display: grid; grid-template-columns: minmax(0,1fr) 280px; gap: 32px; align-items: start; margin-top: 20px; }
+@media (max-width: 920px) {
+  .sd__grid { grid-template-columns: 1fr; }
+  .sd__rail { position: static; }
+  .support { flex-direction: column; }
+}
+.sd__main { min-width: 0; }
+
+/* sticky support rail */
+.sd__rail { position: sticky; top: 88px; }
+.support { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.support__donate { background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r); padding: 15px; font-weight: 800; font-size: 1.05rem; letter-spacing: .01em; cursor: pointer; box-shadow: 0 4px 14px rgba(201,168,76,.25); transition: transform .15s var(--ease), box-shadow .15s var(--ease); }
+.support__donate:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,168,76,.35); }
+.support__donate:hover { filter: brightness(1.05); }
+.support__row { display: flex; gap: 8px; }
+.iconbtn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px; color: var(--ink-dim); cursor: pointer; font-size: .86rem; }
+.iconbtn svg { width: 16px; height: 16px; }
+.iconbtn:hover { border-color: var(--gold-600); color: var(--ink); }
+.iconbtn.on { color: var(--gold-300); border-color: var(--gold-600); }
+.support__follow { background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 11px; color: var(--ink); font-weight: 600; font-size: .9rem; cursor: pointer; }
+.support__follow:hover { border-color: var(--gold-600); }
+.support__follow.on { color: var(--gold-300); border-color: var(--gold-600); }
+.support__totals { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-top: 1px solid var(--line-soft); padding-top: 14px; }
+.support__totals div { display: flex; flex-direction: column; }
+.support__totals b { font-family: var(--mono); color: var(--gold-300); font-size: 1.05rem; }
+.support__totals span { color: var(--ink-faint); font-size: .74rem; }
+
+/* mobile sticky donate */
+.mobile-donate { display: none; }
+@media (max-width: 920px) {
+.mobile-donate { display: none; }
+}
 .back { color: var(--gold-300); font-size: .86rem; margin-bottom: 16px; display: inline-block; cursor: pointer; }
 .sd__badges { margin-bottom: 10px; }
 .badge { display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-family: var(--mono); padding: 4px 10px; border-radius: 999px; }
@@ -229,10 +280,11 @@ function avStyle(id?: string) {
 .files { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 .file { display: inline-flex; align-items: center; gap: 8px; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 9px 13px; font-size: .84rem; color: var(--ink-dim); }
 
-.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 600px) { .facts { grid-template-columns: 1fr; } }
-.fact__l { font-size: .72rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
-.fact__v { color: var(--ink-dim); font-size: .92rem; line-height: 1.5; overflow-wrap: anywhere; }
+.facts > div { background: var(--navy-900); border: 1px solid var(--line-soft); border-radius: var(--r); padding: 14px 16px; }
+.fact__l { font-size: .72rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; font-weight: 600; }
+.fact__v { color: var(--ink); font-size: .93rem; line-height: 1.55; overflow-wrap: anywhere; }
 
 .chapter { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line-soft); }
 .chapter:last-child { border: none; }
@@ -266,7 +318,15 @@ function avStyle(id?: string) {
 .cmt__t { color: var(--ink-dim); font-size: .9rem; overflow-wrap: anywhere; }
 .cmtbox { display: flex; gap: 10px; margin-top: 14px; }
 .cmtbox input { flex: 1; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px 12px; color: var(--ink); font-family: inherit; }
-.cmtbox button { background: var(--gold-500); color: #22180a; border: none; border-radius: var(--r-sm); padding: 0 16px; font-weight: 600; cursor: pointer; }
+.cmtbox button { background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 0 20px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 10px rgba(201,168,76,.2); transition: transform .15s var(--ease), box-shadow .15s var(--ease); }
+.cmtbox button:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(201,168,76,.3); }
+.accountability { border-color: rgba(126,155,224,.25); }
+.accountability h2 { color: var(--info); }
+.acc__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 600px) { .acc__grid { grid-template-columns: 1fr; } }
+.acc__item { background: var(--navy-900); border: 1px solid var(--line-soft); border-radius: var(--r); padding: 14px 16px; }
+.acc__l { font-size: .72rem; color: var(--info); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; font-weight: 600; }
+.acc__v { color: var(--ink); font-size: .95rem; line-height: 1.55; overflow-wrap: anywhere; }
 
 .empty-wrap { text-align: center; padding: 60px 0; }
 .empty { color: var(--ink-faint); margin-bottom: 16px; }
