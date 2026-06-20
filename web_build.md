@@ -277,3 +277,36 @@ Then: SHARED BACKEND, CHAIN INTEGRATION (money code, Taira first), end-stage pol
 - Covers proposals (title/story/category/keywords) + profiles (name/handle).
 - SEQUENCE: build Explore first (the destination), then top-bar search (express entry to it).
 - BUILD: client-side keyword filter possible now (in-session only); REAL scalable search = backend-era.
+
+[RAISING ESCROW — considered; deferred to Desk-layer / later phase]
+- Q: hold Raising donations in escrow, release if goal met, refund if not (Kickstarter-style)?
+- Technically doable on Nexus. But heavy: needs custody mechanism (WHO/what holds + releases —
+  trust question), conditional release + BATCH REFUNDS to many backers (the hard/risky part),
+  burn moved to release-time (can't burn pre-refund), and MUCH heavier regulatory exposure
+  (holding/refunding pooled funds >> peer tips).
+- Conflicts with the core division: escrow was deliberately placed at the DESK, NOT the Commons
+  small-tips layer. Escrow at Raising erases that line + raises stakes/expectations/regulatory weight.
+- LEAN: wanting escrow = signal a proposal has outgrown the small-tips layer -> that's a DESK ask.
+  Commons Raising stays NO-escrow (immediate tips; goal gates build-commitment; neutral "unable to
+  build" if missed). Escrow = Desk-layer capability OR a deliberate later phase w/ legal counsel +
+  exhaustive Taira testing (esp. refund edge cases). NOT the current frontend layer.
+
+  [PRE-LAUNCH PUBLIC REVIEW — practice (decided)]
+- Before launch: publish ship-ready code to PUBLIC GitHub + openly invite the community to scrutinize
+  it BEFORE any real XOR moves. Free substitute for a paid audit ("many eyes" before stakes exist).
+- Do it RIGHT (or it's crickets): (1) point reviewers AT the money code specifically (clear
+  "review this" README — donation/burn/signing); (2) make it RUNNABLE on Taira so people poke it,
+  not just read; (3) give it real TIME (weeks) + actively solicit in SORA channels; (4) act on
+  findings, don't get defensive; (5) recognize/credit anyone who finds a real bug (motivates scrutiny).
+- SEQUENCE: build clean -> exhaustive Taira testing -> PUBLIC REVIEW PERIOD -> fix findings -> launch
+  small-tips low-stakes on mainnet -> ~1 yr uneventful real operation builds confidence -> THEN escrow/Desk
+  (escrow ~1+ yr post-launch, by which point audit capacity hopefully grown). The year = money code
+  earning trust through real operation before stakes rise.
+
+  [EXPLORE status filter — expand at backend era]
+- Current (honest to in-memory data): Active / Delivered / All.
+- LATER (with backend dispute/challenge system): add neutral status filters consistent with the
+  dispute model — e.g. "Confirmed" (window passed clean), "Open concern / response requested"
+  (NEUTRAL framing, NOT punitive "Disputed"), "Overdue" (evidence past due — cadence signal).
+  Do NOT add a "Disputed" scarlet-letter filter — contradicts the decided dispute model.
+- All depend on backend (windows, flags, cadence) — no dispute data to filter on now.

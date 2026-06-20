@@ -28,6 +28,7 @@
       <Proposals v-else-if="active === 'proposals'" @nav="go" />
       <Treasury v-else-if="active === 'treasury'" />
       <Citizens v-else-if="active === 'citizens'" @nav="go" />
+      <Explore v-else-if="active === 'explore'" @nav="go" />
       <Submit v-else-if="active === 'submit'" @nav="go" />
       <template v-else>
         <h1 class="page-title">{{ tabs.find(t => t.id === active)?.label }}</h1>
@@ -48,6 +49,7 @@
 
 <script setup lang="ts">
 import Story from "./views/Story.vue";
+import Explore from "./views/Explore.vue";
 import Feed from "./views/Feed.vue";
 import { ref, computed } from "vue";
 import { useCommonsStore } from "@/stores/commons";
