@@ -103,7 +103,7 @@ Two facets, one page:
   SAVED/tracked proposals; My Drafts (drafts come w/ backend).
 - Reached by tapping a proposer. Picture upload needs storage (backend) — placeholder/generated avatar now.
 
-## EXPLORE  Feed cards + filters/sort + search + Top Boosted. Archive = Active/Archive toggle.
+## EXPLORE (DONE — step 5)  Search + category/track filter chips + status toggle (Active/Delivered/All) + sort, in a contained filter panel; reuses Feed card; works in-session over store. (Top Boosted + profile-search + top-bar search = later.)
 ## TREASURY  Burn record fed by real donations. Total burned, recent burns, why-burn explainer.
 ## ABOUT  Philosophy/3Gi + "Built on SORA Nexus". "Follow the story of real work."
 ## CITIZENS (light)  Citizen count + who's currently in sortition.
@@ -255,8 +255,8 @@ Build path: frontend experience -> shared backend (makes it real) -> chain integ
 2. Feed ................. DONE
 3. Story detail ........ DONE
 4. Profile ............. DONE
-5. EXPLORE (browse + filters + sort + SEARCH — see SEARCH note; reuses feed card) <- NEXT
-6. Social/burn mechanics (likes/boosts/donations/follows/saves -> totals; in-memory then chain+backend)
+5. Explore ............. DONE
+6. SOCIAL/BURN MECHANICS (likes/boosts/donations/follows/saves -> totals; in-memory then chain+backend) <- NEXT
 7. Reframe Treasury / About / Citizens
 Then: SHARED BACKEND, CHAIN INTEGRATION (money code, Taira first), end-stage polish passes.
 
