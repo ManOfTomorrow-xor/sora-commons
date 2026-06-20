@@ -278,6 +278,7 @@ import HeaderIrohaConnectButton from "@/components/HeaderIrohaConnectButton.vue"
 import { CHAIN_PRESETS } from "@/constants/chains";
 import { getAccountDisplayLabel } from "@/utils/accountId";
 import { formatAssetDefinitionLabel } from "@/utils/assetId";
+import Profile from "./views/Profile.vue";
 
 const CUSTOM_NETWORK_PROFILE_ID = "__custom_network_profile__";
 

@@ -7,7 +7,7 @@
       <span v-if="p.category" class="badge" :class="catBadgeClass(p.category)">{{ catLabel(p.category) }}</span>
     </div>
     <h1 class="sd__title">{{ p.title }}</h1>
-    <div class="sd__who" @click="$emit('nav', 'profile')">
+    <div class="sd__who" @click="goProfile">
       <span class="av" :style="avStyle(p.proposerAccountId)">{{ initials(p.proposerAccountId) }}</span>
       <div class="sd__whoinfo">
         <span class="sd__name"><b>{{ shortId(p.proposerAccountId) }}</b><span class="sd__label" :class="labelClass">{{ commons.proposerLabel(p.proposerAccountId) }}</span></span>
@@ -159,6 +159,10 @@ function postComment() {
   if (!newComment.value.trim() || !p.value) return;
   commons.postDiscussion?.(p.value.id, newComment.value.trim());
   newComment.value = "";
+}
+function goProfile() {
+  if (p.value) commons.setViewingProfile(p.value.proposerAccountId);
+  emit("nav", "profile");
 }
 
 const firstIncomplete = computed(() => {

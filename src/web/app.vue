@@ -13,6 +13,8 @@
         </nav>
         <span class="spacer"></span>
         <div class="netchip"><span class="dot"></span>TAIRA</div>
+        <button class="meav" :style="avStyle(myId)" @click="goMyProfile" title="Your profile">{{ initials(myId) }}</button>
+
       </div>
     </header>
 
@@ -20,6 +22,7 @@
       <Feed v-if="active === 'feed'" @nav="go" />
       <Story v-else-if="active === 'story'" @nav="go" />
       <Compose v-else-if="active === 'post'" @nav="go" />
+      <Profile v-else-if="active === 'profile'" @nav="go" />
       <Overview v-else-if="active === 'overview'" @nav="go" />
       <About v-else-if="active === 'about'" />
       <Proposals v-else-if="active === 'proposals'" @nav="go" />
@@ -46,7 +49,9 @@
 <script setup lang="ts">
 import Story from "./views/Story.vue";
 import Feed from "./views/Feed.vue";
-import { ref } from "vue";
+import { ref, computed } from "vue";
+import { useCommonsStore } from "@/stores/commons";
+const commons = useCommonsStore();
 import sealUrl from "./assets/seal.png";
 import Overview from "./views/Overview.vue";
 import About from "./views/About.vue";
@@ -55,9 +60,19 @@ import Treasury from "./views/Treasury.vue";
 import Citizens from "./views/Citizens.vue";
 import Submit from "./views/Submit.vue";
 import Compose from "./views/Compose.vue";
+import Profile from "./views/Profile.vue";
 
 const active = ref("feed");
 const go = (id: string) => { active.value = id; window.scrollTo(0, 0); };
+const myId = computed(() => commons.currentAccountId);
+function goMyProfile() { commons.setViewingProfile(null); go("profile"); }
+function initials(id: string) { return (id || "?").slice(0, 2).toUpperCase(); }
+function avStyle(id: string) {
+  const colors = ["#C9A84C", "#7E9BE0", "#64DCAA", "#E4C77A", "#A8842F"];
+  let h = 0;
+  for (let i = 0; i < (id || "").length; i++) h = id.charCodeAt(i) + ((h << 5) - h);
+  return { background: colors[Math.abs(h) % colors.length] };
+}
 
 const tabs = [
   { id: "feed", label: "Feed" },
@@ -99,6 +114,8 @@ const mobileTabs = [
 .spacer { flex: 1; }
 .netchip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; font-family: var(--mono); font-size: .72rem; color: var(--ink-dim); }
 .netchip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--affirm); }
+.meav { width: 34px; height: 34px; border-radius: 50%; border: none; display: grid; place-items: center; font-weight: 700; color: #22180a; font-size: .8rem; cursor: pointer; margin-left: 10px; flex: none; }
+.meav:hover { box-shadow: 0 0 0 2px var(--gold-600); }
 
 .wrap { max-width: 1020px; margin: 0 auto; padding: 28px var(--pad) 96px; }
 .page-title { font-family: var(--display); font-size: 2rem; margin: 0 0 8px; }

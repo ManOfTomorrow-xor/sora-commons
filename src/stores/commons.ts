@@ -130,6 +130,8 @@ export const useCommonsStore = defineStore("commons", () => {
   const proposals = ref<CommonsProposal[]>([]);
   const savedProposals = ref<string[]>([]); // proposal ids the user has bookmarked
   const reputation = ref<ReputationRecord[]>([]);
+  const viewingProfileId = ref<string | null>(null); // whose profile we're viewing (null = own)
+  const setViewingProfile = (accountId: string | null) => { viewingProfileId.value = accountId; };
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const activeProposalId = ref<string | null>(null);
@@ -820,7 +822,7 @@ export const useCommonsStore = defineStore("commons", () => {
 
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
-    formatDate, daysRemaining, savedProposals, isSaved, toggleSave, proposerLabel,
+    savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile,
     // Reputation
     reputation, effectiveReputation, reputationRecord, creditReputation, myReputation,
   };
