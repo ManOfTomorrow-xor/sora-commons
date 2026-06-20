@@ -96,7 +96,7 @@ Story-first form: title, one-line summary (card), THE STORY (big narrative, gold
 (desc/XOR/"Evidence you'll present"/date picker "Evidence due by" w/ sequential validation), risk+
 public benefit. Centered. Gold "Post" button in desktop nav. Posts via submitProposal -> Story.
 
-## PROFILE (build next — step 4)
+## PROFILE (DONE — step 4)
 Two facets, one page:
 - PUBLIC (anyone): avatar, bio, label, reputation, their posted proposals + outcomes, track record.
 - OWN (viewing self): set profile picture; totals DONATED + BOOSTED + BURNED-from-contributions;
@@ -254,8 +254,8 @@ Build path: frontend experience -> shared backend (makes it real) -> chain integ
 1. Shell + nav .......... DONE
 2. Feed ................. DONE
 3. Story detail ........ DONE
-4. PROFILE (public + own-activity: avatar, proposals, status/rep, donated/boosted/burned, saved) <- NEXT
-5. Explore
+4. Profile ............. DONE
+5. EXPLORE (browse + filters + sort + SEARCH — see SEARCH note; reuses feed card) <- NEXT
 6. Social/burn mechanics (likes/boosts/donations/follows/saves -> totals; in-memory then chain+backend)
 7. Reframe Treasury / About / Citizens
 Then: SHARED BACKEND, CHAIN INTEGRATION (money code, Taira first), end-stage polish passes.
@@ -269,3 +269,11 @@ Then: SHARED BACKEND, CHAIN INTEGRATION (money code, Taira first), end-stage pol
 - PARKED: vote-to-fund, 5 XOR post fee, Signal=60% aye. Ref: proposal-underwriting-file-DRAFT.md.
 - SORTITION COLD-START (Phase 1B): decision B (shrink panel); never relax deliberator-exclusion.
 - TOP-BAR (later): notifications (client-derived) + feedback icon + connect/wallet button.
+
+[SEARCH — planned, TWO entry points, ONE system]
+- Explore page: primary search + filters (category/track/status) + sort — the full find experience.
+- Top-bar global search: quick-access express lane from ANYWHERE; routes to Explore results.
+- They're ONE search system with two entry points (like GitHub) — not two separate searches.
+- Covers proposals (title/story/category/keywords) + profiles (name/handle).
+- SEQUENCE: build Explore first (the destination), then top-bar search (express entry to it).
+- BUILD: client-side keyword filter possible now (in-session only); REAL scalable search = backend-era.
