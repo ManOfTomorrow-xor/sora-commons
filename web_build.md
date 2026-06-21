@@ -310,3 +310,14 @@ Then: SHARED BACKEND, CHAIN INTEGRATION (money code, Taira first), end-stage pol
   (NEUTRAL framing, NOT punitive "Disputed"), "Overdue" (evidence past due — cadence signal).
   Do NOT add a "Disputed" scarlet-letter filter — contradicts the decided dispute model.
 - All depend on backend (windows, flags, cadence) — no dispute data to filter on now.
+
+[Compose — XOR amount field sizing (small fix)]
+- The "XOR amount" input in chapters is too big / disproportionate vs other fields (looks
+  oversized next to "Evidence due by" and the textareas). Resize to match field proportions.
+
+  [Compose — XOR amount field alignment (small fix)]
+- XOR amount box sits HIGHER than the "Evidence due by" date field because the date has a label
+  above its input ("Evidence due by") pushing it down, while XOR is placeholder-only with no label.
+- FIX: give XOR a matching label above it (e.g. "XOR amount" label + input below), so both columns
+  have label-above-input structure and align. OR align the grid items to the bottom. Cleanest =
+  matching labels (consistent structure).

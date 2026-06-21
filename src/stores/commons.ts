@@ -93,8 +93,13 @@ export type CommonsProposal = {
 
   // Stage 5
   xorBurned: string;
-
   createdAt: string;
+  // Social / engagement counts (in-memory now; backend-persisted later)
+  likes: number;
+  boostCount: number;
+  followers: number;
+  backers: number;
+  totalDonated: string;
 };
 
 export type CommonsRole =
@@ -135,6 +140,8 @@ export const useCommonsStore = defineStore("commons", () => {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const activeProposalId = ref<string | null>(null);
+  const scrollToComments = ref(false);
+  const setScrollToComments = (v: boolean) => { scrollToComments.value = v; };
 
   // Draft state
   const draftTitle = ref("");
@@ -369,6 +376,11 @@ export const useCommonsStore = defineStore("commons", () => {
       revisionCount: 0,
       xorBurned: "0",
       createdAt: now.toISOString(),
+      likes: 0,
+      boostCount: 0,
+      followers: 0,
+      backers: 0,
+      totalDonated: "0",
     };
     proposals.value.unshift(newProposal);
     resetDraft();
@@ -759,6 +771,38 @@ export const useCommonsStore = defineStore("commons", () => {
     return "Newcomer";
   };
 
+  // ── Social engagement (in-memory; backend-persisted later). No XOR involved.
+  const likedProposals = ref<string[]>([]);
+  const boostedProposals = ref<string[]>([]);
+  const followedProposals = ref<string[]>([]);
+
+  const isLiked = (id: string): boolean => likedProposals.value.includes(id);
+  const isBoosted = (id: string): boolean => boostedProposals.value.includes(id);
+  const isFollowing = (id: string): boolean => followedProposals.value.includes(id);
+
+  const toggleLike = (id: string): void => {
+    const p = proposals.value.find((x) => x.id === id);
+    if (!p) return;
+    const i = likedProposals.value.indexOf(id);
+    if (i >= 0) { likedProposals.value.splice(i, 1); p.likes = Math.max(0, p.likes - 1); }
+    else { likedProposals.value.push(id); p.likes += 1; }
+  };
+  const toggleBoost = (id: string): void => {
+    const p = proposals.value.find((x) => x.id === id);
+    if (!p) return;
+    // One boost per proposal. (Scarce weekly allotment per user = backend-era.)
+    const i = boostedProposals.value.indexOf(id);
+    if (i >= 0) { boostedProposals.value.splice(i, 1); p.boostCount = Math.max(0, p.boostCount - 1); }
+    else { boostedProposals.value.push(id); p.boostCount += 1; }
+  };
+  const toggleFollow = (id: string): void => {
+    const p = proposals.value.find((x) => x.id === id);
+    if (!p) return;
+    const i = followedProposals.value.indexOf(id);
+    if (i >= 0) { followedProposals.value.splice(i, 1); p.followers = Math.max(0, p.followers - 1); }
+    else { followedProposals.value.push(id); p.followers += 1; }
+  };
+
   const isSaved = (proposalId: string): boolean =>
     savedProposals.value.includes(proposalId);
 
@@ -795,7 +839,7 @@ export const useCommonsStore = defineStore("commons", () => {
     proposals, isLoading, error, activeProposalId,
   draftTitle, draftDescription, draftStory, draftXorRequested, draftMilestones,
     draftCategory, draftProductiveClaim, draftInputs, draftExpectedOutput,
-    draftDemandSignal, draftRiskBearer, draftFailureHandling, draftPublicBenefit,
+    draftDemandSignal, draftRiskBearer, draftFailureHandling, draftPublicBenefit, scrollToComments, setScrollToComments,
 
     // Derived from Parliament
     currentAccountId, isConnected, isCitizen, isOperator,
@@ -822,7 +866,7 @@ export const useCommonsStore = defineStore("commons", () => {
 
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
-    savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile,
+    savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile,     isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow,
     // Reputation
     reputation, effectiveReputation, reputationRecord, creditReputation, myReputation,
   };

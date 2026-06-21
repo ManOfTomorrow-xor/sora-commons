@@ -215,7 +215,7 @@ function avStyle(id: string) {
 .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
 .badge { display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; padding: 4px 11px; border-radius: 999px; }
 .badge__ic { width: 13px; height: 13px; flex: none; }
-.cat--production { background: rgba(217,184,113,.10); color: #D9B871; border: 1px solid rgba(217,184,113,.35); }
+.cat--production { background: rgba(217,138,91,.12); color: #E0986A; border: 1px solid rgba(217,138,91,.4); }
 .cat--publicgood { background: rgba(100,220,170,.10); color: #8FE0C0; border: 1px solid rgba(100,220,170,.35); }
 .track--don { background: rgba(201,168,76,.12); color: var(--gold-300); border: 1px solid var(--gold-600); }
 .track--desk { background: rgba(126,155,224,.12); color: var(--info); border: 1px solid rgba(126,155,224,.4); }

@@ -51,7 +51,7 @@
           <div v-for="(m, i) in commons.draftMilestones" :key="i" class="ms__row">
             <div class="ms__head"><span class="ms__tag">Chapter {{ i + 1 }}</span><button v-if="commons.draftMilestones.length > 1" type="button" class="ms__rm" @click="commons.removeMilestone(i)">Remove</button></div>
             <input v-model="m.description" type="text" placeholder="What gets delivered in this chapter?" />
-            <div class="ms__grid"><input v-model="m.xorAmount" type="number" min="0" placeholder="XOR amount" /><label class="ms__date"><span>Evidence due by</span><input v-model="m.timeline" type="date" :min="minDate(i)" /></label></div>
+            <div class="ms__grid"><label class="ms__date"><span>XOR amount</span><input v-model="m.xorAmount" type="number" min="0" placeholder="0" /></label><label class="ms__date"><span>Evidence due by</span><input v-model="m.timeline" type="date" :min="minDate(i)" /></label></div>
             <label class="ms__evlabel">Evidence you'll present</label>
             <textarea v-model="m.evidence" rows="2" placeholder="What proof will you show when this chapter is done? (e.g. receipts, photos, a working link)"></textarea>
             </div>
@@ -183,7 +183,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--gold-600); }
 .ms__head { display: flex; justify-content: space-between; align-items: center; }
 .ms__tag { font-family: var(--mono); font-size: .74rem; color: var(--gold-300); }
 .ms__rm { background: none; border: none; color: var(--negate); font-size: .8rem; cursor: pointer; width: auto; }
-.ms__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ms__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: start; }
 .ms__add { background: none; border: 1px dashed var(--line); border-radius: var(--r-sm); color: var(--gold-300); padding: 10px; cursor: pointer; width: 100%; }
 .ms__date { display: flex; flex-direction: column; gap: 4px; }
 .ms__date span { font-size: .7rem; color: var(--ink-faint); }

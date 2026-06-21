@@ -12,7 +12,7 @@
       <div class="col">
         <!-- mobile top-boosted strip -->
         <div v-if="topBoosted.length" class="tbstrip">
-          <div class="tbstrip__h"><Flame :size="13" /> Top Boosted</div>
+          <div class="tbstrip__h"><svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg> Top Boosted</div>
           <div class="tbstrip__row">
             <button v-for="(p, i) in topBoosted" :key="p.id" class="tbchip" @click="open(p)">
               <span class="tbchip__r">{{ i + 1 }}</span>{{ p.title }}
@@ -61,41 +61,35 @@
             </div>
             <div class="prog__bar"><div class="prog__fill" :class="{ 'prog__fill--done': p.status === 'complete' }" :style="{ width: pct(p) + '%' }"></div></div>
           </div>
-
           <div class="eng">
-            <span><svg class="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5C12 20.5 3.5 15 3.5 8.8 3.5 6 5.7 4 8.2 4c1.7 0 3 .9 3.8 2.2C12.8 4.9 14.1 4 15.8 4c2.5 0 4.7 2 4.7 4.8C20.5 15 12 20.5 12 20.5z"/></svg>{{ p.likes || 0 }}</span>
-            <span class="bolts"><svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>{{ p.boostCount || 0 }}</span>
-            <span><svg class="i-cmt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>{{ (p.discussionPosts && p.discussionPosts.length) || 0 }}</span>
+            <button class="engbtn" :class="{ on: commons.isLiked(p.id) }" @click.stop="commons.toggleLike(p.id)"><svg class="i-heart" viewBox="0 0 24 24" :fill="commons.isLiked(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5C12 20.5 3.5 15 3.5 8.8 3.5 6 5.7 4 8.2 4c1.7 0 3 .9 3.8 2.2C12.8 4.9 14.1 4 15.8 4c2.5 0 4.7 2 4.7 4.8C20.5 15 12 20.5 12 20.5z"/></svg>{{ p.likes || 0 }}</button>
+            <button class="engbtn bolts" :class="{ on: commons.isBoosted(p.id) }" @click.stop="commons.toggleBoost(p.id)"><svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>{{ p.boostCount || 0 }}</button>
+            <button class="engbtn" @click.stop="openComments(p)"><svg class="i-cmt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>{{ (p.discussionPosts && p.discussionPosts.length) || 0 }}</button>
             <span class="donated">{{ p.totalDonated || 0 }} XOR donated</span>
           </div>
         </article>
       </div>
 
-      <!-- RIGHT RAIL -->
+<!-- RIGHT RAIL -->
       <aside class="rail">
         <div v-if="topBoosted.length" class="panel">
-          <div class="panel__h"><Flame :size="14" /> Top Boosted</div>
+          <div class="panel__h"><svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg> Top Boosted</div>
           <button v-for="(p, i) in topBoosted" :key="p.id" class="tbrow" @click="open(p)">
             <span class="tbrow__r">{{ i + 1 }}</span>
             <span class="tbrow__mid">
               <span v-if="p.category" class="tbrow__cat">{{ catLabel(p.category) }}</span>
               <span class="tbrow__t">{{ p.title }}</span>
             </span>
-            <span class="tbrow__b"><Flame :size="11" /> {{ p.boostCount || 0 }}</span>
+            <svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
           </button>
         </div>
 
+        <!-- Commons today stats -->
         <div class="panel">
           <div class="panel__h">The Commons today</div>
-          <div class="rstat"><span>Live stories</span><b>{{ commons.liveProposals.length }}</b></div>
-          <div class="rstat"><span>XOR burned</span><b>{{ totalBurned }}</b></div>
           <div class="rstat"><span>Proposals</span><b>{{ commons.proposals.length }}</b></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel__h">Tell your story</div>
-          <p class="panel__p">Posting is free. Support flows to you; a small part burns.</p>
-          <button class="postcta" @click="$emit('nav', 'post')">Post your work</button>
+          <div class="rstat"><span>XOR burned</span><b>{{ totalBurned }}</b></div>
+          <div class="rstat"><span>XOR raised</span><b>{{ totalRaised }}</b></div>
         </div>
       </aside>
     </div>
@@ -105,7 +99,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useCommonsStore } from "@/stores/commons";
-import Flame from "../components/Flame.vue";
 
 const emit = defineEmits<{ (e: "nav", id: string): void }>();
 const commons = useCommonsStore();
@@ -132,12 +125,20 @@ const topBoosted = computed(() =>
 );
 
 const totalBurned = computed(() => commons.totalXorBurned ?? "0");
+const totalRaised = computed(() =>
+  commons.proposals.reduce((s: number, p: any) => s + Number(p.totalDonated || 0), 0)
+);
 
 function open(p: any) { commons.setActiveProposal?.(p.id); emit("nav", "story"); }
 function pct(p: any) {
   const done = p.milestones?.filter((m: any) => m.completed).length || 0;
   const total = p.milestones?.length || 0;
   return total ? Math.round((done / total) * 100) : 0;
+}
+function openComments(p: any) {
+  commons.setActiveProposal?.(p.id);
+  commons.setScrollToComments(true);
+  emit("nav", "story");
 }
 function chapterText(p: any) {
   const done = p.milestones?.filter((m: any) => m.completed).length || 0;
@@ -210,7 +211,7 @@ function avStyle(id: string) {
 .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 .badge__ic { width: 13px; height: 13px; flex: none; }
 .badge { display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-family: var(--mono); padding: 4px 10px; border-radius: 999px; }
-.cat--production { background: rgba(168,132,47,.12); color: #D9B871; border: 1px solid rgba(168,132,47,.4); }
+.cat--production { background: rgba(217,138,91,.12); color: #E0986A; border: 1px solid rgba(217,138,91,.4); }
 .cat--publicgood { background: rgba(100,220,170,.10); color: #8FE0C0; border: 1px solid rgba(100,220,170,.35); }.track--don { background: rgba(201,168,76,.12); color: var(--gold-300); border: 1px solid var(--gold-600); }
 .track--desk { background: rgba(126,155,224,.12); color: var(--info); border: 1px solid rgba(126,155,224,.4); }
 
@@ -232,6 +233,11 @@ function avStyle(id: string) {
 .eng span { display: inline-flex; align-items: center; gap: 5px; }
 .eng .bolts { color: var(--ink-faint); }
 .eng .donated { margin-left: auto; font-family: var(--mono); color: var(--gold-300); }
+.eng .bolts { color: var(--ink-faint); }
+.engbtn { background: rgba(255,255,255,.03); border: 1px solid var(--line-soft); border-radius: 999px; padding: 4px 10px; font: inherit; color: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: background .15s var(--ease), border-color .15s var(--ease), color .15s var(--ease); }
+.engbtn:hover { background: rgba(201,168,76,.12); border-color: var(--gold-600); color: var(--ink); }
+.engbtn.on { background: rgba(201,168,76,.14); border-color: var(--gold-600); color: var(--gold-300); }
+@media (hover: none) { .engbtn { background: rgba(255,255,255,.05); border-color: var(--line); } }
 
 .rail { display: flex; flex-direction: column; gap: 16px; }
 .panel { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; }

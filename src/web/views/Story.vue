@@ -82,7 +82,7 @@
 
         <!-- CONVERSATION -->
         <section class="sec">
-          <h2>Conversation</h2>
+          <h2 id="conversation">Conversation</h2>
           <p v-if="!p.discussionPosts || p.discussionPosts.length === 0" class="muted">No comments yet. Be the first to weigh in.</p>
           <div v-for="c in p.discussionPosts" :key="c.id" class="cmt" :class="{ isprop: c.authorAccountId === p.proposerAccountId }">
             <span class="av sm" :style="avStyle(c.authorAccountId)">{{ initials(c.authorAccountId) }}</span>
@@ -103,11 +103,11 @@
         <div class="support">
           <button class="support__donate" @click="openDonate">Donate</button>
           <div class="support__row">
-            <button class="iconbtn" :class="{ on: liked }" @click="toggleLike" title="Like">
-              <svg viewBox="0 0 24 24" :fill="liked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5C12 20.5 3.5 15 3.5 8.8 3.5 6 5.7 4 8.2 4c1.7 0 3 .9 3.8 2.2C12.8 4.9 14.1 4 15.8 4c2.5 0 4.7 2 4.7 4.8C20.5 15 12 20.5 12 20.5z"/></svg>
-              <span>{{ likeCount }}</span>
+            <button class="iconbtn" :class="{ on: commons.isLiked(p.id) }" @click="commons.toggleLike(p.id)" title="Like">
+              <svg viewBox="0 0 24 24" :fill="commons.isLiked(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5C12 20.5 3.5 15 3.5 8.8 3.5 6 5.7 4 8.2 4c1.7 0 3 .9 3.8 2.2C12.8 4.9 14.1 4 15.8 4c2.5 0 4.7 2 4.7 4.8C20.5 15 12 20.5 12 20.5z"/></svg>
+              <span>{{ p.likes }}</span>
             </button>
-            <button class="iconbtn" @click="openBoost" title="Boost">
+            <button class="iconbtn" :class="{ on: commons.isBoosted(p.id) }" @click="commons.toggleBoost(p.id)" title="Boost">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
               <span>{{ p.boostCount || 0 }}</span>
             </button>
@@ -115,7 +115,7 @@
               <svg viewBox="0 0 24 24" :fill="commons.isSaved(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2"><path d="M6 4h12v16l-6-4-6 4z"/></svg>
             </button>
           </div>
-          <button class="support__follow" :class="{ on: following }" @click="following = !following">{{ following ? "Following" : "+ Follow" }}</button>
+          <button class="support__follow" :class="{ on: commons.isFollowing(p.id) }" @click="commons.toggleFollow(p.id)">{{ commons.isFollowing(p.id) ? "Following" : "+ Follow" }}</button>
           <div class="support__totals">
             <div><b>{{ p.totalDonated || 0 }}</b><span>XOR raised</span></div>
             <div><b>{{ p.xorBurned || 0 }}</b><span>XOR burned</span></div>
@@ -138,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 
 const emit = defineEmits<{ (e: "nav", id: string): void }>();
@@ -147,13 +147,10 @@ const commons = useCommonsStore();
 const p = computed(() => commons.activeProposal as any);
 
 // local visual state (real like/boost/donate wired in step 6)
-const liked = ref(false);
-const following = ref(false);
-const newComment = ref("");
-const likeCount = computed(() => (p.value?.likes || 0) + (liked.value ? 1 : 0));
 
-function toggleLike() { liked.value = !liked.value; }
-function openBoost() { emit("nav", "feed"); /* placeholder; boost modal in step 6 */ }
+const newComment = ref("");
+
+
 function openDonate() { /* placeholder; donate modal in step 6 */ }
 function postComment() {
   if (!newComment.value.trim() || !p.value) return;
@@ -208,6 +205,14 @@ function avStyle(id?: string) {
   for (let i = 0; i < (id || "").length; i++) h = (id as string).charCodeAt(i) + ((h << 5) - h);
   return { background: colors[Math.abs(h) % colors.length] };
 }
+onMounted(() => {
+  if (commons.scrollToComments) {
+    commons.setScrollToComments(false);
+    setTimeout(() => {
+      document.getElementById("conversation")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  }
+});
 </script>
 
 <style scoped>
