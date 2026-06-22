@@ -6,15 +6,21 @@
     />
     <defs>
       <linearGradient :id="id" x1="12" y1="3" x2="12" y2="21" gradientUnits="userSpaceOnUse">
-        <stop stop-color="#E4C77A" />
-        <stop offset="0.5" stop-color="#C9A84C" />
-        <stop offset="1" stop-color="#A8842F" />
+        <template v-if="variant === 'fire'">
+          <stop stop-color="#FFD27A" />
+          <stop offset="0.45" stop-color="#F08A3C" />
+          <stop offset="1" stop-color="#C0341B" />
+        </template>
+        <template v-else>
+          <stop stop-color="#E4C77A" />
+          <stop offset="0.5" stop-color="#C9A84C" />
+          <stop offset="1" stop-color="#A8842F" />
+        </template>
       </linearGradient>
     </defs>
   </svg>
 </template>
-
 <script setup lang="ts">
-withDefaults(defineProps<{ size?: number | string }>(), { size: 18 });
+withDefaults(defineProps<{ size?: number | string; variant?: "gold" | "fire" }>(), { size: 18, variant: "gold" });
 const id = "fl-" + Math.random().toString(36).slice(2, 7);
 </script>

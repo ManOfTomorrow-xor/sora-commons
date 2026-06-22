@@ -340,3 +340,13 @@ Then: SHARED BACKEND, CHAIN INTEGRATION (money code, Taira first), end-stage pol
   on your own are vain/meaningless. RULE: on your own proposal (isMine), hide/disable like, boost,
   follow, donate. Owner sees totals + their evidence controls, not support actions aimed at self.
 - Real enforcement = backend (account checks); frontend hides now via isMine.
+
+[Explore card icons — make interactive when card component is extracted]
+- Explore engagement icons are DISPLAY-ONLY spans; Feed's are interactive (like/boost wired +
+  isOwn guard + pill affordance). Inconsistent. Make them match (interactive + guarded) — ideally
+  when extracting a shared <StoryCard> component (card markup is currently duplicated Feed/Explore;
+  every card change must be done twice — terracotta, self-support guard, etc.). Don't duplicate the
+  interactive logic into Explore now just to re-merge during the refactor.
+[REFACTOR — extract shared <StoryCard> component]
+- Feed.vue and Explore.vue duplicate the full story-card markup + helpers. Extract one <StoryCard>
+  so changes happen once. Do before/with backend wiring. Then Explore inherits Feed's interactivity.
