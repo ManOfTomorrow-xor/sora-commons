@@ -775,7 +775,7 @@ export const useCommonsStore = defineStore("commons", () => {
   const likedProposals = ref<string[]>([]);
   const boostedProposals = ref<string[]>([]);
   const followedProposals = ref<string[]>([]);
-
+  const donatedProposals = ref<string[]>([]); // proposal ids the current account has donated to (for unique-backer counting)
   const isLiked = (id: string): boolean => likedProposals.value.includes(id);
   const isBoosted = (id: string): boolean => boostedProposals.value.includes(id);
   const isFollowing = (id: string): boolean => followedProposals.value.includes(id);
@@ -801,6 +801,26 @@ export const useCommonsStore = defineStore("commons", () => {
     const i = followedProposals.value.indexOf(id);
     if (i >= 0) { followedProposals.value.splice(i, 1); p.followers = Math.max(0, p.followers - 1); }
     else { followedProposals.value.push(id); p.followers += 1; }
+  };
+
+  // IN-MEMORY DONATION PREVIEW ONLY — NOT real money, NOT the production path.
+  // Real donations must use the MONEY-CODE DISCIPLINE: integer/BigInt base units, exact
+  // precision, 1% split summing exactly, validation, confirm, Taira-first, on-chain readback.
+  // This stub updates in-memory totals so the experience can be seen/refined. No XOR moves.
+  const donate = (proposalId: string, amount: number): boolean => {
+    const p = proposals.value.find((x) => x.id === proposalId);
+    if (!p) return false;
+    if (!(amount > 0)) return false;
+    const burn = amount * 0.01;            // 1% burns
+    const toProposer = amount - burn;       // 99% to proposer
+    p.totalDonated = (parseFloat(p.totalDonated || "0") + toProposer).toFixed(4);
+    p.xorBurned = (parseFloat(p.xorBurned || "0") + burn).toFixed(4);
+    // Backers = UNIQUE donors. Only count this account once per proposal.
+    if (!donatedProposals.value.includes(proposalId)) {
+      donatedProposals.value.push(proposalId);
+      p.backers = (p.backers || 0) + 1;
+    }
+    return true;
   };
 
   const isSaved = (proposalId: string): boolean =>
@@ -866,7 +886,7 @@ export const useCommonsStore = defineStore("commons", () => {
 
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
-    savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile,     isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow,
+    savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow, donate, donatedProposals,
     // Reputation
     reputation, effectiveReputation, reputationRecord, creditReputation, myReputation,
   };

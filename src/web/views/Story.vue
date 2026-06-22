@@ -128,6 +128,34 @@
 
     <!-- mobile sticky donate -->
     <button class="mobile-donate" @click="openDonate">Donate</button>
+
+    <!-- DONATE MODAL -->
+    <div v-if="showDonate" class="dm__overlay" @click.self="showDonate = false">
+      <div class="dm">
+        <button class="dm__x" @click="showDonate = false">×</button>
+        <h3 class="dm__title">Support this work</h3>
+        <p class="dm__sub">Donate XOR directly to {{ shortId(p.proposerAccountId) }}. 1% is burned; 99% goes to the proposer.</p>
+
+        <div class="dm__picks">
+          <button v-for="q in [10, 50, 100, 500]" :key="q" class="dm__pick" :class="{ on: amount === q }" @click="setPick(q)">{{ q }}</button>
+        </div>
+
+       <label class="dm__lab">Amount (XOR) <span class="dm__max">· max 1,000,000</span></label>
+        <input class="dm__input" type="number" min="0" max="1000000" step="0.0001" v-model.number="amount" placeholder="0" @input="onAmountInput" />
+        <p v-if="amount === 1000000" class="dm__capnote">Maximum donation is 1,000,000 XOR.</p>
+
+        <div v-if="amount > 0" class="dm__split">
+          <div><span>To proposer</span><b>{{ (amount * 0.99).toFixed(4) }} XOR</b></div>
+          <div><span>Burned (1%)</span><b>{{ (amount * 0.01).toFixed(4) }} XOR</b></div>
+        </div>
+
+        <p class="dm__note">Preview only — updates totals in this session. Real on-chain donations come with chain integration.</p>
+
+        <button class="dm__confirm" :disabled="!(amount > 0)" @click="confirmDonate">
+          Donate {{ amount > 0 ? amount + " XOR" : "" }}
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- no story selected -->
@@ -151,7 +179,7 @@ const p = computed(() => commons.activeProposal as any);
 const newComment = ref("");
 
 
-function openDonate() { /* placeholder; donate modal in step 6 */ }
+function openDonate() { amount.value = 0; picked.value = false; showDonate.value = true; }
 function postComment() {
   if (!newComment.value.trim() || !p.value) return;
   commons.postDiscussion?.(p.value.id, newComment.value.trim());
@@ -176,6 +204,23 @@ const hasFacts = computed(() => {
   const x = p.value;
   return x && (x.productiveClaim || x.inputs || x.expectedOutput || x.demandSignal || x.riskBearer || x.failureHandling || x.publicBenefit);
 });
+
+const showDonate = ref(false);
+const amount = ref<number>(0);
+const picked = ref(false);
+function setPick(q: number) { amount.value = q; picked.value = true; }
+function confirmDonate() {
+  if (!p.value || !(amount.value > 0)) return;
+  commons.donate(p.value.id, amount.value);
+  showDonate.value = false;
+  amount.value = 0;
+  picked.value = false;
+}
+function onAmountInput() {
+  picked.value = false;
+  if (amount.value > 1000000) amount.value = 1000000;
+  if (amount.value < 0) amount.value = 0;
+}
 
 const trackLabel = computed(() => (p.value?.track === "desk" ? "🏛 Under Treasury Desk review" : "⚡ Seeking donations"));
 const trackClass = computed(() => (p.value?.track === "desk" ? "track--desk" : "track--don"));
@@ -340,4 +385,32 @@ onMounted(() => {
 .empty-wrap { text-align: center; padding: 60px 0; }
 .empty { color: var(--ink-faint); margin-bottom: 16px; }
 .postcta { background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 11px 20px; font-weight: 700; cursor: pointer; }
+.dm__overlay { position: fixed; inset: 0; background: rgba(5,9,16,.7); display: grid; place-items: center; z-index: 100; padding: 20px; }
+.dm { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 26px; width: 100%; max-width: 400px; position: relative; }
+.dm__x { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--ink-faint); font-size: 1.5rem; cursor: pointer; line-height: 1; }
+.dm__x:hover { color: var(--ink); }
+.dm__title { font-family: var(--display); font-size: 1.3rem; font-weight: 800; margin: 0 0 6px; }
+.dm__sub { color: var(--ink-dim); font-size: .86rem; margin: 0 0 18px; line-height: 1.5; }
+.dm__picks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+.dm__pick { background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px; color: var(--ink); font-family: var(--mono); cursor: pointer; }
+.dm__pick:hover { border-color: var(--gold-600); }
+.dm__pick.on { background: rgba(201,168,76,.14); border-color: var(--gold-600); color: var(--gold-300); }
+.dm__lab { font-size: .74rem; color: var(--ink-faint); display: block; margin-bottom: 6px; }
+.dm__input { width: 100%; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 12px 14px; color: var(--ink); font-family: var(--mono); font-size: 1.1rem; }
+.dm__input:focus { outline: none; border-color: var(--gold-600); }
+.dm__split { display: flex; justify-content: space-between; gap: 12px; margin: 16px 0; padding: 14px; background: var(--navy-900); border-radius: var(--r-sm); }
+.dm__split div { display: flex; flex-direction: column; gap: 3px; }
+.dm__split span { font-size: .72rem; color: var(--ink-faint); }
+.dm__split b { font-family: var(--mono); color: var(--gold-300); }
+.dm__note { font-size: .74rem; color: var(--ink-faint); margin: 0 0 16px; line-height: 1.5; }
+.dm__confirm { width: 100%; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 14px; font-weight: 800; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 14px rgba(201,168,76,.25); }
+.dm__confirm:hover { filter: brightness(1.05); }
+.dm__confirm:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+.dm__input::-webkit-outer-spin-button,
+.dm__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.dm__input { -moz-appearance: textfield; appearance: textfield; }
+.dm__input { overflow: hidden; text-overflow: ellipsis; }
+.dm__split b { overflow-wrap: anywhere; }
+.dm__max { color: var(--ink-faint); font-weight: 400; }
+.dm__capnote { font-size: .74rem; color: var(--gold-300); margin: 6px 0 0; }
 </style>

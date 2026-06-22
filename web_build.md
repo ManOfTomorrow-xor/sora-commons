@@ -321,3 +321,14 @@ Then: SHARED BACKEND, CHAIN INTEGRATION (money code, Taira first), end-stage pol
 - FIX: give XOR a matching label above it (e.g. "XOR amount" label + input below), so both columns
   have label-above-input structure and align. OR align the grid items to the bottom. Cleanest =
   matching labels (consistent structure).
+
+  [PAGINATION — strategy decided, build with backend]
+- EXPLORE (find/search surface): NUMBERED PAGES (Google-style), ~20 per page, "showing X–Y of N."
+  Structured, lets users know where they are, pairs with filters/sort.
+- FEED (browse surface): "LOAD MORE" button, ~15-20 per batch — NOT infinite scroll. Infinite scroll
+  is the engineered dopamine-loop pattern our SOCIAL LAYER says to LEAVE; "Load more" gives browse-flow
+  while keeping it intentional/user-controlled. On-brand for "warmth not engagement-maximizing."
+- Per-page counts (~20) are tunable with real usage.
+- BUILD: real pagination = BACKEND (server returns the right slice: ?page&limit; can't efficiently
+  paginate thousands client-side). Same family as SEARCH — build together, backend-era. Client-side
+  scaffolding now would be invisible over a few test proposals — skip until backend.

@@ -239,7 +239,7 @@ function avStyle(id: string) {
 .engbtn.on { background: rgba(201,168,76,.14); border-color: var(--gold-600); color: var(--gold-300); }
 @media (hover: none) { .engbtn { background: rgba(255,255,255,.05); border-color: var(--line); } }
 
-.rail { display: flex; flex-direction: column; gap: 16px; }
+.rail { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 88px; align-self: start; }
 .panel { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; }
 .panel__h { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-size: 1rem; font-weight: 700; margin-bottom: 12px; }
 .panel__p { color: var(--ink-dim); font-size: .86rem; margin: 0 0 12px; }
