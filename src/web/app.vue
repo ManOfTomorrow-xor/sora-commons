@@ -9,7 +9,7 @@
         </a>
        <nav class="nav">
           <a v-for="t in tabs" :key="t.id" :class="{ active: active === t.id }" @click="go(t.id)">{{ t.label }}</a>
-          <button class="nav-post" :class="{ active: active === 'post' }" @click="go('post')">Post</button>
+          <button class="nav-post btn-gold" :class="{ active: active === 'post' }" @click="go('post')">Post</button>
         </nav>
         <span class="spacer"></span>
         <div class="netchip"><span class="dot"></span>TAIRA</div>

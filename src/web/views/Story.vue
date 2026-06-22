@@ -71,7 +71,12 @@
               </div>
               <div v-if="isMine && !m.completed && i === firstIncomplete" class="ch__deliver">
                 <textarea v-model="deliverText" rows="2" placeholder="Present the actual evidence this chapter is done (link, receipt, photo description...)"></textarea>
-                <button class="ch__deliverbtn" :disabled="!deliverText.trim()" @click="submitDelivery(m.id)">Submit evidence &amp; mark delivered</button>
+                <button class="ch__attach" disabled title="File uploads arrive with file storage">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.49"/></svg>
+                  Attach evidence file
+                  <span class="ch__soon">coming with file storage</span>
+                </button>
+                <button class="ch__deliverbtn btn-gold" :disabled="!deliverText.trim()" @click="submitDelivery(m.id)">Submit evidence &amp; mark delivered</button>
               </div>
             </div>
             <span class="ch__st" :class="m.completed ? 'st-done' : (i === firstIncomplete ? 'st-now' : 'st-up')">
@@ -93,7 +98,7 @@
           </div>
           <div class="cmtbox">
             <input v-model="newComment" placeholder="Add a comment..." @keyup.enter="postComment" />
-            <button @click="postComment">Post</button>
+            <button class="btn-gold" @click="postComment">Post</button>
           </div>
         </section>
       </div>
@@ -101,7 +106,7 @@
       <!-- STICKY SUPPORT RAIL -->
       <aside class="sd__rail">
         <div class="support">
-          <button class="support__donate" @click="openDonate">Donate</button>
+          <button class="support__donate btn-gold" @click="openDonate">Donate</button>
           <div class="support__row">
             <button class="iconbtn" :class="{ on: commons.isLiked(p.id) }" @click="commons.toggleLike(p.id)" title="Like">
               <svg viewBox="0 0 24 24" :fill="commons.isLiked(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5C12 20.5 3.5 15 3.5 8.8 3.5 6 5.7 4 8.2 4c1.7 0 3 .9 3.8 2.2C12.8 4.9 14.1 4 15.8 4c2.5 0 4.7 2 4.7 4.8C20.5 15 12 20.5 12 20.5z"/></svg>
@@ -127,7 +132,7 @@
     </div>
 
     <!-- mobile sticky donate -->
-    <button class="mobile-donate" @click="openDonate">Donate</button>
+    <button class="mobile-donate btn-gold" @click="openDonate">Donate</button>
 
     <!-- DONATE MODAL -->
     <div v-if="showDonate" class="dm__overlay" @click.self="showDonate = false">
@@ -151,7 +156,7 @@
 
         <p class="dm__note">Preview only — updates totals in this session. Real on-chain donations come with chain integration.</p>
 
-        <button class="dm__confirm" :disabled="!(amount > 0)" @click="confirmDonate">
+        <button class="dm__confirm btn-gold" :disabled="!(amount > 0)" @click="confirmDonate">
           Donate {{ amount > 0 ? amount + " XOR" : "" }}
         </button>
       </div>
@@ -275,9 +280,8 @@ onMounted(() => {
 /* sticky support rail */
 .sd__rail { position: sticky; top: 88px; }
 .support { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-.support__donate { background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r); padding: 15px; font-weight: 800; font-size: 1.05rem; letter-spacing: .01em; cursor: pointer; box-shadow: 0 4px 14px rgba(201,168,76,.25); transition: transform .15s var(--ease), box-shadow .15s var(--ease); }
-.support__donate:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,168,76,.35); }
-.support__donate:hover { filter: brightness(1.05); }
+.support__donate { background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r); padding: 15px; font-weight: 800; font-size: 1.05rem; letter-spacing: .01em; cursor: pointer; box-shadow: 0 4px 14px rgba(201,168,76,.25); transition: transform .15s var(--ease), box-shadow .15s var(--ease), filter .15s var(--ease); }
+.support__donate:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,168,76,.35); filter: brightness(1.06); }
 .support__row { display: flex; gap: 8px; }
 .iconbtn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px; color: var(--ink-dim); cursor: pointer; font-size: .86rem; }
 .iconbtn svg { width: 16px; height: 16px; }
@@ -357,7 +361,8 @@ onMounted(() => {
 .ch__deliver textarea { width: 100%; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 9px 11px; color: var(--ink); font-family: inherit; font-size: .88rem; resize: vertical; }
 .ch__deliver textarea:focus { outline: none; border-color: var(--gold-600); }
 .ch__deliverbtn { align-self: flex-start; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 8px 14px; font-weight: 700; font-size: .84rem; cursor: pointer; }
-.ch__deliverbtn:disabled { opacity: .45; cursor: not-allowed; }
+.ch__deliverbtn { align-self: flex-start; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 8px 14px; font-weight: 700; font-size: .84rem; cursor: pointer; box-shadow: 0 3px 12px rgba(201,168,76,.22); transition: transform .15s var(--ease), box-shadow .15s var(--ease), filter .15s var(--ease); }
+.ch__deliverbtn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(201,168,76,.34); filter: brightness(1.06); }
 .st-done { background: rgba(100,220,170,.14); color: var(--affirm); }
 .st-now { background: rgba(201,168,76,.14); color: var(--gold-300); }
 .st-up { background: var(--line-soft); color: var(--ink-faint); }
@@ -372,7 +377,7 @@ onMounted(() => {
 .cmt__t { color: var(--ink-dim); font-size: .9rem; overflow-wrap: anywhere; }
 .cmtbox { display: flex; gap: 10px; margin-top: 14px; }
 .cmtbox input { flex: 1; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px 12px; color: var(--ink); font-family: inherit; }
-.cmtbox button { background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 0 20px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 10px rgba(201,168,76,.2); transition: transform .15s var(--ease), box-shadow .15s var(--ease); }
+.cmtbox button:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(201,168,76,.3); filter: brightness(1.06); }
 .cmtbox button:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(201,168,76,.3); }
 .accountability { border-color: rgba(126,155,224,.25); }
 .accountability h2 { color: var(--info); }
@@ -403,8 +408,8 @@ onMounted(() => {
 .dm__split span { font-size: .72rem; color: var(--ink-faint); }
 .dm__split b { font-family: var(--mono); color: var(--gold-300); }
 .dm__note { font-size: .74rem; color: var(--ink-faint); margin: 0 0 16px; line-height: 1.5; }
-.dm__confirm { width: 100%; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 14px; font-weight: 800; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 14px rgba(201,168,76,.25); }
-.dm__confirm:hover { filter: brightness(1.05); }
+.dm__confirm { width: 100%; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 14px; font-weight: 800; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 14px rgba(201,168,76,.25); transition: transform .15s var(--ease), box-shadow .15s var(--ease), filter .15s var(--ease); }
+.dm__confirm:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,168,76,.35); filter: brightness(1.06); }
 .dm__confirm:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
 .dm__input::-webkit-outer-spin-button,
 .dm__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -413,4 +418,7 @@ onMounted(() => {
 .dm__split b { overflow-wrap: anywhere; }
 .dm__max { color: var(--ink-faint); font-weight: 400; }
 .dm__capnote { font-size: .74rem; color: var(--gold-300); margin: 6px 0 0; }
+.ch__attach { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; background: var(--navy-900); border: 1px dashed var(--line); border-radius: var(--r-sm); padding: 8px 12px; color: var(--ink-faint); font-size: .82rem; cursor: not-allowed; }
+.ch__attach svg { width: 15px; height: 15px; flex: none; }
+.ch__soon { font-size: .68rem; color: var(--ink-faint); opacity: .7; font-style: italic; }
 </style>

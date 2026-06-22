@@ -72,7 +72,7 @@
 
     <div class="bar">
       <div class="bar__status"><span v-if="!ready" class="bar__todo">{{ todo }}</span><span v-else class="bar__ok">Ready to post your story.</span></div>
-      <button class="bar__btn" :disabled="!ready || posting" @click="onPost">{{ posting ? "Posting..." : "Post your story" }}</button>
+      <button class="bar__btn btn-gold" :disabled="!ready || posting" @click="onPost">{{ posting ? "Posting..." : "Post your story" }}</button>
     </div>
     <p v-if="message" class="result" :class="{ 'result--err': isError }">{{ message }}</p>
   </div>
@@ -196,7 +196,8 @@ input:focus, textarea:focus { outline: none; border-color: var(--gold-600); }
 .bar { position: sticky; bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 14px; background: rgba(11,18,32,.92); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 16px 20px; }
 .bar__todo { color: var(--ink-faint); font-size: .88rem; }
 .bar__ok { color: var(--affirm); font-size: .88rem; }
-.bar__btn { background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 12px 22px; font-weight: 700; cursor: pointer; }
+.bar__btn { background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 12px 22px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 12px rgba(201,168,76,.22); transition: transform .15s var(--ease), box-shadow .15s var(--ease), filter .15s var(--ease); }
+.bar__btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(201,168,76,.34); filter: brightness(1.06); }
 .bar__btn:disabled { opacity: .45; cursor: not-allowed; }
 .result { padding: 12px 16px; border-radius: var(--r); background: rgba(100,220,170,.1); color: var(--affirm); margin: 0; }
 .result--err { background: rgba(255,100,100,.1); color: var(--negate); }

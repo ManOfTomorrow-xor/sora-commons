@@ -330,3 +330,7 @@ Then: SHARED BACKEND, CHAIN INTEGRATION (money code, Taira first), end-stage pol
 - Current (honest to in-memory data): Active / Delivered / All.
 - LATER (backend dispute system): neutral filters — "Confirmed", "Open concern / response requested"
   (NEUTRAL, NOT punitive "Disputed"), "Overdue". Do NOT add a "Disputed" scarlet-letter filter.
+
+[Compose — "Post your story" button polish]
+- The submit/post button looks flat/cheap vs the refined gold buttons (Donate, comment Post).
+  Give it the same depth treatment: gradient + subtle shadow + lift-on-hover. Fold into button polish.
