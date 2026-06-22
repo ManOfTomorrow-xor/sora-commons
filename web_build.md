@@ -334,3 +334,9 @@ Then: SHARED BACKEND, CHAIN INTEGRATION (money code, Taira first), end-stage pol
 [Compose — "Post your story" button polish]
 - The submit/post button looks flat/cheap vs the refined gold buttons (Donate, comment Post).
   Give it the same depth treatment: gradient + subtle shadow + lift-on-hover. Fold into button polish.
+
+[Self-support guard — proposers can't support their own proposal]
+- Boost (ranking signal) self-boost games rank + breaks "others vouch" meaning. Like/follow/donate
+  on your own are vain/meaningless. RULE: on your own proposal (isMine), hide/disable like, boost,
+  follow, donate. Owner sees totals + their evidence controls, not support actions aimed at self.
+- Real enforcement = backend (account checks); frontend hides now via isMine.

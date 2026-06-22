@@ -12,6 +12,9 @@
           <button class="nav-post btn-gold" :class="{ active: active === 'post' }" @click="go('post')">Post</button>
         </nav>
         <span class="spacer"></span>
+        <select v-if="demoMode" class="demoswitch" :value="commons.demoAccountId" @change="onDemoSwitch" title="Demo: switch identity (dev only)">
+          <option v-for="a in demoAccounts" :key="a" :value="a">{{ a.split('.')[0] }}</option>
+        </select>
         <div class="netchip"><span class="dot"></span>TAIRA</div>
         <button class="meav" :style="avStyle(myId)" @click="goMyProfile" title="Your profile">{{ initials(myId) }}</button>
 
@@ -53,6 +56,7 @@ import Explore from "./views/Explore.vue";
 import Feed from "./views/Feed.vue";
 import { ref, computed } from "vue";
 import { useCommonsStore } from "@/stores/commons";
+import { COMMONS_CONFIG } from "@/constants/commonsConfig";
 const commons = useCommonsStore();
 import sealUrl from "./assets/seal.png";
 import Overview from "./views/Overview.vue";
@@ -68,6 +72,11 @@ const active = ref("feed");
 const go = (id: string) => { active.value = id; window.scrollTo(0, 0); };
 const myId = computed(() => commons.currentAccountId);
 function goMyProfile() { commons.setViewingProfile(null); go("profile"); }
+const demoMode = COMMONS_CONFIG.DEMO_MODE;
+const demoAccounts = commons.DEMO_ACCOUNTS;
+function onDemoSwitch(e: Event) {
+  commons.setDemoAccount((e.target as HTMLSelectElement).value);
+}
 function initials(id: string) { return (id || "?").slice(0, 2).toUpperCase(); }
 function avStyle(id: string) {
   const colors = ["#C9A84C", "#7E9BE0", "#64DCAA", "#E4C77A", "#A8842F"];
@@ -111,11 +120,13 @@ const mobileTabs = [
 .nav a { padding: 7px 12px; border-radius: var(--r-sm); color: var(--ink-dim); font-size: .9rem; font-weight: 500; cursor: pointer; }
 .nav a:hover { color: var(--ink); background: var(--line-soft); }
 .nav a.active { color: var(--gold-300); background: rgba(201,168,76,.10); }
-.nav-post { margin-left: 6px; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 7px 16px; font-family: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; }
-.nav-post:hover { filter: brightness(1.05); }
+.nav-post { margin-left: 6px; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 7px 16px; font-family: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; box-shadow: 0 3px 12px rgba(201,168,76,.22); transition: transform .15s var(--ease), box-shadow .15s var(--ease), filter .15s var(--ease); }
+.nav-post:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(201,168,76,.34); filter: brightness(1.06); }
 .spacer { flex: 1; }
 .netchip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; font-family: var(--mono); font-size: .72rem; color: var(--ink-dim); }
 .netchip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--affirm); }
+.demoswitch { background: rgba(139,30,45,.15); border: 1px solid #8B1E2D; border-radius: 999px; padding: 5px 10px; color: var(--ink-dim); font-family: var(--mono); font-size: .68rem; cursor: pointer; margin-right: 8px; }
+.demoswitch:hover { border-color: var(--gold-600); }
 .meav { width: 34px; height: 34px; border-radius: 50%; border: none; display: grid; place-items: center; font-weight: 700; color: #22180a; font-size: .8rem; cursor: pointer; margin-left: 10px; flex: none; }
 .meav:hover { box-shadow: 0 0 0 2px var(--gold-600); }
 

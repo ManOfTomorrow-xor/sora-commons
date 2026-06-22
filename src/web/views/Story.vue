@@ -106,13 +106,13 @@
       <!-- STICKY SUPPORT RAIL -->
       <aside class="sd__rail">
         <div class="support">
-          <button class="support__donate btn-gold" @click="openDonate">Donate</button>
+          <button class="support__donate btn-gold" :disabled="isMine" :title="isMine ? 'You can\'t donate to your own proposal' : 'Donate'" @click="openDonate">Donate</button>
           <div class="support__row">
-            <button class="iconbtn" :class="{ on: commons.isLiked(p.id) }" @click="commons.toggleLike(p.id)" title="Like">
+            <button class="iconbtn" :class="{ on: commons.isLiked(p.id) }" :disabled="isMine" @click="commons.toggleLike(p.id)" :title="isMine ? 'You can\'t like your own proposal' : 'Like'">
               <svg viewBox="0 0 24 24" :fill="commons.isLiked(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5C12 20.5 3.5 15 3.5 8.8 3.5 6 5.7 4 8.2 4c1.7 0 3 .9 3.8 2.2C12.8 4.9 14.1 4 15.8 4c2.5 0 4.7 2 4.7 4.8C20.5 15 12 20.5 12 20.5z"/></svg>
               <span>{{ p.likes }}</span>
             </button>
-            <button class="iconbtn" :class="{ on: commons.isBoosted(p.id) }" @click="commons.toggleBoost(p.id)" title="Boost">
+            <button class="iconbtn" :class="{ on: commons.isBoosted(p.id) }" :disabled="isMine" @click="commons.toggleBoost(p.id)" :title="isMine ? 'You can\'t boost your own proposal' : 'Boost'">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
               <span>{{ p.boostCount || 0 }}</span>
             </button>
@@ -120,7 +120,7 @@
               <svg viewBox="0 0 24 24" :fill="commons.isSaved(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2"><path d="M6 4h12v16l-6-4-6 4z"/></svg>
             </button>
           </div>
-          <button class="support__follow" :class="{ on: commons.isFollowing(p.id) }" @click="commons.toggleFollow(p.id)">{{ commons.isFollowing(p.id) ? "Following" : "+ Follow" }}</button>
+          <button class="support__follow" :class="{ on: commons.isFollowing(p.id) }" :disabled="isMine" :title="isMine ? 'You can\'t follow your own proposal' : ''" @click="commons.toggleFollow(p.id)">{{ commons.isFollowing(p.id) ? "Following" : "+ Follow" }}</button>
           <div class="support__totals">
             <div><b>{{ p.totalDonated || 0 }}</b><span>XOR raised</span></div>
             <div><b>{{ p.xorBurned || 0 }}</b><span>XOR burned</span></div>
@@ -132,7 +132,7 @@
     </div>
 
     <!-- mobile sticky donate -->
-    <button class="mobile-donate btn-gold" @click="openDonate">Donate</button>
+    <button class="mobile-donate btn-gold" :disabled="isMine" @click="openDonate">Donate</button>
 
     <!-- DONATE MODAL -->
     <div v-if="showDonate" class="dm__overlay" @click.self="showDonate = false">
@@ -287,6 +287,10 @@ onMounted(() => {
 .iconbtn svg { width: 16px; height: 16px; }
 .iconbtn:hover { border-color: var(--gold-600); color: var(--ink); }
 .iconbtn.on { color: var(--gold-300); border-color: var(--gold-600); }
+.iconbtn:disabled, .support__follow:disabled { opacity: .4; cursor: not-allowed; }
+.iconbtn:disabled:hover { border-color: var(--line); color: var(--ink-dim); }
+.support__follow:disabled:hover { border-color: var(--line); }
+.support__donate:disabled, .mobile-donate:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; filter: none; }
 .support__follow { background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 11px; color: var(--ink); font-weight: 600; font-size: .9rem; cursor: pointer; }
 .support__follow:hover { border-color: var(--gold-600); }
 .support__follow.on { color: var(--gold-300); border-color: var(--gold-600); }

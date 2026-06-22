@@ -160,13 +160,18 @@ export const useCommonsStore = defineStore("commons", () => {
     Omit<Milestone, "id" | "completed" | "completedAt" | "xorBurned">[]
   >([{ description: "", xorAmount: "", timeline: "" }]);
 
+  // Demo-only identity switcher (DEMO_MODE) — lets a solo dev test the non-owner experience.
+  // Gated to DEMO_MODE; never ships. Real identity = wallet-connect + backend.
+  const DEMO_ACCOUNTS = ["demo.commons.test", "viewer.commons.test", "maker.commons.test"];
+  const demoAccountId = ref<string>("demo.commons.test");
+  const setDemoAccount = (id: string) => { if (COMMONS_CONFIG.DEMO_MODE) demoAccountId.value = id; };
   // ── Derived from Parliament ────────────────────────────────────────────────
 
  const currentAccountId = computed(
     () =>
       parliament.activeAccountDisplayId ||
       parliament.requestAccountId ||
-      (COMMONS_CONFIG.DEMO_MODE ? "demo.commons.test" : ""),
+      (COMMONS_CONFIG.DEMO_MODE ? demoAccountId.value : ""),
   );
   const isConnected = computed(() => Boolean(currentAccountId.value));
   const isCitizen = computed(() => parliament.hasCitizenRecord);
@@ -810,14 +815,17 @@ export const useCommonsStore = defineStore("commons", () => {
   const donate = (proposalId: string, amount: number): boolean => {
     const p = proposals.value.find((x) => x.id === proposalId);
     if (!p) return false;
+    if (p.proposerAccountId === currentAccountId.value) return false; // no self-donation
     if (!(amount > 0)) return false;
     const burn = amount * 0.01;            // 1% burns
     const toProposer = amount - burn;       // 99% to proposer
     p.totalDonated = (parseFloat(p.totalDonated || "0") + toProposer).toFixed(4);
     p.xorBurned = (parseFloat(p.xorBurned || "0") + burn).toFixed(4);
-    // Backers = UNIQUE donors. Only count this account once per proposal.
-    if (!donatedProposals.value.includes(proposalId)) {
-      donatedProposals.value.push(proposalId);
+    // Backers = UNIQUE donors per proposal. Key by account+proposal so different accounts
+    // each count once (and the same account donating twice still counts once).
+    const key = currentAccountId.value + "::" + proposalId;
+    if (!donatedProposals.value.includes(key)) {
+      donatedProposals.value.push(key);
       p.backers = (p.backers || 0) + 1;
     }
     return true;
@@ -886,7 +894,8 @@ export const useCommonsStore = defineStore("commons", () => {
 
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
-    savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow, donate, donatedProposals,
+    savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow, 
+    donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount,
     // Reputation
     reputation, effectiveReputation, reputationRecord, creditReputation, myReputation,
   };

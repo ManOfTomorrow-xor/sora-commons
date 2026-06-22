@@ -62,8 +62,8 @@
             <div class="prog__bar"><div class="prog__fill" :class="{ 'prog__fill--done': p.status === 'complete' }" :style="{ width: pct(p) + '%' }"></div></div>
           </div>
           <div class="eng">
-            <button class="engbtn" :class="{ on: commons.isLiked(p.id) }" @click.stop="commons.toggleLike(p.id)"><svg class="i-heart" viewBox="0 0 24 24" :fill="commons.isLiked(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5C12 20.5 3.5 15 3.5 8.8 3.5 6 5.7 4 8.2 4c1.7 0 3 .9 3.8 2.2C12.8 4.9 14.1 4 15.8 4c2.5 0 4.7 2 4.7 4.8C20.5 15 12 20.5 12 20.5z"/></svg>{{ p.likes || 0 }}</button>
-            <button class="engbtn bolts" :class="{ on: commons.isBoosted(p.id) }" @click.stop="commons.toggleBoost(p.id)"><svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>{{ p.boostCount || 0 }}</button>
+            <button class="engbtn" :class="{ on: commons.isLiked(p.id) }" :disabled="isOwn(p)" @click.stop="commons.toggleLike(p.id)"><svg class="i-heart" viewBox="0 0 24 24" :fill="commons.isLiked(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5C12 20.5 3.5 15 3.5 8.8 3.5 6 5.7 4 8.2 4c1.7 0 3 .9 3.8 2.2C12.8 4.9 14.1 4 15.8 4c2.5 0 4.7 2 4.7 4.8C20.5 15 12 20.5 12 20.5z"/></svg>{{ p.likes || 0 }}</button>
+            <<button class="engbtn bolts" :class="{ on: commons.isBoosted(p.id) }" :disabled="isOwn(p)" @click.stop="commons.toggleBoost(p.id)"><svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>{{ p.boostCount || 0 }}</button>
             <button class="engbtn" @click.stop="openComments(p)"><svg class="i-cmt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>{{ (p.discussionPosts && p.discussionPosts.length) || 0 }}</button>
             <span class="donated">{{ p.totalDonated || 0 }} XOR donated</span>
           </div>
@@ -158,6 +158,9 @@ function labelClass(p: any) {
   const l = commons.proposerLabel(p.proposerAccountId).toLowerCase();
   return "lbl--" + l;
 }
+function isOwn(p: any) { 
+  return p.proposerAccountId === commons.currentAccountId; }
+
 function trackClass(p: any) {
   return p.track === "desk" ? "track--desk" : "track--don";
 }
@@ -175,6 +178,7 @@ function avStyle(id: string) {
   for (let i = 0; i < (id || "").length; i++) h = id.charCodeAt(i) + ((h << 5) - h);
   return { background: colors[Math.abs(h) % colors.length] };
 }
+
 </script>
 
 <style scoped>
@@ -234,6 +238,8 @@ function avStyle(id: string) {
 .eng .bolts { color: var(--ink-faint); }
 .eng .donated { margin-left: auto; font-family: var(--mono); color: var(--gold-300); }
 .eng .bolts { color: var(--ink-faint); }
+.engbtn:disabled { opacity: .4; cursor: not-allowed; }
+.engbtn:disabled:hover { background: rgba(255,255,255,.03); border-color: var(--line-soft); color: inherit; }
 .engbtn { background: rgba(255,255,255,.03); border: 1px solid var(--line-soft); border-radius: 999px; padding: 4px 10px; font: inherit; color: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: background .15s var(--ease), border-color .15s var(--ease), color .15s var(--ease); }
 .engbtn:hover { background: rgba(201,168,76,.12); border-color: var(--gold-600); color: var(--ink); }
 .engbtn.on { background: rgba(201,168,76,.14); border-color: var(--gold-600); color: var(--gold-300); }
