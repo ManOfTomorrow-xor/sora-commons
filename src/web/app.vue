@@ -53,7 +53,7 @@
 import Story from "./views/Story.vue";
 import Explore from "./views/Explore.vue";
 import Feed from "./views/Feed.vue";
-import { ref, computed } from "vue";
+import { ref, computed, nextTick } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import { COMMONS_CONFIG } from "@/constants/commonsConfig";
 const commons = useCommonsStore();
@@ -67,7 +67,17 @@ import Compose from "./views/Compose.vue";
 import Profile from "./views/Profile.vue";
 
 const active = ref("feed");
-const go = (id: string) => { active.value = id; window.scrollTo(0, 0); };
+const go = (id: string) => {
+  const [view, anchor] = id.split("#");
+  active.value = view;
+  if (anchor) {
+    nextTick(() => requestAnimationFrame(() => {
+      document.getElementById(anchor)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }));
+  } else {
+    window.scrollTo(0, 0);
+  }
+};
 const myId = computed(() => commons.currentAccountId);
 function goMyProfile() { commons.setViewingProfile(null); go("profile"); }
 const demoMode = COMMONS_CONFIG.DEMO_MODE;

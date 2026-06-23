@@ -154,6 +154,10 @@
           <div><span>Burned (1%)</span><b>{{ (amount * 0.01).toFixed(4) }} XOR</b></div>
         </div>
 
+       <WhyExpander label="Why 1%?" anchor="burn" @navigate="onWhyNav">
+          It isn't a fee — the Commons collects nothing. The 1% is <b>burned</b>: permanently destroyed, not taken by anyone. Your full conviction still reaches the builder, and the burn ties that support to real work getting done. Productive work burns true.
+        </WhyExpander>
+
         <p class="dm__note">Preview only — updates totals in this session. Real on-chain donations come with chain integration.</p>
 
         <button class="dm__confirm btn-gold" :disabled="!(amount > 0)" @click="confirmDonate">
@@ -173,6 +177,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useCommonsStore } from "@/stores/commons";
+import WhyExpander from "../components/WhyExpander.vue";
 
 const emit = defineEmits<{ (e: "nav", id: string): void }>();
 const commons = useCommonsStore();
@@ -211,6 +216,8 @@ const hasFacts = computed(() => {
 });
 
 const showDonate = ref(false);
+function onWhyNav(target: string) { showDonate.value = false; emit("nav", target); }
+function whyMore() { showDonate.value = false; emit("nav", "about#burn"); }
 const amount = ref<number>(0);
 const picked = ref(false);
 function setPick(q: number) { amount.value = q; picked.value = true; }

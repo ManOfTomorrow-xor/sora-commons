@@ -34,3 +34,5 @@ yarn-error.log*
 /native/**/build-sign-test*
 /native/**/xcode-derived-data*
 /native/**/*.xcodeproj
+*.tgz
+sora-web.tar.gz
