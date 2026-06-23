@@ -13,85 +13,196 @@ npx vite --config vite.config.ts      # http://localhost:5174
 #     polish pass -> SHARED BACKEND (Phase-1 scope incl. challenge window) -> CHAIN -> end-stage polish.
 
 # ============================================================
-# PHASE 1 vs PHASE 2 — SHARPENED (DECIDED — read this first)
+# PHILOSOPHY / GUIDING PRINCIPLES (read FIRST — the "why" behind every decision)
 # ============================================================
-PRINCIPLE: the public testnet tests exactly what launches day-1. Whatever is day-1 must be
-testnet-ready; anything not testnet-ready is Phase 2 by definition. No withholding a launch feature
-from the test of that launch. NO DEADLINE — do the work, launch when truly ready.
+# When a question isn't explicitly answered below, derive the answer from these. They are the spirit
+# of the project; the rest of this doc is their application.
 
-PHASE 1 (day-1 launch; ALL built + Taira-tested + publicly reviewed before any real XOR moves):
+1. HONESTY OVER POLISH. The app must never imply something is real when it isn't. No fake/seed data —
+   honest empty states instead. Features that aren't built are clearly "coming," not faked. In-memory
+   previews are labeled as previews. This matters MOST around money and evidence. If a choice trades a
+   slicker demo for an honest one, choose honest.
+
+2. BURN RIDES ON REAL VALUE, NEVER A TOLL. Burning only happens as a byproduct of real support
+   (1% of a donation). Proposers are NEVER charged — not to post, not to deliver. Nothing is collected
+   or extracted; burned XOR is destroyed. The motto: "productive work burns true."
+
+3. ISONOMIA — NO PAY-TO-RANK, NO WHALES. Standing is earned, never bought. Boosts are free + equally
+   allotted (scarce so they carry signal). Donations fund builders but never buy rank. Reputation may
+   GATE access but NEVER weights a vote or a draw — the moment tenure buys power, you've rebuilt
+   plutocracy in a new denomination. Guard against self-dealing (a proposer can't inflate their own
+   numbers).
+
+4. WARMTH IN SERVICE OF REAL WORK — NOT ENGAGEMENT-MAXIMIZING. TAKE the good social parts (following,
+   comments, real momentum, profiles). LEAVE the manipulative ones (engagement algorithms, dopamine
+   loops, infinite scroll, vanity metrics). Every social feature must serve the work, not addiction.
+   (E.g. Feed uses "Load more," not infinite scroll, on purpose.)
+
+5. THE RECORD IS THE PRODUCT. Commons is a permanent, public, followable record of real work — a story
+   you follow start to finish. Trust comes from TRANSPARENCY + CADENCE (real updates over time), not
+   from verdicts. SILENCE is the real red flag, not a single concern. The Commons surfaces concerns and
+   lets people judge; it issues NO verdicts (it can afford not to, because donations aren't held — see
+   #6). Never punish honest failure; most small failures are inexperience, not fraud.
+
+6. STAKES MATCH SAFEGUARDS — GROW THE CEILING BEFORE RAISING STAKES. Launch LOW-stakes (small direct
+   tips, no escrow, no pooled funds). Heavier capability (escrow, formal adjudication) only arrives once
+   the system has earned trust through real operation AND there's real audit capacity + legal footing.
+   Auditing capacity is the CEILING on how much money the system may touch. "No verdicts" works
+   precisely because nothing is held; the moment money is HELD (escrow), binding resolution becomes
+   necessary — which is exactly why escrow is deferred to a later, heavier phase.
+
+7. MONEY CODE IS SACRED. Integer/BigInt only, exact precision, splits sum exactly, validate everything,
+   explicit confirmation, Taira-tested first, read back on-chain. Keep it tiny, isolated, simple. Open-
+   source it and invite public review BEFORE any real XOR moves. (Full discipline in MONEY CODE section.)
+
+8. COMMONS IS PART OF SORA NEXUS, NOT A STANDALONE EMPIRE. Some things are Commons' to build (the
+   record, donations, the challenge window). Some are SORA Nexus ecosystem initiatives the Commons
+   merely connects to or watches (the Treasury Desk; sortition). Don't claim ownership of, or promise,
+   ecosystem-level things. The ecosystem being funding-oriented is WHY adoption is plausible — builders
+   are already here; XOR is the incentive; Commons is the front door / track-record on-ramp.
+
+9. NO DEADLINE; DO THE WORK PROPERLY. Solo is fine — great things start solo. Take all the time needed;
+   build one careful step at a time; commit at every checkpoint. The risk to manage is momentum + the
+   regulatory footing, not capability. Don't ship the heavy stuff early to hit a date that doesn't exist.
+
+10. VERIFY THE LOOP. Don't ask anyone to "trust the institution / the chart / the model." Every action
+    leaves an inspectable, contestable, correctable record. A system that can be wrong in ways it can
+    see and fix is the only kind worth building. (This + 3Gi — Global Governance, Growth, intelligence
+    as ONE loop — is the intellectual spine; full prose lives in About's "thinking behind it.")
+
+# WORKING STYLE (process): ONE small step at a time. Paste big files into VS Code (not heredoc). Commit
+# each checkpoint. Claude's sandbox CANNOT reach Nick's machine — Nick runs all commands + pastes code
+# himself (he PREFERS this; learns the codebase). Watch for paste artifacts (dup lines, extra/missing
+# braces, stray chars, wrong import path commons vs commonsConfig, editing a stale Downloads copy).
+# Brace-debug: grep -c "{" vs "}", then awk running-balance to find the line.
+
+# ============================================================
+# PHASE 1 vs PHASE 2 — SHARPENED (DECIDED)
+# ============================================================
+PRINCIPLE: the public testnet tests exactly what launches day-1. Whatever is day-1 must be testnet-
+ready; anything not testnet-ready is Phase 2 by definition. NO DEADLINE — launch when truly ready.
+
+PHASE 1 (day-1; ALL built + Taira-tested + publicly reviewed before any real XOR moves):
 - Feed / stories / follow / like / comment
-- Donations (1% burn / 99% builder) — money code; the highest-stakes review surface
-- CHALLENGE WINDOW + dispute/concern system (MOVED INTO PHASE 1 — decided this session). Reason:
-  don't launch real money without the accountability mechanism live. Can't predict growth; a
-  popularity spike with disputes un-built = caught under-built. Requires backend (timers, multi-user
-  flags, notifications, Delivered->Confirmed graduation).
+- Donations (1% burn / 99% builder) — money code; highest-stakes review surface
+- CHALLENGE WINDOW + dispute/concern system (decided this session — accountability ships WITH money;
+  can't predict growth, won't get caught under-built). Needs backend (timers, multi-user flags,
+  notifications, Delivered->Confirmed graduation).
 - Proposer labels / reputation (meaningful as data accrues)
 - Boosts (free but scarce: per-user allotment + replenishment)
 
-PHASE 2 (later — only after ~1yr proven real operation + audit capacity + legal footing):
-- ESCROW (Raising + milestone): holding/releasing pooled funds, batch refunds, burn-at-release.
-  A direction the COMMONS may build later; heavy custody/regulatory weight.
-- TREASURY DESK: a SORA NEXUS initiative (NOT Commons-built) — large-scale funding layer the Commons
-  connects to / routes large proposals toward, while Commons holds the story either way.
-- FORMAL ADJUDICATION: only matters once funds are HELD in escrow (a decision determines release vs
-  refund). For that, Commons looks to the wider SORA Nexus ecosystem (incl. its sortition work) —
-  Commons itself issues NO verdicts. At the donation layer (money already delivered) none of this applies.
+PHASE 2 (later — only after ~1yr proven operation + audit capacity + legal footing):
+- ESCROW (Raising + milestone) — a COMMONS direction; heavy custody/regulatory weight.
+- TREASURY DESK — a SORA NEXUS initiative (NOT Commons-built); Commons routes large proposals to it.
+- FORMAL ADJUDICATION — only matters once funds are HELD (escrow); Commons looks to SORA ecosystem,
+  never issues its own verdict. At the donation layer (money already delivered) it doesn't apply.
 - FRAUD-BOUNTY (if ever — parked/risky).
 
-SORTITION = a SORA NEXUS ecosystem initiative, NOT a Commons feature. Commons does not build/own it.
-We admire its logic (a random draw can't be bought/campaigned-for) and will watch how it evolves to
-see if it ever fits — NO promise. Kept out of Commons phase lists; referenced only as ecosystem context.
+SORTITION = SORA NEXUS ecosystem initiative, NOT a Commons feature. Admire its logic (a random draw
+can't be bought); watch how it evolves; NO promise it ever enters Commons.
+
+# ============================================================
+# SOURCE ARTICLES — 3Gi FOUNDATION (Nick's/Makoto's SORA essays the Commons is built on)
+# ============================================================
+# These are the founder's published SORA essays ("In 2016", "Infrastructure becomes valuable", the
+# 3-part Global Governance / Growth / intelligence series, "The observer effect"). Commons is the
+# concrete, small-scale instantiation of their ideas. The through-line, faithful to the texts:
+#
+# 3Gi = GLOBAL GOVERNANCE + GROWTH + intelligence, understood as ONE LOOP (not 3 slogans):
+#   - GLOBAL GOVERNANCE defines the lawful surface — WHO can change shared rules and HOW a change
+#     becomes legitimate. Designed at the MECHANISM level, not campaign-slogan level. Anti-capture.
+#     "The old world already has global governance; it's just hidden, captured, unaccountable." Goal:
+#     make these powers explicit, auditable, democratic.
+#   - GROWTH defines what the system is FOR: money created against REAL PRODUCTION, not speculation.
+#     Core distinction: CLAIMS are not CAPACITY. "Issue tokens only against production" / "create
+#     claims only where claims can become output." Werner's disaggregated credit (credit for
+#     production ≠ credit for speculation/assets). Target = maximum PRODUCTIVE CONVERSION, not max
+#     issuance. Token price is NOT the economy ("a chart is not an economy").
+#   - INTELLIGENCE = the disciplined process by which a system gets WISER after contact with reality
+#     (Shōtoku: "Few are born knowing; by earnest reflection one becomes wise"). Observe -> remember
+#     -> evaluate -> act -> AUDIT THE ACTION -> update. NOT "AI bolted onto a token." AI produces
+#     evidence/forecasts/recommendations INSIDE a governed process; it must NEVER become the judge
+#     ("the machine can assist judgment; it must not become judgment without a constitution").
+#
+# KEY DOCTRINES (carry these into every Commons decision):
+#   - VERIFY THE LOOP: not "trust the institution" (old world) / "trust the chart" (crypto casino) /
+#     "trust the model" (technocrat) — instead, every action leaves an inspectable, contestable,
+#     correctable record. "A system that can be wrong in ways it can inspect, contest, remember, and
+#     correct is the only kind worth building." (This IS the Commons' public-record + challenge-window.)
+#   - SEPARATION OF CONCERNS / DON'T COMPLECT: the old system fuses money+politics+collateral+class;
+#     crypto re-fused governance+token-ownership, TVL+value, attention+legitimacy. Keep functions
+#     SEPARATE: underwriters allocate, auditors test, producers deliver, citizens govern, models
+#     assist, protocol remembers. No single actor collapses the loop into themselves. (Commons echo:
+#     self-support guard — a proposer can't judge or inflate their own work.)
+#   - INVARIANT vs PARAMETER: invariants define identity and never bend (no unauthorized issuance, no
+#     hidden mutation, no model silently becoming law, no governance change without process).
+#     Parameters are steering surfaces that adapt through a DEFINED process. "Trust does not require
+#     paralysis; trust requires lawful change." (Maps to: Commons launches strict/low-stakes; phases
+#     expand deliberately, never by quiet exception.)
+#   - REPUTATION MEMORY WITHOUT CASTE: the system remembers who delivered/repaid/went silent, with
+#     explicit scope + decay + privacy. But reputation gates ACCESS, NEVER weights a vote/draw —
+#     else plutocracy in tenure-denomination. "Memory without forgetting becomes surveillance;
+#     forgetting without memory becomes repetition." (Commons: delivery-weighted labels, cadence.)
+#   - ACCOUNTABLE DISCLOSURE, NOT PANOPTICON: "the right to narrow proof" — prove what's required,
+#     reveal no more than the process needs. (Future Commons: evidence hashes/commitments before full
+#     disclosure; privacy-preserving verification.)
+#   - SIMPLE != EASY; BUILD INVISIBLE, REBUILD BEFORE CRITICAL: durable infrastructure is built away
+#     from the market's gaze (the observer effect — being watched makes you build for traders). It
+#     removes accidental complexity rather than piling features. (Maps to: no-deadline, build clean,
+#     public review before stakes, keep money code tiny/isolated/simple.)
+#   - NEUTRAL ADAPTIVE INFRASTRUCTURE > spectacle / sovereignty-silo (the three paths). Commons takes
+#     the "system that learns" path, not the "ask the market to believe" path.
+#   - XOR IS A TIME BRIDGE / PRODUCTION LEDGER: brings future production into the present without lying
+#     about the future. Burn/donations on Commons = the small-scale honest version of "claims tied to
+#     real value." CITIZEN (bond 10,000 XOR) = entering the constitutional machinery, not a spectator
+#     (full citizen/Parliament/sortition machinery is SORA-level, not Commons-built).
+#
+# HOW COMMONS INSTANTIATES 3Gi (the mapping to keep honest):
+#   Governance   -> the rules of the record + challenge window + no-verdicts + anti-self-dealing.
+#   Growth       -> donations fund REAL work; the record makes productive work legible; burn rides on
+#                   real value. Commons is a tiny, low-stakes production-legibility layer.
+#   intelligence -> the loop: post -> evidence -> challenge window -> confirmed/concern -> permanent
+#                   record the ecosystem learns from. "Verify the loop" made concrete at small scale.
+# Commons is deliberately the SMALL, honest, low-stakes front door to this larger 3Gi vision — proving
+# the loop at tip-scale before the heavy machinery (escrow, Desk, formal adjudication) is earned.
 
 # ============================================================
 # THE VISION (DECIDED)
 # ============================================================
-A public place where every proposal is a STORY you can follow start to finish. Proposers tell their
-story, log verifiable milestones (chapters), connect with people via FOLLOW/LIKE/COMMENT/BOOST/DONATE.
-The permanent public record of productive work the rest of SORA reads from.
+Every proposal is a STORY you follow start to finish. Proposers log verifiable milestones (chapters);
+people FOLLOW/LIKE/COMMENT/BOOST/DONATE. Permanent public record of productive work the rest of SORA
+reads from.
 - IDENTITY: Commons = enabler of SMALLER projects + universal proposer tracker + front door to the
   ecosystem. Large funding routes to the SORA-Nexus Treasury Desk; Commons holds the story either way.
-- WHY ADOPTION IS PLAUSIBLE: SORA Nexus exists in part to FUND BUILDING (Desk is core to XOR's purpose).
-  Builders are already oriented at this ecosystem; XOR donations give a concrete economic reason to
-  post on Commons. Commons = natural front door / track-record on-ramp to ecosystem funding.
+- ADOPTION TAILWIND: SORA Nexus exists in part to FUND BUILDING (Desk is core to XOR's purpose).
+  Builders already oriented here; XOR donations = concrete reason to post on Commons.
 
 # ============================================================
 # BURN MODEL (DECIDED)
 # ============================================================
-- Burn rides on real value flow, never a toll / never an end in itself. Free to post/follow/like/comment.
-- Burn comes from DEMAND side (backers), never SUPPLY (proposers never charged).
-- DONATE: supporter -> proposer. 1% burns, 99% to proposer. Connected accounts only. Direct tip now;
-  escrow is Phase 2. Donations are ALSO the conviction signal ("X XOR raised from Y backers").
-- BOOST: FREE but SCARCE (see BOOST MODEL). Ranks by NUMBER of boosts, not XOR. NOT purchasable.
-- LIKE: free instant warmth (heart).
+- Free to post/follow/like/comment. Burn from DEMAND side (backers), never SUPPLY (proposers).
+- DONATE: 1% burns, 99% to proposer. Direct tip now; escrow is Phase 2. Donations = conviction signal.
+- BOOST: free but scarce, ranks by COUNT, not purchasable. LIKE: free heart.
 
 # ============================================================
-# BOOST MODEL (DECIDED — free but scarce)
+# BOOST MODEL (free but scarce)
 # ============================================================
-- FREE but SCARCE — limited per-user allotment (~3-5/week, tune later) that replenishes. One boost per
-  proposal. Ranks by boost COUNT. Scarcity = signal; free+equal = isonomia, no pay-to-rank, no whales.
-- NOTE: in-memory now = simple one-boost-per-proposal toggle. Real allotment+replenishment = backend.
+- Limited per-user allotment (~3-5/week) that replenishes. One boost per proposal. Scarcity = signal;
+  free+equal = isonomia. In-memory now = simple toggle; real allotment = backend.
 - DECLINED: buy-boost-packages (breaks isonomia) + conviction-burn (cannibalizes donations).
 
 # ============================================================
 # SOCIAL LAYER ("warmth in service of real work")
 # ============================================================
-TAKE: feed/spotlight, following, threaded comments (proposer replies highlighted), real momentum
-(bolts/donations/followers/progress), profiles.
-LEAVE: engagement algorithms, dopamine loops, vanity metrics, pay-to-rank.
+TAKE: feed/spotlight, following, threaded comments (proposer replies highlighted), real momentum,
+profiles. LEAVE: engagement algorithms, dopamine loops, vanity metrics, pay-to-rank.
 
 # ============================================================
 # COMMONS <-> TREASURY DESK (Desk = SORA Nexus initiative, NOT Commons-built)
 # ============================================================
-Commons = front door + record for ALL proposals. Small efforts seek donations here; large ones route
-to the Desk (a SORA Nexus layer). Every card/story shows a TRACK tag: "Seeking donations" vs "Under
-Treasury Desk review" + outcome states.
-## TRACK TAG / DESK STATUS (decided)
-- "Seeking donations" = default/only track now. Store stamps track:"donations".
-- "Under Treasury Desk review" NOT self-claimable. When the Desk (ecosystem) reviews, it produces a
-  SIGNAL (verifiable attestation, mechanism TBD); proposer presents it to unlock the Desk track;
-  system VERIFIES it. Evidence-gated.
-- COMPOSE NOW: both shown; "Treasury Desk review" VISIBLE but DISABLED ("coming"). Donations selectable.
+Commons = front door + record for ALL proposals. Track tag: "Seeking donations" (default/only now) vs
+"Under Treasury Desk review" (NOT self-claimable; Desk produces a verifiable SIGNAL the proposer
+presents; system verifies; mechanism TBD when Desk exists). COMPOSE: both shown, Desk DISABLED ("coming").
 
 # ============================================================
 # PAGES — ALL DONE
@@ -100,254 +211,176 @@ NAV (5): Feed / Explore / [Post button] / Treasury / About. Profile + Story = co
 REMOVED from nav (see FUTURE note).
 
 ## FEED (DONE)
-Sort chips (Active/Newest/Most boosted). STORY CARD: avatar+shortId+proposer label + color category
-badge (terracotta Production / teal Public-good) + bookmark; title + summary; track badge; milestone
-progress bar; engagement row — INTERACTIVE like/boost (lit + count, hover-pill web / always-pill
-mobile, self-support GUARDED) + comment (opens story scrolled to conversation) + donated. Top Boosted
-(⚡ lightning) + "Commons today" stats in a STICKY right rail (desktop) / strip (mobile).
+Sort chips. STORY CARD: avatar+shortId+proposer label + color category badge (terracotta Production /
+teal Public-good) + bookmark; title + summary; track badge; progress bar; engagement row — INTERACTIVE
+like/boost (lit + count, hover-pill web / always-pill mobile, self-support GUARDED) + comment (opens
+story scrolled to conversation) + donated. Top Boosted (⚡) + "Commons today" stats in STICKY right rail.
 
-## STORY PAGE (DONE)
-Hero (category badge, title, proposer->profile + label, track tag). Two-column: MAIN (story, FACTS
-grid, ACCOUNTABILITY [hides when empty], CHAPTERS w/ evidence submit + dashed ATTACH-FILE placeholder
-'coming with file storage', CONVERSATION) + STICKY SUPPORT RAIL (Donate primary, like/boost/save row,
-+Follow, totals raised/burned/backers/followers). All support actions GUARDED (disabled on own
-proposal; Save stays enabled). DONATE MODAL lives here. Mobile: rail reflows below (full parity).
+## STORY (DONE)
+Hero + two columns: MAIN (story, FACTS grid, ACCOUNTABILITY [hides empty], CHAPTERS w/ evidence submit +
+dashed ATTACH-FILE placeholder, CONVERSATION) + STICKY SUPPORT RAIL (Donate primary, like/boost/save,
++Follow, totals). All support actions GUARDED (disabled on own proposal; Save enabled). DONATE MODAL here.
 
 ## COMPOSE (DONE)
-Story-first form: title, summary, THE STORY (gold border), file attach (placeholder), category,
-funding track (donations active / Desk disabled), facts, chapters (desc / XOR amount [labeled,
-aligned] / "Evidence due by" date w/ sequential validation / "Evidence you'll present"), risk +
-public benefit. Gold "Post" button in nav.
+Story-first: title, summary, THE STORY (gold border), file attach (placeholder), category, track
+(donations active / Desk disabled), facts, chapters (desc / XOR amount [labeled,aligned] / "Evidence
+due by" date w/ sequential validation / "Evidence you'll present"), risk + public benefit.
 
 ## PROFILE (DONE)
-PUBLIC: avatar, bio, label, reputation, posted proposals + outcomes, track record. OWN: profile pic
-(placeholder), totals DONATED/BOOSTED/BURNED, SAVED proposals (works), My Drafts (backend-era).
-Reached by tapping a proposer OR top-right avatar (own).
+PUBLIC: avatar/bio/label/reputation/posted proposals/track record. OWN: profile pic (placeholder),
+totals DONATED/BOOSTED/BURNED, SAVED (works), My Drafts (backend). Tap proposer OR top-right avatar.
 
 ## EXPLORE (DONE)
-Search + category/track filter chips + status toggle (Active/Delivered/All) + sort, contained panel;
-reuses Feed card (terracotta matched). Engagement icons DISPLAY-ONLY here (Feed's are interactive) —
-deferred to <StoryCard> refactor (see note). Top-bar search + pagination = backend-era.
+Search + category/track chips + status toggle (Active/Delivered/All) + sort. Reuses Feed card. Icons
+DISPLAY-ONLY here (Feed's interactive) — deferred to <StoryCard> refactor. Top-bar search + pagination = backend.
 
-## TREASURY (DONE — reframed, step 7)
-Donation-framed burn record. Subtitle "1% of every donation burns." Hero total burned (reads
-commons.totalXorBurned) with FIRE-variant flame. Stats: XOR raised for builders / Burn events /
-Backers. Ledger reads donation-driven xorBurned rows ("From donations"), honest empty state.
-Why-burn explainer (donation framing). Dropped dead proposal-fee + milestone-burn stats.
+## TREASURY (DONE — reframed)
+Donation-framed burn record. Hero total burned (commons.totalXorBurned) + FIRE-variant flame. Stats:
+XOR raised / Burn events / Backers. Ledger reads donation-driven xorBurned ("From donations"), honest
+empty state. Why-burn explainer. Dropped dead proposal-fee + milestone-burn stats.
 
-## ABOUT (DONE — reframed, step 7)
-Hero (followable-record identity) + "What this is" + HOW IT WORKS (deep-link ids: #burn #follow
-#challenge #boost, all Phase-1 present-tense; challenge-window section says no-verdicts BECAUSE a
-donation already reached the builder — nothing to claw back) + WHAT'S COMING (#desk: Desk = SORA
-Nexus initiative; escrow = maybe-Commons-later; formal adjudication = looks to ecosystem, only matters
-with escrow) + collapsible "thinking behind it" (3Gi, reputation-can't-harden, separation-of-powers
-[now cites the self-support guard], SORTITION as SORA-Nexus-initiative-we-watch/no-promise, verify-
-the-loop) + honest phase note. .mech sections have scroll-margin-top for deep-linking.
+## ABOUT (DONE — reframed)
+Hero (followable-record identity) + "What this is" + HOW IT WORKS (deep-link ids #burn #follow
+#challenge #boost, Phase-1 present-tense; challenge-window says no-verdicts BECAUSE donation already
+reached builder) + WHAT'S COMING (#desk: Desk = SORA Nexus initiative; escrow = maybe-Commons-later;
+adjudication = ecosystem, only matters w/ escrow) + collapsible "thinking behind it" (3Gi,
+reputation-can't-harden, separation-of-powers [cites self-support guard], SORTITION as ecosystem-watch/
+no-promise, verify-the-loop) + honest phase note. .mech sections have scroll-margin-top for deep-links.
 
 # ============================================================
 # IDENTITY / REPUTATION / ANTI-FRAUD (DECIDED)
 # ============================================================
-- PROPOSER LABELS: Newcomer / Proven / Veteran / Treasury Desk / Flagged. proposerLabel: completed>=3
-  Veteran, >=1 Proven, rejected=Flagged, else Newcomer. Today everyone=Newcomer (correct). TODO when
-  data exists: weight completion RATE / time active / clean disputes.
-- REPUTATION LEVEL (continuous): DELIVERY-WEIGHTED. INVARIANT: gates visibility/trust ONLY, NEVER
-  weights a vote or a draw.
-- SELF-SUPPORT GUARD (DONE): a proposer can't like/boost/follow/donate their OWN proposal — buttons
-  stay VISIBLE (owner sees counts) but DISABLED, so numbers can't be self-inflated to trick others.
-  Save stays enabled (personal bookmark). Frontend disable + store-level guard on donate(); real
-  enforcement = backend account checks.
-- ANTI-FRAUD: small-project layer -> low stakes -> protection is TRANSPARENCY not escrow. Permanent
-  public record. Tips voluntary, not escrowed.
+- PROPOSER LABELS: Newcomer/Proven/Veteran/Treasury Desk/Flagged. Today everyone=Newcomer (correct).
+  Later weight completion RATE / time active / clean disputes, not raw count.
+- REPUTATION: delivery-weighted; gates visibility/trust ONLY, NEVER weights a vote/draw.
+- SELF-SUPPORT GUARD (DONE): proposer can't like/boost/follow/donate own proposal — buttons VISIBLE but
+  DISABLED (owner sees counts; can't self-inflate). Save enabled. Frontend disable + store guard on
+  donate(); real enforcement = backend.
+- ANTI-FRAUD: low stakes -> protection is TRANSPARENCY not escrow. Permanent public record.
 
 # ============================================================
 # VERIFICATION + CHALLENGE WINDOW (DECIDED — Phase 1; validated vs Kickstarter)
 # ============================================================
-Honest + lightweight. Does NOT claim trustless proof real work happened (oracle problem).
-- Proposer submits evidence -> chapter "Delivered" (challenge window opens, ~7 days, countdown).
-- No concern by close -> "Confirmed" (NEVER "Verified" — silence isn't proof).
-- Concern raised -> contested; does NOT auto-graduate; proposer responds; both on permanent record.
-- FLAGGING: anyone, but must give a WRITTEN REASON. Weighted by source (verified backer > random). A
-  single flag must NOT publicly brand — opens a concern + notifies proposer first; escalates only on
-  stronger signal.
-- FRAMING: NO punitive "Disputed" scarlet letter (most small failures = honest inexperience). NEUTRAL
-  "concern raised / update requested." REAL trust signal = update/evidence CADENCE; SILENCE is the red flag.
-- NO VERDICTS ON COMMONS — and this is SELF-CONSISTENT: at the donation layer money already reached
-  the builder, so there's nothing to claw back or rule on. Formal adjudication only becomes relevant
-  with ESCROW (Phase 2), where funds are HELD and a decision determines release vs refund — and even
-  then Commons looks to the SORA ecosystem, not its own verdict.
-- PROFILE MARK: track RESPONSIVENESS / SILENCE (behavioral) — NOT a raw disputed-count.
-- BUILD: frontend now only does in-memory "Delivered" (markChapterDelivered). Full window (timers,
-  multi-user flags, notifications, Delivered->Confirmed graduation) = SHARED BACKEND, PHASE 1.
+- Submit evidence -> "Delivered" (challenge window opens ~7d). No concern -> "Confirmed" (NEVER
+  "Verified" — silence isn't proof). Concern -> contested, no auto-graduate, proposer responds, both on record.
+- FLAGGING: anyone, WRITTEN REASON required, weighted by source; single flag must NOT publicly brand.
+- FRAMING: NO punitive "Disputed" scarlet letter. NEUTRAL "concern raised." CADENCE = trust signal;
+  SILENCE = red flag.
+- NO VERDICTS (self-consistent: donation already reached builder -> nothing to claw back/rule on).
+  Adjudication only relevant with ESCROW (Phase 2) where funds are HELD; even then -> SORA ecosystem.
+- BUILD: frontend now = in-memory "Delivered" only. Full window (timers/flags/notifications/graduation)
+  = SHARED BACKEND, PHASE 1.
+
+# ============================================================
+# FRAUD-BOUNTY — RISKY / PARKED (not launch)
+# ============================================================
+~5% -> 2.5% burn + 2.5% pot to reward fraud-catchers. RISKY: changes split, needs reliable adjudication
+(else extortion/collusion), custody/governance/regulatory. Only viable later atop proven adjudication.
 
 # ============================================================
 # STRATEGY (DECIDED)
 # ============================================================
-- LAUNCH: SORA MAINNET as clearly-labeled EARLY BUILD, at LOW stakes. Phase-1 set (feed + donations +
-  CHALLENGE WINDOW + boosts + labels) all built & tested first. NO DEADLINE.
-- INCENTIVES: NO airdrop-for-usage. Real funnel to ecosystem funding + founding badges + white-glove +
-  seed stories. (Adoption tailwind: ecosystem is funding-oriented; XOR is the builder incentive.)
-- REPO: build in iroha-demo-javascript/testing. Public `sora-commons` repo EMPTY until runnable.
+- LAUNCH: SORA MAINNET, clearly-labeled EARLY BUILD, LOW stakes. Phase-1 set built+tested first. NO DEADLINE.
+- INCENTIVES: NO airdrop-for-usage. Funnel to ecosystem funding + founding badges + white-glove + seed stories.
+- REPO: iroha-demo-javascript/testing. Public `sora-commons` repo EMPTY until runnable.
 - FONT: self-host official Sora (woff2 + OFL.txt) in real app. Demo used Google Fonts.
-- REGULATORY: Nick checks jurisdiction rules before real donations (Claude not a lawyer — flagged).
-- AUDITING (realistic): mostly SELF-audit (Nick), peer review a MAYBE, no pro-firm budget now.
-  CONSEQUENCE: auditing capacity = CEILING on money the system touches. Escrow/Desk MUST NOT ship until
-  real audit capacity. Substitutes: open-source money code (free "many eyes"), exhaustive Taira testing,
-  keep money code tiny+isolated+simple. Ask SORA ecosystem re: audit support.
+- REGULATORY: Nick checks jurisdiction before real donations (Claude not a lawyer — flagged).
+- AUDITING: mostly self-audit; capacity = CEILING on money touched. Escrow/Desk MUST NOT ship until real
+  capacity. Substitutes: open-source money code, exhaustive Taira testing, tiny/isolated/simple code.
 
 # ============================================================
 # MONEY CODE — DISCIPLINE (non-negotiable)
 # ============================================================
-- INTEGER/BigInt math only; never floating-point on currency. Base units at exact decimal precision
-  (CONFIRM precision from chain, don't assume 18); format to decimal only for display.
-- 1% split computed in base units; burn + proposer portions sum EXACTLY to input.
-- Rigorous validation (positive, >0, within balance, within precision, reject malformed/overflow).
-- Explicit confirmation showing exact amounts before signing. Handle every failure path.
-- TEST EXHAUSTIVELY ON TAIRA FIRST (edge amounts, failures, double-submit). Read back on-chain.
+- INTEGER/BigInt only; base units at exact precision (CONFIRM from chain, don't assume 18); decimal for display.
+- 1% split in base units; burn + proposer sum EXACTLY to input.
+- Validate (positive, >0, within balance, within precision, reject malformed/overflow). Explicit confirm.
+- TEST ON TAIRA FIRST (edge amounts, failures, double-submit). Read back on-chain.
 
 ## DONATE MODAL (DONE — in-memory preview)
-- Quick-picks (10/50/100/500) + manual decimal amount + live 1% split + confirm. Spinner arrows
-  removed, overflow-safe, capped 1,000,000 XOR (clamp + label hint + cap note "Maximum donation is
-  1,000,000 XOR").
-- In-memory donate(): 99/1 split updates totalDonated/xorBurned; UNIQUE-backer counting keyed
-  account::proposal (different accounts each count once; same account twice = once); self-donation
-  guarded. Honest "preview only" note.
-- WARNING: stub uses simple decimal math for PREVIEW ONLY. Real path MUST follow MONEY-CODE DISCIPLINE.
-  Swap real chain transfer in where donate() mutates totals.
-- TODO (smart UX, do incrementally): inline "Why 1%?" expander in the modal -> concise explanation +
-  optional deep-link to About #burn. Then similar contextual expanders for boost scarcity (#boost),
-  challenge window (#challenge), Desk track, labels — place each at its decision point. Donate one first.
+- Quick-picks (10/50/100/500) + manual decimal + live 1% split + confirm. Spinner-arrows removed,
+  overflow-safe, capped 1,000,000 XOR (clamp + label hint + cap note).
+- donate(): 99/1 split updates totalDonated/xorBurned; UNIQUE-backer keyed account::proposal;
+  self-donation guarded. "Preview only" note. WARNING: simple decimal math = PREVIEW ONLY; real path =
+  MONEY-CODE DISCIPLINE.
+- TODO (smart UX, incremental): inline "Why 1%?" expander in modal -> concise text + optional deep-link
+  to About #burn. Then similar contextual expanders (boost scarcity #boost, challenge #challenge, Desk,
+  labels) at each decision point. Donate one first.
 
 # ============================================================
 # ARCHITECTURE — FRONTEND / BACKEND / CHAIN
 # ============================================================
 - FRONTEND (DONE, against in-memory store): the Vue app.
-- SHARED BACKEND (next-major; PHASE-1 SCOPE): server + DB for ALL social data — stories, milestones,
-  comments, likes, boosts (+allotment/replenish), follows, saved, donations, DRAFTS,
-  cadence/responsiveness, CHALLENGE WINDOWS + flags + notifications. All users must see same data
-  across devices. localStorage = dead end.
-- SORA NEXUS CHAIN: source of truth for MONEY (donations, burns).
-Build path: frontend (done) -> shared backend (makes it real, Phase-1 incl. challenge window) ->
-chain integration (money, Taira first) -> end-stage polish.
+- SHARED BACKEND (next-major; PHASE-1 SCOPE): DB for ALL social data — stories, milestones, comments,
+  likes, boosts (+allotment), follows, saved, donations, DRAFTS, cadence, CHALLENGE WINDOWS + flags +
+  notifications. All users see same data across devices. localStorage = dead end.
+- SORA NEXUS CHAIN: truth for MONEY (donations, burns).
+Path: frontend (done) -> shared backend (Phase-1 incl. challenge window) -> chain (money, Taira first) -> polish.
 
 # ============================================================
 # DEFERRED FEATURES (build once, properly)
 # ============================================================
-- DRAFTS: SHARED BACKEND tied to account (NOT localStorage). "Save draft" + "My Drafts" on Profile.
-- EVIDENCE DEADLINE + OVERDUE FLAG + evidence FILE UPLOAD + "promised vs delivered" + persistence =
-  backend + file storage. (Attach button is a dashed placeholder now.)
-- FILE ATTACHMENTS: need storage (backend). Placeholder now.
-- LIKE/BOOST/FOLLOW/DONATE persistence: in-memory now (vanish on refresh) — real w/ backend.
-- SCARCE-BOOST ALLOTMENT: per-user weekly allotment + replenishment = backend.
-- PROPOSER DISPLAY NAME: raw account id now; real name w/ Profile + backend.
+- DRAFTS (backend, not localStorage). EVIDENCE deadline/overdue/UPLOAD/persistence (backend+storage).
+- FILE ATTACHMENTS (storage). LIKE/BOOST/FOLLOW/DONATE persistence (in-memory now). SCARCE-BOOST
+  ALLOTMENT (backend). PROPOSER DISPLAY NAME (backend).
 
 # ============================================================
 # PROPOSAL LIFECYCLE — three paths (DECIDED; mostly backend-era)
 # ============================================================
-PATH 1 — Donations, ALREADY building: post -> milestones tick from start (current).
-PATH 2 — Donations, NEEDS FUNDS FIRST ("Raising") [KS-style all-or-nothing]: GOAL + reasonable
-  DEADLINE; sits in RAISING (no delivery clock). Goal MET -> "Start building" -> milestone clocks begin
-  relative to start. Goal MISSED -> "Did not reach funding goal — unable to build": NEUTRAL/archived/no
-  penalty. Donations stay IMMEDIATE tips (NO escrow at this layer; escrow is Phase 2). Anti-abuse:
-  cadence/silence (long Raising + no start = red flag).
-PATH 3 — TREASURY DESK track (SORA Nexus): "Under review" (no clock/penalty) -> Approved (milestones
-  begin) OR Not approved (neutral archive).
-BUILD: states/transitions/clocks/review-states need persistent state (backend).
+P1 Donations, already building: milestones from start (current). P2 Donations, "Raising" first
+(KS all-or-nothing: goal+deadline; met -> build, missed -> neutral "unable to build"; NO escrow here,
+escrow is Phase 2). P3 Treasury Desk track (SORA Nexus): under review -> approved (milestones) / not
+(neutral archive). States/clocks = backend.
 
 # ============================================================
-# END-STAGE POLISH PASSES (near the end, like i18n)
+# END-STAGE POLISH PASSES
 # ============================================================
-- MOBILE PASS (NEXT after frontend, BEFORE backend per Nick): full PARITY already built (reflows/
-  stacks); this pass = touch-targets, spacing, type-scale, collapse-filters-on-mobile, switcher/modals/
-  sticky-rails feel on phone.
-- LIGHT MODE: CSS-variable tokens. Gold on warm off-white/cream (NOT stark white, NOT gold->red). Red
-  = danger. Light/dark toggle in top bar.
-- FONT PASS: self-host official Sora; decide which labels stay JetBrains Mono.
-- HERO REDESIGN: make motto "Productive work burns true" shine (gold on "burns true", flame flicker).
-- MOTION pass: flame flicker (hero + Treasury) + burn pulse; reduced-motion safe.
-- COMPOSE VALIDATION UX: inline field-level errors. NUMBER INPUTS: apply Donate's spinner-removal to
-  Compose XOR field. i18n: EN default + ES/ZH/HI/AR(RTL)/PT/RU/JA/FR.
-- Contextual "Why?" expanders (see Donate-modal TODO) rolled out app-wide.
+- MOBILE PASS (NEXT, before backend): parity already built; this = touch-targets/spacing/type-scale/
+  collapse-filters/feel on phone.
+- LIGHT MODE (CSS tokens; gold on warm cream, red=danger). FONT PASS (self-host Sora). HERO motto shine.
+  MOTION (flame flicker, reduced-motion safe). COMPOSE inline field errors. Compose XOR spinner-removal.
+  i18n (EN+ES/ZH/HI/AR-RTL/PT/RU/JA/FR). Contextual "Why?" expanders app-wide.
 
 # ============================================================
 # DONE / REUSABLE
 # ============================================================
-- CORS proxy (vercel.json + Vite proxy /taira,/minamoto); Vite config; browser bridge
-  (irohaBrowserBridge.ts + nativeStub.ts — PROVEN Taira read: 25,000 XOR).
-- Shell src/web/ (index.html, main.ts, App.vue [nav + gold Post btn + top-right avatar->own profile +
-  DEMO account switcher], tokens.css [+themed scrollbars], assets/seal.png, flame.png). Components:
-  CountUp.vue, Flame.vue (now gold|fire variant).
-- BUILT (new direction, ALL DONE): Feed, Story, Compose, Profile, Explore, Treasury, About. Social
-  mechanics + Donate modal wired (in-memory). Citizens unwired from nav (dormant on disk). Old
-  Overview/Proposals/Submit dormant.
-- GOLD BUTTONS unified hover (lift + brighten + shadow) in-place across nav Post / Compose / Donate /
-  deliver / modal confirm / comment Post (standardize-in-place, not a shared class — Vue scoped styles).
-- DEMO ACCOUNT SWITCHER (App.vue, DEMO_MODE only, crimson-tinted): DEMO_ACCOUNTS = demo/viewer/maker;
-  setDemoAccount; currentAccountId falls back to demoAccountId. Lets solo dev TEST non-owner experience
-  (evidence control hidden, no PROPOSER label on others' comments, "Their work" profile, support enabled
-  for others). NEVER SHIPS — gate before launch. (This tool surfaced the per-account backer bug.)
-- Store commons.ts: underwriting + story + track + milestone fields; savedProposals/isSaved/toggleSave;
-  proposerLabel; markChapterDelivered; viewingProfileId/setViewingProfile; draft refs. submitProposal
-  stamps xorBurned "0" + track "donations". DEMO_MODE relaxed gates.
+- CORS proxy + Vite config + browser bridge (irohaBrowserBridge.ts + nativeStub.ts — PROVEN Taira read 25,000 XOR).
+- Shell src/web/ (App.vue [nav + gold Post + avatar->own profile + DEMO switcher], tokens.css [+themed
+  scrollbars], seal.png, flame.png). Components: CountUp.vue, Flame.vue (gold|fire variant).
+- BUILT (ALL DONE): Feed, Story, Compose, Profile, Explore, Treasury, About. Citizens unwired (dormant).
+  Old Overview/Proposals/Submit dormant.
+- GOLD BUTTONS unified hover (lift+brighten+shadow) in-place (Vue scoped styles, not a shared class).
+- DEMO ACCOUNT SWITCHER (DEMO_MODE only, crimson): DEMO_ACCOUNTS demo/viewer/maker; setDemoAccount;
+  currentAccountId falls back to demoAccountId. Tests non-owner experience. NEVER SHIPS — gate before launch.
+- Store commons.ts: underwriting+story+track+milestone fields; saved/proposerLabel/markChapterDelivered/
+  viewingProfileId/draft refs. submitProposal stamps xorBurned "0" + track "donations".
 - Store social/donate: liked/boosted/followed/donatedProposals + isLiked/isBoosted/isFollowing +
-  toggleLike/toggleBoost/toggleFollow + donate (in-memory, unique-backer keyed account::proposal,
-  self-donation guarded). Proposal type +likes/boostCount/followers/backers/totalDonated. scrollToComments
-  flag (comment->story jump). DEMO_ACCOUNTS/demoAccountId/setDemoAccount.
+  toggle* + donate (in-memory, unique-backer account::proposal, self-donation guarded). Proposal type
+  +likes/boostCount/followers/backers/totalDonated. scrollToComments flag. DEMO_ACCOUNTS/demoAccountId/setDemoAccount.
 
 # ============================================================
 # BUILD ORDER
 # ============================================================
-1. Shell + nav .......... DONE
-2. Feed ................. DONE
-3. Story detail ........ DONE
-4. Profile ............. DONE
-5. Explore ............. DONE
-6. Social/burn mechanics  DONE (6a like/boost/follow/comment; 6b Donate modal — in-memory)
-7. Reframe Treasury/About/Citizens  DONE (Treasury+About reframed; Citizens removed from nav)
+1 Shell+nav DONE · 2 Feed DONE · 3 Story DONE · 4 Profile DONE · 5 Explore DONE ·
+6 Social/burn mechanics DONE (6a like/boost/follow/comment; 6b Donate modal — in-memory) ·
+7 Reframe Treasury/About/Citizens DONE (Treasury+About reframed; Citizens removed from nav)
 >>> FRONTEND COMPLETE <<<
-Next: (opt) Donate "Why 1%?" expander -> MOBILE polish pass -> SHARED BACKEND (Phase-1 incl. challenge
-window) -> CHAIN INTEGRATION (money, Taira first) -> end-stage polish passes.
+Next: (opt) Donate "Why 1%?" expander -> MOBILE polish -> SHARED BACKEND (Phase-1 incl. challenge window)
+-> CHAIN (money, Taira first) -> end-stage polish.
 
 # ============================================================
 # KEY FACTS
 # ============================================================
-- Taira XOR asset id: 6TEAJqbb8oEPmLncoNiMRbLEK6tw (src/constants/chains.ts ~line 22)
-- "i105" = Iroha account-address format (SDK encodeI105AccountAddress).
-- DEMO_MODE:true relaxes gates + powers demo switcher; EXPERIENCE-ONLY, touches no XOR, gate before ship.
-- citizenCount reads parliament.citizenCountDisplay (real number, or "—" if null) — connectable if a
-  Commons-citizen role ever exists.
-- PARKED: vote-to-fund, 5 XOR post fee, Signal=60% aye. Ref: proposal-underwriting-file-DRAFT.md.
-- TOP-BAR (later): notifications (client-derived) + feedback icon + connect/wallet button.
+- Taira XOR asset id: 6TEAJqbb8oEPmLncoNiMRbLEK6tw (src/constants/chains.ts ~line 22).
+- "i105" = Iroha account-address format. DEMO_MODE:true relaxes gates + powers demo switcher; no XOR; gate before ship.
+- citizenCount reads parliament.citizenCountDisplay (real number or "—") — connectable if a Commons-citizen role ever exists.
+- COMMONS_CONFIG import path = @/constants/commonsConfig (NOT commons). Vite root=src/web, port 5174.
+- PARKED: vote-to-fund, 5 XOR post fee, Signal=60% aye. TOP-BAR (later): notifications + feedback + connect/wallet.
 
-[SEARCH — TWO entry points, ONE system]
-- Explore: primary search + filters + sort (DONE). Top-bar global search: express lane -> Explore (later).
-- Covers proposals + profiles. Client-side filter works now; REAL scalable search = backend.
-
-[PAGINATION — strategy decided, build with backend]
-- EXPLORE: NUMBERED PAGES (~20/page, "showing X-Y of N"). FEED: "LOAD MORE" (~15-20/batch) — NOT
-  infinite scroll (dopamine pattern SOCIAL LAYER rejects). Real pagination = backend (?page&limit).
-
-[EXPLORE status filter — expand at backend era]
-- Now: Active / Delivered / All. Later (backend dispute): "Confirmed", "Open concern / response
-  requested" (NEUTRAL, not "Disputed"), "Overdue". NO "Disputed" scarlet-letter filter.
-
-[PRE-LAUNCH PUBLIC REVIEW — practice (decided)]
-- Publish ship-ready code PUBLIC + invite scrutiny BEFORE real XOR moves (free audit substitute).
-  Point reviewers at money code; make runnable on Taira; real time + solicit in SORA channels; act on
-  findings; credit bug-finders. SEQUENCE: build -> Taira test -> PUBLIC REVIEW -> fix -> launch low-stakes
-  -> ~1yr uneventful -> THEN escrow/Desk.
-
-[Compose — "Post your story" button polish] — DONE (got unified gold hover). (XOR-field spinner-removal
-  still TODO in polish.)
-
-[Explore card icons — make interactive when <StoryCard> extracted]
-- Explore engagement icons DISPLAY-ONLY; Feed's interactive+guarded. Make them match when extracting a
-  shared <StoryCard> (card markup duplicated Feed/Explore — every change done twice). DEFER; revisit
-  during public test based on feedback.
-[REFACTOR — extract shared <StoryCard>] — de-duplicate Feed/Explore card. Do before/with backend.
-
-[FUTURE — "Commons citizen" (idea, not committed)]
-- Citizens REMOVED from nav: old content = sortition-funding panel system Commons no longer operates;
-  citizenship is a SORA Governance concept + sortition is a SORA Nexus initiative. Citizens.vue kept
-  on disk (dormant), unwired.
-- IDEA worth keeping: one day a "Commons citizen" = a real earned stake/role WITHIN Commons (not just
-  inherited from SORA Governance). Revive with genuine Commons purpose if/when that role exists. No commitment.
+[SEARCH] Explore = primary search+filters+sort (DONE). Top-bar global search -> Explore (later). Real search = backend.
+[PAGINATION] Explore = numbered pages (~20). Feed = "Load more" (~15-20), NOT infinite scroll. Real = backend.
+[EXPLORE status filter later] add neutral "Confirmed"/"Open concern"/"Overdue" (NOT "Disputed") at backend era.
+[PUBLIC REVIEW] publish ship-ready code public + invite scrutiny BEFORE real XOR; runnable on Taira; credit finders.
+[Explore card icons / <StoryCard> refactor] Explore icons display-only; make interactive when extracting shared
+  <StoryCard> (card duplicated Feed/Explore). DEFER; revisit during public test based on feedback.
+[FUTURE — "Commons citizen"] Citizens removed from nav (old sortition-funding content; citizenship is SORA Governance,
+  sortition is SORA Nexus). Citizens.vue dormant on disk. IDEA: one day a real earned role WITHIN Commons. No commitment.
