@@ -6,27 +6,52 @@
       <div>
         <p class="eyebrow">ABOUT THE COMMONS</p>
         <h1>Productive work burns true.</h1>
-        <p class="lead">SORA Commons is a way to fund real work — decided by random lot, not by who holds the most tokens. Every fee burns. Nothing is extracted.</p>
+        <p class="lead">SORA Commons is a public, permanent record of real work being built on SORA. Every proposal is a story you can follow start to finish — supported directly by the people who believe in it, and held to account in the open.</p>
       </div>
     </section>
 
-    <!-- PLAIN LANGUAGE -->
+    <!-- WHAT THIS IS -->
     <section class="block">
       <h2>What this is</h2>
-      <p>Most systems for funding work hand the decision to whoever has the most money or the loudest voice. SORA Commons doesn't. Anyone can propose work. The community signals whether it's worth considering. And the binding decision is made by a small panel of citizens chosen at random — by lot, the way a jury is drawn — so the outcome can't be bought.</p>
-      <p>When a proposal is submitted, its fee is burned. When milestones are paid, a slice burns too. The burn isn't a tax that someone collects; the XOR is destroyed. That's the meaning of the motto on the seal: work that's real leaves a mark that can't be faked.</p>
+      <p>Most platforms for funding work hand the decision to whoever has the most money or the loudest voice. The Commons doesn't. Anyone can post the work they're doing as a story, with milestones they'll deliver and the evidence they'll show. People who want it to happen support it directly. The record of what was promised, what was delivered, and what happened after stays public and permanent — so the work, not the marketing, is what speaks.</p>
+      <p>When someone supports work with a donation, 99% goes to the builder and 1% is destroyed. The burn isn't a tax that anyone collects; the XOR is gone. That's the meaning of the motto on the seal: work that's real leaves a mark that can't be faked.</p>
     </section>
 
-    <!-- 5 STEPS -->
+    <!-- HOW IT WORKS -->
     <section class="block">
-      <h2>How a proposal moves</h2>
-      <ol class="steps">
-        <li><b>Submit.</b> Anyone posts a proposal with milestones. A 5 XOR fee burns on submission — skin in the game, and the first proof of seriousness.</li>
-        <li><b>Signal.</b> The community signals support over a set window. A proposal needs both a quorum and at least 60% in favor to move forward.</li>
-        <li><b>Deliberate.</b> Parliament debates the proposal and prepares a brief for the panel. Anyone who weighs in here is excluded from judging it — you can't deliberate and then sit in judgment.</li>
-        <li><b>Sortition.</b> Five citizens are drawn at random. Three of five must approve to fund. The panel is fixed when it's drawn; no one chooses who judges.</li>
-        <li><b>Milestone escrow.</b> Funds release milestone by milestone as work is confirmed. A small percentage burns at each step.</li>
-      </ol>
+      <h2>How it works</h2>
+
+      <div id="burn" class="mech">
+        <h3>The 1% burn</h3>
+        <p>Supporting work is a donation: <b>99% goes straight to the builder, 1% burns.</b> The burn rides on real support — it only happens when someone chooses to give. Proposers are never charged to post or to deliver. Nothing is collected, nothing is extracted; the destroyed XOR is the proof that real value flowed to real work.</p>
+      </div>
+
+      <div id="follow" class="mech">
+        <h3>Stories, chapters, and evidence</h3>
+        <p>A proposal is a story. Its milestones are chapters. As a builder makes progress, they present the actual evidence a chapter is done — a link, a receipt, a working result — and the record updates in public. You can follow any story, and the cadence of real updates is the clearest signal of whether work is genuinely happening.</p>
+      </div>
+
+      <div id="challenge" class="mech">
+        <h3>The challenge window</h3>
+        <p>When a builder marks a chapter delivered and presents evidence, a short <b>challenge window</b> opens. If no one raises a concern, the chapter becomes <b>Confirmed</b> — not "verified" (silence isn't proof), just unchallenged in the open. If someone does raise a concern, it must come with a written reason, the builder gets to respond, and both sides stay on the permanent record. ...Because a donation already reached the builder, there's nothing for the Commons to claw back or rule on — so it issues no verdicts. It surfaces concerns, keeps everything transparent, and lets supporters judge for themselves. The real red flag is never a single flag — it's silence.</p>
+      </div>
+
+      <div id="boost" class="mech">
+        <h3>Boosts: free, but scarce</h3>
+        <p>A boost is a free signal of support — but each person gets only a limited number. Scarcity is the point: if you could boost everything, a boost would mean nothing. Because they're free and equal, no one can buy their way up the rankings. Boosts can't be purchased, ever.</p>
+      </div>
+    </section>
+
+    <!-- WHAT'S COMING -->
+    <section class="block">
+      <h2 id="desk">What's coming</h2>
+      <p>The Commons launches deliberately, at low stakes, and grows only as the system earns trust through real operation. Some capabilities come later — some the Commons may build, some are wider SORA Nexus initiatives it will connect to as they evolve:</p>
+      <ul class="coming">
+        <li><b>The Treasury Desk</b> — a <b>SORA Nexus</b> initiative for large-scale funding, not something the Commons builds. As it develops, larger proposals could route to the Desk while the Commons holds the story either way.</li>
+        <li><b>Escrow</b> — holding and releasing pooled funds milestone by milestone, with refunds if a goal isn't met. This is a direction the Commons may take later: it raises the stakes considerably, so it belongs to a phase with proper custody, testing, and legal grounding — not the early small-tips layer.</li>
+        <li><b>Formal adjudication</b> — only matters once funds are <i>held</i> in escrow, where a decision actually determines whether money is released or refunded. For that rare case, the Commons would look to the wider SORA Nexus ecosystem (including its sortition work) rather than issuing verdicts itself. At the donation layer, where money already reached the builder, none of this applies.</li>
+      </ul>
+      <p class="soft">These are directions, not promises with dates. The Commons will add them when they're genuinely ready, not on a clock.</p>
     </section>
 
     <!-- THE THINKING BEHIND IT (collapsible) -->
@@ -42,19 +67,19 @@
             <h3>One loop, not three slogans</h3>
             <p>The framework underneath the Commons is what we call <b>3Gi — Global Governance, Growth, and intelligence</b>. Governance defines the lawful surface of the system: who can change the rules, and how a change becomes legitimate. Growth defines what the system is for: money created against real production, not speculation. Intelligence is how the system learns whether its rules are actually producing the world it claims to want. They aren't three separate ideas — they're one loop.</p>
 
-            <h3>Why sortition, not voting</h3>
-            <p>Elections and token-weighted votes both select for the already-powerful. Whoever has the most reach, or the most coins, wins. Sortition — selection by lot — breaks that. A randomly drawn panel can't be campaigned for or bought in advance, because no one knows who'll be drawn. It's the oldest democratic technology there is, and it's the one mechanism here that capital can't capture.</p>
-
             <h3>Reputation that can't harden into a caste</h3>
-            <p>The Commons keeps a memory: who proposed well, who served on panels, who delivered. But there's a hard line. <b>Reputation may gate access — it never weights a draw or a vote.</b> The moment reliable service buys you more voting power or a better chance of being drawn, you've rebuilt plutocracy, just denominated in tenure instead of tokens. So reputation rewards presence, never punishes absence; it decays over time so no permanent class forms; and it never touches who gets drawn or whose vote counts more.</p>
+            <p>The Commons keeps a memory: who proposed well, who delivered, who went silent. But there's a hard line. <b>Reputation may gate access — it never weights a vote or a draw.</b> The moment a track record buys you more power over others' work, you've rebuilt plutocracy, just denominated in tenure instead of tokens. So reputation rewards presence, never punishes honest failure, and decays over time so no permanent class forms.</p>
 
             <h3>Separation of powers, enforced in the data</h3>
-            <p>The people who deliberate on a proposal cannot also judge it. The proposer can't signal for their own proposal or sit on its panel. These aren't UI suggestions — they're enforced at the data level, because the integrity of the whole system rests on no single actor collapsing the loop into themselves.</p>
+            <p>No one should be able to collapse the loop into themselves. A proposer can't inflate their own work — they can't like, boost, follow, or donate to their own proposal. The numbers you see reflect what other people actually did. These aren't UI suggestions; they're enforced in the data, because the integrity of the whole system rests on no single actor playing every role at once.</p>
+
+            <h3>On sortition</h3>
+            <p>Sortition — decision by random lot — is an initiative within the wider <b>SORA Nexus</b> ecosystem, not something the Commons builds or owns. We find its core logic compelling: a randomly drawn panel can't be campaigned for or bought in advance, because no one knows who'll be drawn. It's the oldest democratic technology there is, and one of the few mechanisms capital can't capture. As SORA's work on sortition evolves, we'll be watching closely to see how — if at all — it might one day fit the Commons. No promises; just an idea from the ecosystem we think is worth paying attention to.</p>
 
             <h3>Verify the loop</h3>
-            <p>The old world says: trust the institution. The crypto casino says: trust the chart. The technocrat says: trust the model. The Commons says something different — <b>verify the loop.</b> Every decision leaves a record: what was decided, on what evidence, by whom, and what happened after. A system that can be wrong in ways it can inspect, contest, remember, and correct is the only kind worth building.</p>
+            <p>The old world says: trust the institution. The crypto casino says: trust the chart. The technocrat says: trust the model. The Commons says something different — <b>verify the loop.</b> Every proposal leaves a record: what was promised, on what evidence, by whom, and what happened after. A system that can be wrong in ways it can inspect, contest, remember, and correct is the only kind worth building.</p>
 
-            <p class="phase-note">This is a testnet preview running on TAIRA. Citizen-bond and role requirements are relaxed here so the full five-stage flow can be walked end to end. On the MINAMOTO mainnet release, full citizenship (a 10,000 XOR bond) and role enforcement apply.</p>
+            <p class="phase-note">This is an early build running on the TAIRA testnet. The core loop — posting work, following stories, supporting with donations, and the challenge window — is what the Commons launches with. Heavier capabilities arrive later: some the Commons may build (like escrow), some are wider SORA Nexus initiatives it will connect to as they evolve (like the Treasury Desk and sortition). Money moves only after the code has been openly reviewed and exhaustively tested.</p>
           </div>
         </div>
       </transition>
@@ -94,7 +119,7 @@ function onLeave(el: Element) {
 .hero__seal { width: clamp(110px, 16vw, 160px); height: auto; filter: drop-shadow(0 6px 20px rgba(0,0,0,.45)); }
 .eyebrow { font-family: var(--mono); font-size: .72rem; letter-spacing: .18em; color: var(--gold-500); margin: 0 0 10px; }
 .hero h1 { font-family: var(--display); font-size: clamp(2rem, 5vw, 3rem); line-height: 1.05; margin: 0 0 12px; }
-.lead { color: var(--ink-dim); font-size: 1.05rem; max-width: 60ch; margin: 0; }
+.lead { color: var(--ink-dim); font-size: 1.05rem; max-width: 60ch; margin: 0; line-height: 1.6; }
 @media (max-width: 720px) {
   .hero { grid-template-columns: 1fr; justify-items: center; text-align: center; }
   .lead { margin: 0 auto; }
@@ -104,10 +129,14 @@ function onLeave(el: Element) {
 .block p { color: var(--ink-dim); line-height: 1.65; margin: 0 0 12px; max-width: 70ch; }
 .block p b { color: var(--ink); font-weight: 600; }
 
-.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
-.steps li { position: relative; padding: 14px 16px 14px 52px; background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r); color: var(--ink-dim); line-height: 1.55; }
-.steps li b { color: var(--ink); }
-.steps li::before { counter-increment: s; content: counter(s); position: absolute; left: 14px; top: 14px; width: 26px; height: 26px; border-radius: 50%; background: rgba(201,168,76,.16); color: var(--gold-300); font-family: var(--mono); font-size: .82rem; display: grid; place-items: center; }
+.mech { padding: 16px 18px; background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r); margin-bottom: 12px; scroll-margin-top: 90px; }
+.mech h3 { font-family: var(--display); font-size: 1.18rem; color: var(--gold-300); margin: 0 0 8px; }
+.mech p { margin: 0; }
+
+.coming { list-style: none; padding: 0; margin: 0 0 12px; display: flex; flex-direction: column; gap: 10px; }
+.coming li { padding: 14px 16px; background: rgba(126,155,224,.06); border: 1px solid var(--line-soft); border-radius: var(--r); color: var(--ink-dim); line-height: 1.55; }
+.coming li b { color: var(--ink); }
+.soft { color: var(--ink-faint); font-size: .92rem; }
 
 .disclose { width: 100%; display: flex; align-items: center; justify-content: space-between; background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; color: var(--ink); font-family: var(--display); font-size: 1.25rem; cursor: pointer; }
 .disclose:hover { border-color: var(--gold-600); }
@@ -118,6 +147,8 @@ function onLeave(el: Element) {
 .deep__inner { padding: 18px 4px 4px; }
 .deep h3 { font-family: var(--display); font-size: 1.15rem; color: var(--gold-300); margin: 18px 0 8px; }
 .deep h3:first-child { margin-top: 4px; }
+.deep p { color: var(--ink-dim); line-height: 1.65; margin: 0 0 12px; max-width: 72ch; }
+.deep p b { color: var(--ink); font-weight: 600; }
 .phase-note { margin-top: 18px; padding: 14px 16px; background: rgba(126,155,224,.08); border: 1px solid var(--line-soft); border-radius: var(--r); font-size: .9rem; color: var(--ink-faint); }
 @media (prefers-reduced-motion: reduce) { .deep { transition: none; } .chev { transition: none; } }
 </style>

@@ -30,7 +30,6 @@
       <About v-else-if="active === 'about'" />
       <Proposals v-else-if="active === 'proposals'" @nav="go" />
       <Treasury v-else-if="active === 'treasury'" />
-      <Citizens v-else-if="active === 'citizens'" @nav="go" />
       <Explore v-else-if="active === 'explore'" @nav="go" />
       <Submit v-else-if="active === 'submit'" @nav="go" />
       <template v-else>
@@ -63,7 +62,6 @@ import Overview from "./views/Overview.vue";
 import About from "./views/About.vue";
 import Proposals from "./views/Proposals.vue";
 import Treasury from "./views/Treasury.vue";
-import Citizens from "./views/Citizens.vue";
 import Submit from "./views/Submit.vue";
 import Compose from "./views/Compose.vue";
 import Profile from "./views/Profile.vue";
