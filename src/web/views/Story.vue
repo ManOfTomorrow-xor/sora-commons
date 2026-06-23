@@ -64,7 +64,7 @@
             </div>
             <div class="ch__b">
               <h4>{{ m.description }}</h4>
-              <div class="ch__meta">{{ m.xorAmount }} XOR · due {{ m.timeline || "—" }}</div>
+              <div class="ch__meta"><span class="ch__seek">Seeking {{ m.xorAmount }} XOR</span> · due {{ m.timeline || "—" }}</div>
               <div v-if="m.evidence" class="ch__ev"><span class="ch__evlab">Evidence to present:</span> {{ m.evidence }}</div>
               <div v-if="m.completed && m.deliveredEvidence" class="ch__ev ch__ev--delivered">
                 <span class="ch__evlab">Evidence presented:</span> {{ m.deliveredEvidence }}
@@ -378,6 +378,7 @@ onMounted(() => {
 .ch__deliver textarea:focus { outline: none; border-color: var(--gold-600); }
 .ch__deliverbtn { align-self: flex-start; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 8px 14px; font-weight: 700; font-size: .84rem; cursor: pointer; }
 .ch__deliverbtn { align-self: flex-start; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 8px 14px; font-weight: 700; font-size: .84rem; cursor: pointer; box-shadow: 0 3px 12px rgba(201,168,76,.22); transition: transform .15s var(--ease), box-shadow .15s var(--ease), filter .15s var(--ease); }
+.ch__seek { color: var(--gold-300); font-weight: 600; }
 .ch__deliverbtn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(201,168,76,.34); filter: brightness(1.06); }
 .st-done { background: rgba(100,220,170,.14); color: var(--affirm); }
 .st-now { background: rgba(201,168,76,.14); color: var(--gold-300); }
