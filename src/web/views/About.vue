@@ -38,7 +38,7 @@
 
       <div id="boost" class="mech">
         <h3>Boosts: free, but scarce</h3>
-        <p>A boost is a free signal of support — but each person gets only a limited number. Scarcity is the point: if you could boost everything, a boost would mean nothing. Because they're free and equal, no one can buy their way up the rankings. Boosts can't be purchased, ever.</p>
+        <p>A boost is a free signal of support — but each person gets just <b>three a week</b>. They refresh each week and don't stack up, so you can never hoard them: a boost always costs you something to give. And because they're free and equal, no one can buy their way up the rankings — boosts can't be purchased, ever.</p>
       </div>
     </section>
 
