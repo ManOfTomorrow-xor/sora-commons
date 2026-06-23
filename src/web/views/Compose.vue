@@ -51,7 +51,7 @@
           <div v-for="(m, i) in commons.draftMilestones" :key="i" class="ms__row">
             <div class="ms__head"><span class="ms__tag">Chapter {{ i + 1 }}</span><button v-if="commons.draftMilestones.length > 1" type="button" class="ms__rm" @click="commons.removeMilestone(i)">Remove</button></div>
             <input v-model="m.description" type="text" placeholder="What gets delivered in this chapter?" />
-            <div class="ms__grid"><label class="ms__date"><span>XOR amount</span><input v-model="m.xorAmount" type="number" min="0" placeholder="0" /></label><label class="ms__date"><span>Evidence due by</span><input v-model="m.timeline" type="date" :min="minDate(i)" /></label></div>
+           <label class="ms__date"><span>XOR sought</span><input v-model="m.xorAmount" type="number" min="0" placeholder="0" /></label>
             <label class="ms__evlabel">Evidence you'll present</label>
             <textarea v-model="m.evidence" rows="2" placeholder="What proof will you show when this chapter is done? (e.g. receipts, photos, a working link)"></textarea>
             </div>
