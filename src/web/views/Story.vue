@@ -121,6 +121,10 @@
             </button>
           </div>
           <button class="support__follow" :class="{ on: commons.isFollowing(p.id) }" :disabled="isMine" :title="isMine ? 'You can\'t follow your own proposal' : ''" @click="commons.toggleFollow(p.id)">{{ commons.isFollowing(p.id) ? "Following" : "+ Follow" }}</button>
+          <WhyExpander label="Why boost?" anchor="boost" @navigate="onWhyNav">
+          A boost is free — but you only get a few. That's the point: if you could boost everything, a boost would mean nothing. Boosts can't be bought, so no one climbs the rankings with money. Spend them on the work you most want others to see.
+        </WhyExpander>
+          
           <div class="support__totals">
             <div><b>{{ p.totalDonated || 0 }}</b><span>XOR raised</span></div>
             <div><b>{{ p.xorBurned || 0 }}</b><span>XOR burned</span></div>
@@ -305,6 +309,7 @@ onMounted(() => {
 .support__totals div { display: flex; flex-direction: column; }
 .support__totals b { font-family: var(--mono); color: var(--gold-300); font-size: 1.05rem; }
 .support__totals span { color: var(--ink-faint); font-size: .74rem; }
+.support :deep(.why) { margin: 0; }
 
 /* mobile sticky donate */
 .mobile-donate { display: none; }
