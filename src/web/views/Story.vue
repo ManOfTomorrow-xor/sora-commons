@@ -15,6 +15,7 @@
       </div>
     </div>
     <div class="trackline"><span class="track" :class="trackClass">{{ trackLabel }}</span></div>
+    <p v-if="p.description" class="sd__summary">{{ p.description }}</p>
 
     <!-- TWO COLUMN -->
     <div class="sd__grid">
@@ -22,7 +23,7 @@
         <!-- STORY -->
         <section class="sec">
           <h2>The story</h2>
-          <p class="narrative">{{ p.description }}</p>
+          <div class="narrative"><Clampable :text="p.story || p.description" :lines="5" pre /></div>
           <div v-if="p.files && p.files.length" class="files">
             <span v-for="f in p.files" :key="f" class="file">📎 {{ f }}</span>
           </div>
@@ -32,11 +33,11 @@
         <section class="sec" v-if="hasFacts">
           <h2>The facts behind it</h2>
           <div class="facts">
-            <div v-if="p.productiveClaim"><div class="fact__l">Productive claim</div><div class="fact__v">{{ p.productiveClaim }}</div></div>
-            <div v-if="p.inputs"><div class="fact__l">Inputs financed</div><div class="fact__v">{{ p.inputs }}</div></div>
-            <div v-if="p.expectedOutput"><div class="fact__l">Expected output</div><div class="fact__v">{{ p.expectedOutput }}</div></div>
-            <div v-if="p.demandSignal"><div class="fact__l">Demand signal</div><div class="fact__v">{{ p.demandSignal }}</div></div>
-            <div v-if="p.publicBenefit"><div class="fact__l">Public benefit</div><div class="fact__v">{{ p.publicBenefit }}</div></div>
+            <div v-if="p.productiveClaim"><div class="fact__l">Productive claim</div><div class="fact__v"><Clampable :text="p.productiveClaim" :lines="5" /></div></div>
+            <div v-if="p.inputs"><div class="fact__l">Inputs financed</div><div class="fact__v"><Clampable :text="p.inputs" :lines="5" /></div></div>
+            <div v-if="p.expectedOutput"><div class="fact__l">Expected output</div><div class="fact__v"><Clampable :text="p.expectedOutput" :lines="5" /></div></div>
+            <div v-if="p.demandSignal"><div class="fact__l">Demand signal</div><div class="fact__v"><Clampable :text="p.demandSignal" :lines="5" /></div></div>
+            <div v-if="p.publicBenefit"><div class="fact__l">Public benefit</div><div class="fact__v"><Clampable :text="p.publicBenefit" :lines="5" /></div></div>
           </div>
         </section>
         <!-- ACCOUNTABILITY (distinct trust signal) -->
@@ -122,9 +123,9 @@
           </div>
           <button class="support__follow" :class="{ on: commons.isFollowing(p.id) }" :disabled="isMine" :title="isMine ? 'You can\'t follow your own proposal' : ''" @click="commons.toggleFollow(p.id)">{{ commons.isFollowing(p.id) ? "Following" : "+ Follow" }}</button>
           <WhyExpander label="Why boost?" anchor="boost" @navigate="onWhyNav">
-          A boost is free — but you only get a few. That's the point: if you could boost everything, a boost would mean nothing. Boosts can't be bought, so no one climbs the rankings with money. Spend them on the work you most want others to see.
-        </WhyExpander>
-          
+            A boost is free — but you only get three a week, and they don't stack up. That's the point: if you could boost everything, a boost would mean nothing. They can't be bought either, so no one climbs the rankings with money.
+          </WhyExpander>
+
           <div class="support__totals">
             <div><b>{{ p.totalDonated || 0 }}</b><span>XOR raised</span></div>
             <div><b>{{ p.xorBurned || 0 }}</b><span>XOR burned</span></div>
@@ -149,7 +150,7 @@
           <button v-for="q in [10, 50, 100, 500]" :key="q" class="dm__pick" :class="{ on: amount === q }" @click="setPick(q)">{{ q }}</button>
         </div>
 
-       <label class="dm__lab">Amount (XOR) <span class="dm__max">· max 1,000,000</span></label>
+        <label class="dm__lab">Amount (XOR) <span class="dm__max">· max 1,000,000</span></label>
         <input class="dm__input" type="number" min="0" max="1000000" step="0.0001" v-model.number="amount" placeholder="0" @input="onAmountInput" />
         <p v-if="amount === 1000000" class="dm__capnote">Maximum donation is 1,000,000 XOR.</p>
 
@@ -158,7 +159,7 @@
           <div><span>Burned (1%)</span><b>{{ (amount * 0.01).toFixed(4) }} XOR</b></div>
         </div>
 
-       <WhyExpander label="Why 1%?" anchor="burn" @navigate="onWhyNav">
+        <WhyExpander label="Why 1%?" anchor="burn" @navigate="onWhyNav">
           It isn't a fee — the Commons collects nothing. The 1% is <b>burned</b>: permanently destroyed, not taken by anyone. Your full conviction still reaches the builder, and the burn ties that support to real work getting done. Productive work burns true.
         </WhyExpander>
 
@@ -182,16 +183,14 @@
 import { ref, computed, onMounted } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import WhyExpander from "../components/WhyExpander.vue";
+import Clampable from "../components/Clampable.vue";
 
 const emit = defineEmits<{ (e: "nav", id: string): void }>();
 const commons = useCommonsStore();
 
 const p = computed(() => commons.activeProposal as any);
 
-// local visual state (real like/boost/donate wired in step 6)
-
 const newComment = ref("");
-
 
 function openDonate() { amount.value = 0; picked.value = false; showDonate.value = true; }
 function postComment() {
@@ -221,7 +220,6 @@ const hasFacts = computed(() => {
 
 const showDonate = ref(false);
 function onWhyNav(target: string) { showDonate.value = false; emit("nav", target); }
-function whyMore() { showDonate.value = false; emit("nav", "about#burn"); }
 const amount = ref<number>(0);
 const picked = ref(false);
 function setPick(q: number) { amount.value = q; picked.value = true; }
@@ -332,6 +330,7 @@ onMounted(() => {
 .sd__title { font-family: var(--display); font-size: clamp(1.8rem,4vw,2.6rem); font-weight: 800; letter-spacing: -.02em; margin: 6px 0 12px; line-height: 1.1; }
 .sd__who { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; cursor: pointer; }
 .sd__who b { color: var(--ink); } .sd__who span { color: var(--ink-dim); font-size: .88rem; }
+.sd__summary { color: var(--ink-dim); font-size: 1.05rem; line-height: 1.6; max-width: 70ch; margin: 0 0 4px; }
 .av { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #22180a; font-size: .85rem; flex: none; }
 .av.sm { width: 30px; height: 30px; font-size: .72rem; }
 .trackline { margin-bottom: 16px; }
@@ -350,15 +349,14 @@ onMounted(() => {
 
 .sec { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 22px; margin-bottom: 16px; }
 .sec h2 { font-family: var(--display); font-size: 1.3rem; font-weight: 700; margin: 0 0 14px; }
-.narrative { color: var(--ink-dim); line-height: 1.7; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }.muted { color: var(--ink-faint); margin: 0; }
+.narrative { color: var(--ink-dim); line-height: 1.7; margin: 0; }
 .files { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 .file { display: inline-flex; align-items: center; gap: 8px; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 9px 13px; font-size: .84rem; color: var(--ink-dim); }
 
-.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-@media (max-width: 600px) { .facts { grid-template-columns: 1fr; } }
-.facts > div { background: var(--navy-900); border: 1px solid var(--line-soft); border-radius: var(--r); padding: 14px 16px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.facts > div { background: var(--navy-900); border: 1px solid var(--line-soft); border-radius: var(--r); padding: 16px 18px; }
 .fact__l { font-size: .72rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; font-weight: 600; }
-.fact__v { color: var(--ink); font-size: .93rem; line-height: 1.55; overflow-wrap: anywhere; }
+.fact__v { color: var(--ink); font-size: .93rem; line-height: 1.6; overflow-wrap: break-word; }
 
 .chapter { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line-soft); }
 .chapter:last-child { border: none; }
@@ -376,7 +374,6 @@ onMounted(() => {
 .ch__deliver { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
 .ch__deliver textarea { width: 100%; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 9px 11px; color: var(--ink); font-family: inherit; font-size: .88rem; resize: vertical; }
 .ch__deliver textarea:focus { outline: none; border-color: var(--gold-600); }
-.ch__deliverbtn { align-self: flex-start; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 8px 14px; font-weight: 700; font-size: .84rem; cursor: pointer; }
 .ch__deliverbtn { align-self: flex-start; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 8px 14px; font-weight: 700; font-size: .84rem; cursor: pointer; box-shadow: 0 3px 12px rgba(201,168,76,.22); transition: transform .15s var(--ease), box-shadow .15s var(--ease), filter .15s var(--ease); }
 .ch__seek { color: var(--gold-300); font-weight: 600; }
 .ch__deliverbtn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(201,168,76,.34); filter: brightness(1.06); }
@@ -395,7 +392,6 @@ onMounted(() => {
 .cmtbox { display: flex; gap: 10px; margin-top: 14px; }
 .cmtbox input { flex: 1; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px 12px; color: var(--ink); font-family: inherit; }
 .cmtbox button:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(201,168,76,.3); filter: brightness(1.06); }
-.cmtbox button:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(201,168,76,.3); }
 .accountability { border-color: rgba(126,155,224,.25); }
 .accountability h2 { color: var(--info); }
 .acc__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }

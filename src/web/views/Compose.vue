@@ -9,11 +9,12 @@
     <section class="sec">
       <div class="sec__body">
         <h2>Your story</h2>
-        <label class="field"><span class="field__label">Title</span><input v-model="commons.draftTitle" type="text" placeholder="One line — what are you building?" maxlength="120" /></label>
-        <label class="field"><span class="field__label">One-line summary <span class="hint">(shows on your story card)</span></span><input v-model="commons.draftDescription" type="text" placeholder="A single sentence that draws people in" maxlength="160" /></label>
+        <label class="field"><span class="field__label">Title</span><input v-model="commons.draftTitle" type="text" placeholder="One line — what are you building?" /><CharCount :value="commons.draftTitle" :max="LIMITS.title" /></label>
+        <label class="field"><span class="field__label">One-line summary <span class="hint">(shows on your story card)</span></span><input v-model="commons.draftDescription" type="text" placeholder="A single sentence that draws people in" /><CharCount :value="commons.draftDescription" :max="LIMITS.description" /></label>
         <label class="field field--story">
           <span class="field__label">The story <span class="hint">(the heart of your post)</span></span>
           <textarea v-model="commons.draftStory" rows="8" placeholder="Who are you? What are you building, and why does it matter? Tell people the real story behind the work — the more honest and specific, the more they'll connect with it."></textarea>
+          <CharCount :value="commons.draftStory" :max="LIMITS.story" />
         </label>
         <label class="field"><span class="field__label">Attach files <span class="hint">(coming soon)</span></span>
           <button type="button" class="filebtn" @click="filesNote">📎 Add files</button>
@@ -36,10 +37,10 @@
     <section class="sec">
       <div class="sec__body">
         <h2>The facts behind it</h2>
-        <label class="field"><span class="field__label">The productive claim</span><textarea v-model="commons.draftProductiveClaim" rows="2" placeholder="What capacity will exist that does not now?"></textarea></label>
-        <label class="field"><span class="field__label">Inputs to be financed</span><textarea v-model="commons.draftInputs" rows="2" placeholder="What the support actually buys"></textarea></label>
-        <label class="field"><span class="field__label">Expected output</span><textarea v-model="commons.draftExpectedOutput" rows="2" placeholder="The concrete thing that should exist on success"></textarea></label>
-        <label class="field"><span class="field__label">Demand signal <span class="hint">(optional)</span></span><textarea v-model="commons.draftDemandSignal" rows="2" placeholder="Evidence the output is wanted"></textarea></label>
+        <label class="field"><span class="field__label">The productive claim</span><textarea v-model="commons.draftProductiveClaim" rows="2" placeholder="What capacity will exist that does not now?"></textarea><CharCount :value="commons.draftProductiveClaim" :max="LIMITS.productiveClaim" /></label>
+        <label class="field"><span class="field__label">Inputs to be financed</span><textarea v-model="commons.draftInputs" rows="2" placeholder="What the support actually buys"></textarea><CharCount :value="commons.draftInputs" :max="LIMITS.inputs" /></label>
+        <label class="field"><span class="field__label">Expected output</span><textarea v-model="commons.draftExpectedOutput" rows="2" placeholder="The concrete thing that should exist on success"></textarea><CharCount :value="commons.draftExpectedOutput" :max="LIMITS.expectedOutput" /></label>
+        <label class="field"><span class="field__label">Demand signal <span class="hint">(optional)</span></span><textarea v-model="commons.draftDemandSignal" rows="2" placeholder="Evidence the output is wanted"></textarea><CharCount :value="commons.draftDemandSignal" :max="LIMITS.demandSignal" /></label>
       </div>
     </section>
 
@@ -51,10 +52,12 @@
           <div v-for="(m, i) in commons.draftMilestones" :key="i" class="ms__row">
             <div class="ms__head"><span class="ms__tag">Chapter {{ i + 1 }}</span><button v-if="commons.draftMilestones.length > 1" type="button" class="ms__rm" @click="commons.removeMilestone(i)">Remove</button></div>
             <input v-model="m.description" type="text" placeholder="What gets delivered in this chapter?" />
-           <label class="ms__date"><span>XOR sought</span><input v-model="m.xorAmount" type="number" min="0" placeholder="0" /></label>
+            <CharCount :value="m.description" :max="LIMITS.chapterDesc" />
+            <div class="ms__grid"><label class="ms__date"><span>XOR sought</span><input v-model="m.xorAmount" type="number" min="0" placeholder="0" /></label><label class="ms__date"><span>Evidence due by</span><input v-model="m.timeline" type="date" :min="minDate(i)" /></label></div>
             <label class="ms__evlabel">Evidence you'll present</label>
             <textarea v-model="m.evidence" rows="2" placeholder="What proof will you show when this chapter is done? (e.g. receipts, photos, a working link)"></textarea>
-            </div>
+            <CharCount :value="m.evidence" :max="LIMITS.chapterEvidence" />
+          </div>
           <button type="button" class="ms__add" @click="commons.addMilestone()">+ Add chapter</button>
         </div>
         <div class="tally" :class="{ 'tally--bad': milestoneMismatch }">Chapters total: {{ milestoneSum }} XOR. Requested: {{ commons.draftXorRequested || 0 }} XOR<span v-if="milestoneMismatch"> (must match)</span></div>
@@ -64,14 +67,14 @@
     <section class="sec">
       <div class="sec__body">
         <h2>Risk and failure <span class="hint">(optional)</span></h2>
-        <label class="field"><span class="field__label">Who carries the risk?</span><input v-model="commons.draftRiskBearer" type="text" placeholder="Who is accountable if this fails?" /></label>
-        <label class="field"><span class="field__label">On honest failure?</span><textarea v-model="commons.draftFailureHandling" rows="2" placeholder="If attempted in good faith but it does not deliver, what then?"></textarea></label>
-        <label class="field"><span class="field__label">Public spillovers <span class="hint">(optional)</span></span><textarea v-model="commons.draftPublicBenefit" rows="2" placeholder="Who else gains? Lower fees, shared infrastructure..."></textarea></label>
+        <label class="field"><span class="field__label">Who carries the risk?</span><input v-model="commons.draftRiskBearer" type="text" placeholder="Who is accountable if this fails?" /><CharCount :value="commons.draftRiskBearer" :max="LIMITS.riskBearer" /></label>
+        <label class="field"><span class="field__label">On honest failure?</span><textarea v-model="commons.draftFailureHandling" rows="2" placeholder="If attempted in good faith but it does not deliver, what then?"></textarea><CharCount :value="commons.draftFailureHandling" :max="LIMITS.failureHandling" /></label>
+        <label class="field"><span class="field__label">Public spillovers <span class="hint">(optional)</span></span><textarea v-model="commons.draftPublicBenefit" rows="2" placeholder="Who else gains? Lower fees, shared infrastructure..."></textarea><CharCount :value="commons.draftPublicBenefit" :max="LIMITS.publicBenefit" /></label>
       </div>
     </section>
 
     <div class="bar">
-      <div class="bar__status"><span v-if="!ready" class="bar__todo">{{ todo }}</span><span v-else class="bar__ok">Ready to post your story.</span></div>
+      <div class="bar__status"><span v-if="overLimit" class="bar__over">Some fields are over the character limit — trim them to post.</span><span v-else-if="!ready" class="bar__todo">{{ todo }}</span><span v-else class="bar__ok">Ready to post your story.</span></div>
       <button class="bar__btn btn-gold" :disabled="!ready || posting" @click="onPost">{{ posting ? "Posting..." : "Post your story" }}</button>
     </div>
     <p v-if="message" class="result" :class="{ 'result--err': isError }">{{ message }}</p>
@@ -81,9 +84,25 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useCommonsStore } from "@/stores/commons";
+import CharCount from "../components/CharCount.vue";
 
 const emit = defineEmits<{ (e: "nav", id: string): void }>();
 const commons = useCommonsStore();
+
+const LIMITS = {
+  title: 120,
+  description: 160,
+  story: 5000,
+  productiveClaim: 400,
+  inputs: 400,
+  expectedOutput: 400,
+  demandSignal: 400,
+  riskBearer: 160,
+  failureHandling: 400,
+  publicBenefit: 400,
+  chapterDesc: 200,
+  chapterEvidence: 500,
+};
 
 const isConnected = computed(() => commons.isConnected);
 const posting = ref(false);
@@ -104,6 +123,23 @@ const datesOutOfOrder = computed(() => {
   }
   return false;
 });
+
+const overLimit = computed(() => {
+  const c = commons;
+  const len = (s: any) => String(s || "").length;
+  if (len(c.draftTitle) > LIMITS.title) return true;
+  if (len(c.draftDescription) > LIMITS.description) return true;
+  if (len(c.draftStory) > LIMITS.story) return true;
+  if (len(c.draftProductiveClaim) > LIMITS.productiveClaim) return true;
+  if (len(c.draftInputs) > LIMITS.inputs) return true;
+  if (len(c.draftExpectedOutput) > LIMITS.expectedOutput) return true;
+  if (len(c.draftDemandSignal) > LIMITS.demandSignal) return true;
+  if (len(c.draftRiskBearer) > LIMITS.riskBearer) return true;
+  if (len(c.draftFailureHandling) > LIMITS.failureHandling) return true;
+  if (len(c.draftPublicBenefit) > LIMITS.publicBenefit) return true;
+  return c.draftMilestones.some((m: any) => len(m.description) > LIMITS.chapterDesc || len(m.evidence) > LIMITS.chapterEvidence);
+});
+
 const ready = computed(() =>
   !!commons.draftTitle.trim() &&
   !!commons.draftDescription.trim() &&
@@ -113,7 +149,8 @@ const ready = computed(() =>
   commons.draftMilestones.length > 0 &&
   commons.draftMilestones.every((m: any) => m.description.trim() && Number(m.xorAmount) > 0 && m.timeline.trim()) &&
   !milestoneMismatch.value &&
-  !datesOutOfOrder.value
+  !datesOutOfOrder.value &&
+  !overLimit.value
 );
 
 const todo = computed(() => {
@@ -196,6 +233,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--gold-600); }
 .bar { position: sticky; bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 14px; background: rgba(11,18,32,.92); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 16px 20px; }
 .bar__todo { color: var(--ink-faint); font-size: .88rem; }
 .bar__ok { color: var(--affirm); font-size: .88rem; }
+.bar__over { color: var(--negate); font-size: .88rem; font-weight: 600; }
 .bar__btn { background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 12px 22px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 12px rgba(201,168,76,.22); transition: transform .15s var(--ease), box-shadow .15s var(--ease), filter .15s var(--ease); }
 .bar__btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(201,168,76,.34); filter: brightness(1.06); }
 .bar__btn:disabled { opacity: .45; cursor: not-allowed; }
