@@ -69,7 +69,7 @@
         <h2>Risk and failure <span class="hint">(optional)</span></h2>
         <label class="field"><span class="field__label">Who carries the risk?</span><input v-model="commons.draftRiskBearer" type="text" placeholder="Who is accountable if this fails?" /><CharCount :value="commons.draftRiskBearer" :max="LIMITS.riskBearer" /></label>
         <label class="field"><span class="field__label">On honest failure?</span><textarea v-model="commons.draftFailureHandling" rows="2" placeholder="If attempted in good faith but it does not deliver, what then?"></textarea><CharCount :value="commons.draftFailureHandling" :max="LIMITS.failureHandling" /></label>
-        <label class="field"><span class="field__label">Public spillovers <span class="hint">(optional)</span></span><textarea v-model="commons.draftPublicBenefit" rows="2" placeholder="Who else gains? Lower fees, shared infrastructure..."></textarea><CharCount :value="commons.draftPublicBenefit" :max="LIMITS.publicBenefit" /></label>
+        <label class="field"><span class="field__label">Public spillovers</span><textarea v-model="commons.draftPublicBenefit" rows="2" placeholder="Who else gains? Lower fees, shared infrastructure..."></textarea><CharCount :value="commons.draftPublicBenefit" :max="LIMITS.publicBenefit" /></label>
       </div>
     </section>
 
