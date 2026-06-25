@@ -25,7 +25,7 @@ export type Signal = {
 export type Milestone = {
   id: string;
   description: string;
-  xorAmount: string;
+  xorAmount?: string;
   timeline: string;
   evidence?: string;              // the PROMISE — "evidence you'll present" (set at creation)
   deliveredEvidence?: string;     // the ACTUAL evidence submitted at delivery (the claim)
@@ -71,7 +71,8 @@ export type CommonsProposal = {
   track?: "donations" | "desk";   // funding track; "desk" requires Desk signal (later)
   publicBenefit?: string;     // who else gains (S5, optional)
   xorRequested: string;
- milestones: Milestone[];
+  fundingMode?: "goal" | "open";   // "open" = no set goal, accept any donations
+  milestones: Milestone[];
   status: ProposalStatus;
   // Stage 2
   signals: Signal[];
@@ -155,10 +156,11 @@ export const useCommonsStore = defineStore("commons", () => {
   const draftRiskBearer = ref("");
   const draftFailureHandling = ref("");
   const draftPublicBenefit = ref("");
+  const draftFundingMode = ref<"goal" | "open">("goal");
   const draftXorRequested = ref("");
   const draftMilestones = ref<
     Omit<Milestone, "id" | "completed" | "completedAt" | "xorBurned">[]
-  >([{ description: "", xorAmount: "", timeline: "" }]);
+  >([{ description: "", timeline: "", evidence: "" }]);
 
   // Demo-only identity switcher (DEMO_MODE) — lets a solo dev test the non-owner experience.
   // Gated to DEMO_MODE; never ships. Real identity = wallet-connect + backend.
@@ -287,20 +289,22 @@ export const useCommonsStore = defineStore("commons", () => {
   const isDraftValid = computed(() => {
     if (!draftTitle.value.trim()) return false;
     if (!draftDescription.value.trim()) return false;
-    const xor = parseFloat(draftXorRequested.value);
-    if (isNaN(xor) || xor <= 0) return false;
+    if (!draftStory.value.trim()) return false;
+    if (!draftCategory.value) return false;
+    // Goal mode requires a positive total; open mode has no goal.
+    if (draftFundingMode.value === "goal") {
+      const xor = parseFloat(draftXorRequested.value);
+      if (isNaN(xor) || xor <= 0) return false;
+    }
     if (draftMilestones.value.length === 0) return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const milestonesValid = draftMilestones.value.every(
-      (m) => {
-        if (!m.description.trim() || parseFloat(m.xorAmount) <= 0 || !m.timeline.trim()) return false;
-        const date = new Date(m.timeline);
-        return !isNaN(date.getTime()) && date > today;
-      },
-    );
-    if (!milestonesValid) return false;
-    return Math.abs(parseFloat(milestoneTotal.value) - xor) < 0.0001;
+    const milestonesValid = draftMilestones.value.every((m) => {
+      if (!m.description.trim() || !m.timeline.trim() || !(m.evidence ?? "").trim()) return false;
+      const date = new Date(m.timeline);
+      return !isNaN(date.getTime()) && date > today;
+    });
+    return milestonesValid;
   });
   // ── Actions ────────────────────────────────────────────────────────────────
 
@@ -312,7 +316,7 @@ export const useCommonsStore = defineStore("commons", () => {
 
   const setActiveProposal = (id: string | null) => { activeProposalId.value = id; };
   const addMilestone = () => {
-    draftMilestones.value.push({ description: "", xorAmount: "", timeline: "" });
+    draftMilestones.value.push({ description: "", timeline: "", evidence: "" });
   };
   const removeMilestone = (index: number) => {
     if (draftMilestones.value.length > 1) draftMilestones.value.splice(index, 1);
@@ -330,7 +334,8 @@ export const useCommonsStore = defineStore("commons", () => {
     draftFailureHandling.value = "";
     draftPublicBenefit.value = "";
     draftXorRequested.value = "";
-    draftMilestones.value = [{ description: "", xorAmount: "", timeline: "", evidence: "" }];
+    draftFundingMode.value = "goal";
+    draftMilestones.value = [{ description: "", timeline: "", evidence: "" }];
   };
 
   // Stage 1 — Submit Proposal
@@ -355,11 +360,11 @@ export const useCommonsStore = defineStore("commons", () => {
       riskBearer: draftRiskBearer.value.trim() || undefined,
       failureHandling: draftFailureHandling.value.trim() || undefined,
       publicBenefit: draftPublicBenefit.value.trim() || undefined,
-      xorRequested: String(draftXorRequested.value).trim(),
+     xorRequested: draftFundingMode.value === "goal" ? String(draftXorRequested.value).trim() : "0",
+      fundingMode: draftFundingMode.value,
       milestones: draftMilestones.value.map((m, i) => ({
         id: `m-${i}-${Date.now()}`,
         description: String(m.description).trim(),
-        xorAmount: String(m.xorAmount).trim(),
         timeline: String(m.timeline).trim(),
         evidence: String(m.evidence ?? "").trim() || undefined,
         completed: false,
@@ -855,8 +860,8 @@ export const useCommonsStore = defineStore("commons", () => {
     draftXorRequested.value = proposal.xorRequested;
     draftMilestones.value = proposal.milestones.map((m) => ({
       description: m.description,
-      xorAmount: m.xorAmount,
       timeline: "",
+      evidence: m.evidence ?? "",
     }));
   };
 
@@ -865,7 +870,7 @@ export const useCommonsStore = defineStore("commons", () => {
   return {
     // State
     proposals, isLoading, error, activeProposalId,
-  draftTitle, draftDescription, draftStory, draftXorRequested, draftMilestones,
+  draftTitle, draftDescription, draftStory, draftXorRequested, draftFundingMode, draftMilestones,
     draftCategory, draftProductiveClaim, draftInputs, draftExpectedOutput,
     draftDemandSignal, draftRiskBearer, draftFailureHandling, draftPublicBenefit, scrollToComments, setScrollToComments,
 

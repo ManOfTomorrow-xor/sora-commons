@@ -65,7 +65,7 @@
             <button class="engbtn" :class="{ on: commons.isLiked(p.id) }" :disabled="isOwn(p)" @click.stop="commons.toggleLike(p.id)"><svg class="i-heart" viewBox="0 0 24 24" :fill="commons.isLiked(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5C12 20.5 3.5 15 3.5 8.8 3.5 6 5.7 4 8.2 4c1.7 0 3 .9 3.8 2.2C12.8 4.9 14.1 4 15.8 4c2.5 0 4.7 2 4.7 4.8C20.5 15 12 20.5 12 20.5z"/></svg>{{ p.likes || 0 }}</button>
             <button class="engbtn bolts" :class="{ on: commons.isBoosted(p.id) }" :disabled="isOwn(p)" @click.stop="commons.toggleBoost(p.id)"><svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>{{ p.boostCount || 0 }}</button>
             <button class="engbtn" @click.stop="openComments(p)"><svg class="i-cmt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>{{ (p.discussionPosts && p.discussionPosts.length) || 0 }}</button>
-            <span class="donated">{{ p.totalDonated || 0 }} / {{ p.xorRequested || 0 }} XOR raised</span>
+            <span class="donated"><template v-if="p.fundingMode === 'open'">{{ p.totalDonated || 0 }} XOR raised</template><template v-else>{{ p.totalDonated || 0 }} / {{ p.xorRequested || 0 }} XOR raised</template></span>
           </div>
         </article>
       </div>
@@ -218,6 +218,8 @@ function avStyle(id: string) {
 .cat--production { background: rgba(217,138,91,.12); color: #E0986A; border: 1px solid rgba(217,138,91,.4); }
 .cat--publicgood { background: rgba(100,220,170,.10); color: #8FE0C0; border: 1px solid rgba(100,220,170,.35); }.track--don { background: rgba(201,168,76,.12); color: var(--gold-300); border: 1px solid var(--gold-600); }
 .track--desk { background: rgba(126,155,224,.12); color: var(--info); border: 1px solid rgba(126,155,224,.4); }
+.fund--goal { background: rgba(201,168,76,.12); color: var(--gold-300); border: 1px solid var(--gold-600); }
+.fund--open { background: rgba(126,155,224,.10); color: var(--info); border: 1px solid rgba(126,155,224,.35); }
 
 .i-heart, .i-cmt, .i-bolt { width: 13px; height: 13px; vertical-align: -2px; margin-right: 4px; }
 .i-bolt { color: var(--gold-300); }

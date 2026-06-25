@@ -47,20 +47,29 @@
     <section class="sec">
       <div class="sec__body">
         <h2>The chapters</h2>
-        <label class="field field--narrow"><span class="field__label">Total XOR requested</span><input v-model="commons.draftXorRequested" type="number" min="0" placeholder="0" /></label>
+
+        <div class="field"><span class="field__label">Funding</span>
+          <div class="cats">
+            <button type="button" class="cat" :class="{ 'cat--on': commons.draftFundingMode === 'goal' }" @click="commons.draftFundingMode = 'goal'"><strong>Set a funding goal</strong><span>Ask for a specific total XOR amount.</span></button>
+            <button type="button" class="cat" :class="{ 'cat--on': commons.draftFundingMode === 'open' }" @click="commons.draftFundingMode = 'open'"><strong>Open to any donations</strong><span>No set goal — accept whatever supporters give.</span></button>
+          </div>
+        </div>
+
+        <label v-if="commons.draftFundingMode === 'goal'" class="field field--narrow"><span class="field__label">Total XOR requested</span><input v-model="commons.draftXorRequested" type="number" min="0" placeholder="0" /></label>
+        <p v-else class="openhint">Open to any donations — supporters give what they like, and no goal amount is shown. You can still lay out the chapters you'll deliver below.</p>
+
         <div class="ms">
           <div v-for="(m, i) in commons.draftMilestones" :key="i" class="ms__row">
             <div class="ms__head"><span class="ms__tag">Chapter {{ i + 1 }}</span><button v-if="commons.draftMilestones.length > 1" type="button" class="ms__rm" @click="commons.removeMilestone(i)">Remove</button></div>
             <input v-model="m.description" type="text" placeholder="What gets delivered in this chapter?" />
             <CharCount :value="m.description" :max="LIMITS.chapterDesc" />
-            <div class="ms__grid"><label class="ms__date"><span>XOR sought</span><input v-model="m.xorAmount" type="number" min="0" placeholder="0" /></label><label class="ms__date"><span>Evidence due by</span><input v-model="m.timeline" type="date" :min="minDate(i)" /></label></div>
+            <label class="ms__date"><span>Evidence due by</span><input v-model="m.timeline" type="date" :min="minDate(i)" /></label>
             <label class="ms__evlabel">Evidence you'll present</label>
             <textarea v-model="m.evidence" rows="2" placeholder="What proof will you show when this chapter is done? (e.g. receipts, photos, a working link)"></textarea>
             <CharCount :value="m.evidence" :max="LIMITS.chapterEvidence" />
           </div>
           <button type="button" class="ms__add" @click="commons.addMilestone()">+ Add chapter</button>
         </div>
-        <div class="tally" :class="{ 'tally--bad': milestoneMismatch }">Chapters total: {{ milestoneSum }} XOR. Requested: {{ commons.draftXorRequested || 0 }} XOR<span v-if="milestoneMismatch"> (must match)</span></div>
       </div>
     </section>
 
@@ -109,11 +118,6 @@ const posting = ref(false);
 const message = ref("");
 const isError = ref(false);
 
-const milestoneSum = computed(() => commons.draftMilestones.reduce((s: number, m: any) => s + Number(m.xorAmount || 0), 0));
-const milestoneMismatch = computed(() => {
-  const req = Number(commons.draftXorRequested || 0);
-  return req > 0 && milestoneSum.value > 0 && req !== milestoneSum.value;
-});
 const datesOutOfOrder = computed(() => {
   const ms = commons.draftMilestones;
   for (let i = 1; i < ms.length; i++) {
@@ -140,27 +144,26 @@ const overLimit = computed(() => {
   return c.draftMilestones.some((m: any) => len(m.description) > LIMITS.chapterDesc || len(m.evidence) > LIMITS.chapterEvidence);
 });
 
-const ready = computed(() =>
-  !!commons.draftTitle.trim() &&
-  !!commons.draftDescription.trim() &&
-  !!commons.draftStory.trim() &&
-  !!commons.draftCategory &&
-  Number(commons.draftXorRequested) > 0 &&
-  commons.draftMilestones.length > 0 &&
-  commons.draftMilestones.every((m: any) => m.description.trim() && Number(m.xorAmount) > 0 && m.timeline.trim()) &&
-  !milestoneMismatch.value &&
-  !datesOutOfOrder.value &&
-  !overLimit.value
-);
+const ready = computed(() => {
+  if (!commons.draftTitle.trim()) return false;
+  if (!commons.draftDescription.trim()) return false;
+  if (!commons.draftStory.trim()) return false;
+  if (!commons.draftCategory) return false;
+  if (commons.draftFundingMode === "goal" && !(Number(commons.draftXorRequested) > 0)) return false;
+  if (commons.draftMilestones.length === 0) return false;
+  if (!commons.draftMilestones.every((m: any) => m.description.trim() && m.timeline.trim() && (m.evidence || "").trim())) return false;
+  if (datesOutOfOrder.value) return false;
+  if (overLimit.value) return false;
+  return true;
+});
 
 const todo = computed(() => {
   if (!commons.draftTitle.trim()) return "Add a title";
   if (!commons.draftDescription.trim()) return "Add a one-line summary";
   if (!commons.draftStory.trim()) return "Tell your story";
   if (!commons.draftCategory) return "Pick a category";
-  if (!(Number(commons.draftXorRequested) > 0)) return "Set the XOR requested";
-  if (!commons.draftMilestones.every((m: any) => m.description.trim() && Number(m.xorAmount) > 0 && m.timeline.trim())) return "Complete each chapter";
-  if (milestoneMismatch.value) return "Chapter amounts must equal the total";
+  if (commons.draftFundingMode === "goal" && !(Number(commons.draftXorRequested) > 0)) return "Set the total XOR requested";
+  if (!commons.draftMilestones.every((m: any) => m.description.trim() && m.timeline.trim() && (m.evidence || "").trim())) return "Each chapter needs a description, a due date, and the evidence you'll present";
   if (datesOutOfOrder.value) return "Each chapter's date must be on or after the previous chapter's";
   return "Complete the required fields";
 });
@@ -208,6 +211,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--gold-600); }
 .field--story textarea { font-size: 1rem; line-height: 1.6; }
 .filebtn { background: var(--navy-900); border: 1px dashed var(--line); border-radius: var(--r-sm); color: var(--ink-dim); padding: 10px 14px; cursor: pointer; }
 .filebtn:hover { border-color: var(--gold-600); color: var(--gold-300); }
+.openhint { color: var(--ink-dim); font-size: .85rem; line-height: 1.55; background: var(--navy-900); border: 1px solid var(--line-soft); border-radius: var(--r-sm); padding: 12px 14px; margin: 0 0 14px; }
 .cats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .cat { text-align: left; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px; }
 .cat strong { color: var(--ink); font-size: .95rem; }
@@ -220,16 +224,13 @@ input:focus, textarea:focus { outline: none; border-color: var(--gold-600); }
 .ms__head { display: flex; justify-content: space-between; align-items: center; }
 .ms__tag { font-family: var(--mono); font-size: .74rem; color: var(--gold-300); }
 .ms__rm { background: none; border: none; color: var(--negate); font-size: .8rem; cursor: pointer; width: auto; }
-.ms__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: start; }
 .ms__add { background: none; border: 1px dashed var(--line); border-radius: var(--r-sm); color: var(--gold-300); padding: 10px; cursor: pointer; width: 100%; }
-.ms__date { display: flex; flex-direction: column; gap: 4px; }
+.ms__date { display: flex; flex-direction: column; gap: 4px; max-width: 240px; }
 .ms__date span { font-size: .7rem; color: var(--ink-faint); }
 .ms__date input { width: 100%; }
 .ms__date input::-webkit-calendar-picker-indicator { filter: invert(1) sepia(1) saturate(3) hue-rotate(5deg); opacity: .7; cursor: pointer; }
 .ms__date input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 .ms__evlabel { font-size: .7rem; color: var(--ink-faint); }
-.tally { font-family: var(--mono); font-size: .82rem; color: var(--ink-dim); margin-top: 12px; }
-.tally--bad { color: var(--negate); }
 .bar { position: sticky; bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 14px; background: rgba(11,18,32,.92); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 16px 20px; }
 .bar__todo { color: var(--ink-faint); font-size: .88rem; }
 .bar__ok { color: var(--affirm); font-size: .88rem; }
@@ -239,5 +240,5 @@ input:focus, textarea:focus { outline: none; border-color: var(--gold-600); }
 .bar__btn:disabled { opacity: .45; cursor: not-allowed; }
 .result { padding: 12px 16px; border-radius: var(--r); background: rgba(100,220,170,.1); color: var(--affirm); margin: 0; }
 .result--err { background: rgba(255,100,100,.1); color: var(--negate); }
-@media (max-width: 720px) { .cats { grid-template-columns: 1fr; } .ms__grid { grid-template-columns: 1fr; } }
+@media (max-width: 720px) { .cats { grid-template-columns: 1fr; } }
 </style>

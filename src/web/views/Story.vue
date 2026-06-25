@@ -5,6 +5,7 @@
     <!-- HERO (full width) -->
     <div class="sd__badges">
       <span v-if="p.category" class="badge" :class="catBadgeClass(p.category)">{{ catLabel(p.category) }}</span>
+      <span class="badge" :class="trackClass">{{ trackLabel }}</span>
     </div>
     <h1 class="sd__title">{{ p.title }}</h1>
     <div class="sd__who" @click="goProfile">
@@ -14,7 +15,6 @@
         <span class="sd__chap">{{ chapterText }}</span>
       </div>
     </div>
-    <div class="trackline"><span class="track" :class="trackClass">{{ trackLabel }}</span></div>
     <p v-if="p.description" class="sd__summary">{{ p.description }}</p>
 
     <!-- TWO COLUMN -->
@@ -65,7 +65,7 @@
             </div>
             <div class="ch__b">
               <h4>{{ m.description }}</h4>
-              <div class="ch__meta"><span class="ch__seek">Seeking {{ m.xorAmount }} XOR</span> · due {{ m.timeline || "—" }}</div>
+              <div class="ch__meta">due {{ m.timeline || "—" }}</div>
               <div v-if="m.evidence" class="ch__ev"><span class="ch__evlab">Evidence to present:</span> {{ m.evidence }}</div>
               <div v-if="m.completed && m.deliveredEvidence" class="ch__ev ch__ev--delivered">
                 <span class="ch__evlab">Evidence presented:</span> {{ m.deliveredEvidence }}
@@ -127,6 +127,7 @@
           </WhyExpander>
 
           <div class="support__totals">
+            <div><b>{{ p.fundingMode === 'open' ? '—' : (p.xorRequested || 0) }}</b><span>{{ p.fundingMode === 'open' ? 'Open to donations' : 'XOR goal' }}</span></div>
             <div><b>{{ p.totalDonated || 0 }}</b><span>XOR raised</span></div>
             <div><b>{{ p.xorBurned || 0 }}</b><span>XOR burned</span></div>
             <div><b>{{ p.backers || 0 }}</b><span>backers</span></div>
@@ -315,9 +316,9 @@ onMounted(() => {
 .mobile-donate { display: none; }
 }
 .back { color: var(--gold-300); font-size: .86rem; margin-bottom: 16px; display: inline-block; cursor: pointer; }
-.sd__badges { margin-bottom: 10px; }
+.sd__badges { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
 .badge { display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-family: var(--mono); padding: 4px 10px; border-radius: 999px; }
-.cat--production { background: rgba(168,132,47,.12); color: #D9B871; border: 1px solid rgba(168,132,47,.4); }
+.cat--production { background: rgba(217,138,91,.12); color: #E0986A; border: 1px solid rgba(217,138,91,.4); }
 .cat--publicgood { background: rgba(100,220,170,.10); color: #8FE0C0; border: 1px solid rgba(100,220,170,.35); }
 .sd__whoinfo { display: flex; flex-direction: column; gap: 2px; }
 .sd__name { display: inline-flex; align-items: center; gap: 8px; }
@@ -375,7 +376,6 @@ onMounted(() => {
 .ch__deliver textarea { width: 100%; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 9px 11px; color: var(--ink); font-family: inherit; font-size: .88rem; resize: vertical; }
 .ch__deliver textarea:focus { outline: none; border-color: var(--gold-600); }
 .ch__deliverbtn { align-self: flex-start; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 8px 14px; font-weight: 700; font-size: .84rem; cursor: pointer; box-shadow: 0 3px 12px rgba(201,168,76,.22); transition: transform .15s var(--ease), box-shadow .15s var(--ease), filter .15s var(--ease); }
-.ch__seek { color: var(--gold-300); font-weight: 600; }
 .ch__deliverbtn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(201,168,76,.34); filter: brightness(1.06); }
 .st-done { background: rgba(100,220,170,.14); color: var(--affirm); }
 .st-now { background: rgba(201,168,76,.14); color: var(--gold-300); }
