@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <!-- TOP BAR -->
-    <header class="topbar">
+    <header class="topbar" :class="{ 'nav-hidden': navHidden }">
       <div class="topbar__inner">
         <a class="brand" @click="go('feed')">
           <img class="brand__seal" :src="sealUrl" alt="SORA Commons seal" />
@@ -39,8 +39,8 @@
     </main>
 
     <!-- MOBILE BOTTOM TAB BAR -->
-    <nav class="tabbar">
-      <a v-for="t in mobileTabs" :key="t.id" class="tab" :class="{ active: active === t.id, 'tab-fab': t.id === 'post' }" @click="go(t.id)">
+    <nav class="tabbar" :class="{ 'nav-hidden': navHidden }">
+      <a v-for="t in mobileTabs" :key="t.id" class="tab" :class="{ active: active === t.id, 'tab-fab': t.id === 'post' }" @click="tabTap(t.id)">
         <span v-if="t.id === 'post'" class="fabc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
         <span v-else class="tab__ic" v-html="t.icon"></span>
         <span class="tab__lbl">{{ t.label }}</span>
@@ -53,7 +53,7 @@
 import Story from "./views/Story.vue";
 import Explore from "./views/Explore.vue";
 import Feed from "./views/Feed.vue";
-import { ref, computed, nextTick } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import { COMMONS_CONFIG } from "@/constants/commonsConfig";
 const commons = useCommonsStore();
@@ -67,17 +67,22 @@ import Compose from "./views/Compose.vue";
 import Profile from "./views/Profile.vue";
 
 const active = ref("feed");
-const go = (id: string) => {
-  const [view, anchor] = id.split("#");
-  active.value = view;
-  if (anchor) {
-    nextTick(() => requestAnimationFrame(() => {
-      document.getElementById(anchor)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }));
-  } else {
-    window.scrollTo(0, 0);
-  }
-};
+const navHidden = ref(false);
+let lastY = 0;
+const go = (id: string) => { active.value = id; window.scrollTo(0, 0); navHidden.value = false; lastY = 0; };
+function onScroll() {
+  const y = window.scrollY || 0;
+  if (y < 12) { navHidden.value = false; lastY = y; return; }
+  if (Math.abs(y - lastY) < 6) return;
+  navHidden.value = y > lastY;
+  lastY = y;
+}
+function tabTap(id: string) {
+  if (navHidden.value) { navHidden.value = false; lastY = window.scrollY || 0; return; }
+  go(id);
+}
+onMounted(() => window.addEventListener("scroll", onScroll, { passive: true }));
+onUnmounted(() => window.removeEventListener("scroll", onScroll));
 const myId = computed(() => commons.currentAccountId);
 function goMyProfile() { commons.setViewingProfile(null); go("profile"); }
 const demoMode = COMMONS_CONFIG.DEMO_MODE;
@@ -157,11 +162,19 @@ const mobileTabs = [
     padding: 8px 6px;
     box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.3);
   }
+  .topbar { transition: transform .28s var(--ease); }
+  .tabbar { transition: transform .28s var(--ease); }
+  .topbar.nav-hidden { transform: translateY(-100%); }
+  .tabbar.nav-hidden { transform: translateY(calc(100% + 16px + env(safe-area-inset-bottom, 0px))); }
   .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ink-faint); font-size: .62rem; font-weight: 600; min-height: 48px; justify-content: flex-end; cursor: pointer; }
   .tab.active { color: var(--gold-300); }
   .tab__ic :deep(svg) { width: 23px; height: 23px; }
   .tab-fab .fabc { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); display: grid; place-items: center; color: #22180a; box-shadow: 0 6px 18px rgba(201,168,76,.45); border: 3px solid var(--navy-900); margin-top: -22px; }
   .tab-fab .fabc svg { width: 25px; height: 25px; }
   .tab-fab .tab__lbl { color: var(--gold-300); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .topbar, .tabbar { transition: none !important; }
+  .topbar.nav-hidden, .tabbar.nav-hidden { transform: none !important; }
 }
 </style>
