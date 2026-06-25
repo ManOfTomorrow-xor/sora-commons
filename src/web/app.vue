@@ -142,20 +142,25 @@ const mobileTabs = [
 .page-title { font-family: var(--display); font-size: 2rem; margin: 0 0 8px; }
 .muted { color: var(--ink-dim); }
 
-/* mobile bottom tab bar */
+/* mobile bottom tab bar — floating island */
 .tabbar { display: none; }
 @media (max-width: 720px) {
   .nav { display: none; }
+  .wrap { padding-bottom: 104px; }
   .tabbar {
-    display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    display: flex; position: fixed; z-index: 60;
+    left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     align-items: flex-end; justify-content: space-around;
-    background: rgba(11,18,32,.94); backdrop-filter: blur(16px); border-top: 1px solid var(--line);
-    padding: 7px 4px calc(7px + env(safe-area-inset-bottom, 0px));
+    background: rgba(17,25,40,.92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 8px 6px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.3);
   }
   .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ink-faint); font-size: .62rem; font-weight: 600; min-height: 48px; justify-content: flex-end; cursor: pointer; }
   .tab.active { color: var(--gold-300); }
   .tab__ic :deep(svg) { width: 23px; height: 23px; }
-  .tab-fab .fabc { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); display: grid; place-items: center; color: #22180a; box-shadow: 0 8px 22px rgba(201,168,76,.45); border: 3px solid var(--navy-900); margin-top: -20px; }
+  .tab-fab .fabc { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); display: grid; place-items: center; color: #22180a; box-shadow: 0 6px 18px rgba(201,168,76,.45); border: 3px solid var(--navy-900); margin-top: -22px; }
   .tab-fab .fabc svg { width: 25px; height: 25px; }
   .tab-fab .tab__lbl { color: var(--gold-300); }
 }
