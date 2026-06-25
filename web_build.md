@@ -6,11 +6,15 @@ Browser web-app inside this repo (src/web/), reusing the proven Iroha browser br
 cd /mnt/c/Users/ntorr/iroha-demo-javascript
 npx vite --config vite.config.ts      # http://localhost:5174
 # after config changes: rm -rf node_modules/.vite, then hard-reload (Ctrl+Shift+R)
+# "changed it but nothing happened" = stale Vite build -> rm -rf node_modules/.vite + Ctrl+Shift+R.
 # Paste big files directly into VS Code, NOT terminal heredoc (heredoc corrupts files).
+# Full-file replacement (select-all, delete, paste) is SAFER than scattered micro-edits — most paste
+#   failures this session were half-applied multi-edits. Verify after: grep -c "{" vs "}".
 # One small step at a time. Commit at each checkpoint.
 
-# >>> STATUS: ENTIRE FRONTEND DONE (steps 1-7). Next: optional Donate "Why 1%?" expander -> MOBILE
-#     polish pass -> SHARED BACKEND (Phase-1 scope incl. challenge window) -> CHAIN -> end-stage polish.
+# >>> STATUS: ENTIRE FRONTEND DONE (steps 1-7) + post-frontend UX pass DONE (contextual expanders,
+#     char limits, See-more clamps, funding modes, story-display fixes). Next: MOBILE polish pass ->
+#     SHARED BACKEND (Phase-1 scope incl. challenge window) -> CHAIN (money, Taira first) -> end-stage polish.
 
 # ============================================================
 # PHILOSOPHY / GUIDING PRINCIPLES (read FIRST — the "why" behind every decision)
@@ -36,7 +40,9 @@ npx vite --config vite.config.ts      # http://localhost:5174
 4. WARMTH IN SERVICE OF REAL WORK — NOT ENGAGEMENT-MAXIMIZING. TAKE the good social parts (following,
    comments, real momentum, profiles). LEAVE the manipulative ones (engagement algorithms, dopamine
    loops, infinite scroll, vanity metrics). Every social feature must serve the work, not addiction.
-   (E.g. Feed uses "Load more," not infinite scroll, on purpose.)
+   (E.g. Feed uses "Load more," not infinite scroll, on purpose.) NOTE: contextual "Why?" expanders
+   serve the work (they explain a mechanism at the decision point); they must NOT become nag-prompts.
+   Each one has to earn its place at a real moment of doubt — collapsed by default, never auto-opened.
 
 5. THE RECORD IS THE PRODUCT. Commons is a permanent, public, followable record of real work — a story
    you follow start to finish. Trust comes from TRANSPARENCY + CADENCE (real updates over time), not
@@ -73,8 +79,10 @@ npx vite --config vite.config.ts      # http://localhost:5174
 # WORKING STYLE (process): ONE small step at a time. Paste big files into VS Code (not heredoc). Commit
 # each checkpoint. Claude's sandbox CANNOT reach Nick's machine — Nick runs all commands + pastes code
 # himself (he PREFERS this; learns the codebase). Watch for paste artifacts (dup lines, extra/missing
-# braces, stray chars, wrong import path commons vs commonsConfig, editing a stale Downloads copy).
-# Brace-debug: grep -c "{" vs "}", then awk running-balance to find the line.
+# braces, stray chars like maxlength=:"400", wrong import path commons vs commonsConfig, editing a stale
+# Downloads copy, a <template> tag appearing mid-script = file pasted INTO old file instead of replacing).
+# Brace-debug: grep -c "{" vs "}", then awk running-balance to find the line. NOTE: Vite/esbuild does NOT
+# type-check — TS errors in the Problems panel don't block the dev server; they're editor hints to clean.
 
 # ============================================================
 # PHASE 1 vs PHASE 2 — SHARPENED (DECIDED)
@@ -92,7 +100,9 @@ PHASE 1 (day-1; ALL built + Taira-tested + publicly reviewed before any real XOR
 - Boosts (free but scarce: per-user allotment + replenishment)
 
 PHASE 2 (later — only after ~1yr proven operation + audit capacity + legal footing):
-- ESCROW (Raising + milestone) — a COMMONS direction; heavy custody/regulatory weight.
+- ESCROW (Raising + milestone) — a COMMONS direction; heavy custody/regulatory weight. NOTE: per-chapter
+  XOR amounts (retired from the tip model this session) RETURN here — escrow is the only context where a
+  per-milestone amount means anything (money released per tranche).
 - TREASURY DESK — a SORA NEXUS initiative (NOT Commons-built); Commons routes large proposals to it.
 - FORMAL ADJUDICATION — only matters once funds are HELD (escrow); Commons looks to SORA ecosystem,
   never issues its own verdict. At the donation layer (money already delivered) it doesn't apply.
@@ -133,7 +143,8 @@ can't be bought); watch how it evolves; NO promise it ever enters Commons.
 #     crypto re-fused governance+token-ownership, TVL+value, attention+legitimacy. Keep functions
 #     SEPARATE: underwriters allocate, auditors test, producers deliver, citizens govern, models
 #     assist, protocol remembers. No single actor collapses the loop into themselves. (Commons echo:
-#     self-support guard — a proposer can't judge or inflate their own work.)
+#     self-support guard — a proposer can't judge or inflate their own work. ALSO: funding-goal vs
+#     open-donations kept as two CLEAN modes, never blended — mixing them rebuilds the goal piecemeal.)
 #   - INVARIANT vs PARAMETER: invariants define identity and never bend (no unauthorized issuance, no
 #     hidden mutation, no model silently becoming law, no governance change without process).
 #     Parameters are steering surfaces that adapt through a DEFINED process. "Trust does not require
@@ -185,11 +196,66 @@ reads from.
 - BOOST: free but scarce, ranks by COUNT, not purchasable. LIKE: free heart.
 
 # ============================================================
-# BOOST MODEL (free but scarce)
+# FUNDING MODES (DECIDED this session) — one ask per proposal, never per-chapter
 # ============================================================
-- Limited per-user allotment (~3-5/week) that replenishes. One boost per proposal. Scarcity = signal;
-  free+equal = isonomia. In-memory now = simple toggle; real allotment = backend.
+WHY: per-chapter XOR amounts only mean something under ESCROW (money released per tranche). In a direct-
+tip model the donation goes straight to the proposer; it isn't allocated across chapters. Attaching
+amounts per chapter implied a structure that doesn't exist -> RETIRED until Phase 2 escrow.
+
+- GOAL mode: proposer asks for a single "Total XOR requested." Card shows "X / Y XOR raised"; Story rail
+  shows the goal as a stat ("XOR goal").
+- OPEN mode ("Open to any donations"): no goal, accept whatever supporters give — the most honest, lowest-
+  stakes option (no fake target to invent, none to miss). Card shows "X XOR raised"; Story rail stat reads
+  "— / Open to donations". xorRequested stored as "0" in this mode.
+- CHAPTERS are IDENTICAL in both modes: description + due date + evidence-you'll-present. NO amount.
+  Both modes still REQUIRE >=1 chapter with description + due date + evidence (the deliver-then-prove loop
+  is the trust core; only the budget is removed in open mode).
+- Two CLEAN modes — never blended (no "open but with amounts on chapters"); that would rebuild the goal
+  piecemeal (don't-complect).
+- Card carries the funding signal via the RAISED LINE only (no extra badge — was redundant with the
+  "Seeking donations" track pill + the raised line; dropped).
+- Store: CommonsProposal.fundingMode?: "goal"|"open"; Milestone.xorAmount now OPTIONAL (dormant escrow
+  code still references it). draftFundingMode ref (default "goal"). isDraftValid is mode-aware + requires
+  evidence + NO milestone-sum-match. submitProposal stamps fundingMode + xorRequested "0" when open.
+
+# ============================================================
+# BOOST MODEL (free but scarce) — SPEC SHARPENED this session
+# ============================================================
+- 3 boosts per person, FRESH EACH WEEK, NO ROLLOVER (unused expire; you never hold more than 3).
+  (Supersedes the old "~3-5/week" note.) One boost per proposal. Scarcity = signal; free+equal = isonomia.
+- Weekly cycle anchored to EACH PERSON'S JOIN DATE (not a global reset) -> backend MUST store joinedAt
+  per account. Mechanic: weekIndex = floor((now - joinedAt)/7d); each new weekIndex resets to 3; track
+  spent-this-week; never carry leftovers.
+- In-memory now = simple one-boost-per-proposal toggle (cap NOT enforced yet); real allotment = backend.
+- About copy + rail "Why boost?" expander state "three a week."
 - DECLINED: buy-boost-packages (breaks isonomia) + conviction-burn (cannibalizes donations).
+
+# ============================================================
+# CONTEXTUAL "WHY?" EXPANDERS (DONE — shared component) — "warmth in service of work" #4
+# ============================================================
+- WhyExpander.vue (src/web/components/): collapsed-by-default toggle + concise copy slot + deep-link that
+  closes any modal and navigates to an About anchor. Props: label, anchor, linkText. Emits "navigate"
+  (parent forwards to App nav). App.go(id) now parses an optional "#anchor" suffix (e.g. "about#burn") and
+  scrolls to it via nextTick+rAF; plain ids unchanged (backward-compatible).
+- DONE: Donate modal "Why 1%?" -> About #burn (fee-vs-burn honesty copy). Story rail "Why boost?" ->
+  About #boost (3/week scarcity copy).
+- NEXT candidates (only at REAL doubt points): challenge window / "Confirmed" -> #challenge (gated on
+  backend; honest interim = a short inline note, not a live expander). Treasury Desk badge (only once Desk
+  exists; must point outward as "coming"). SKIP: proposer labels (tooltip is enough, everyone=Newcomer),
+  self-support guard (existing title tooltip), like (it's a heart).
+
+# ============================================================
+# CHAR LIMITS + COUNTERS (DONE — shared component) — honesty #1
+# ============================================================
+- CharCount.vue (src/web/components/): live "N / max" under a field; turns red + " · over the limit" when
+  over. Compose validation blocks Post while any field is over; status bar warns "Some fields are over the
+  character limit — trim them to post."
+- SOFT caps (not hard maxlength) on the long fields ON PURPOSE: a hard maxlength can never "exceed," so no
+  warning could fire — the chosen behavior is type-past-then-warn-and-block.
+- LIMITS: title 120 · summary 160 · STORY 5000 · each fact 400 · risk-bearer 160 · failure 400 ·
+  public-benefit 400 · chapter description 200 · evidence-you'll-present 500.
+- Structured fields stay short by design (a counter, not an essay). The STORY field is the one long-form
+  surface (5000).
 
 # ============================================================
 # SOCIAL LAYER ("warmth in service of real work")
@@ -214,21 +280,40 @@ REMOVED from nav (see FUTURE note).
 Sort chips. STORY CARD: avatar+shortId+proposer label + color category badge (terracotta Production /
 teal Public-good) + bookmark; title + summary; track badge; progress bar; engagement row — INTERACTIVE
 like/boost (lit + count, hover-pill web / always-pill mobile, self-support GUARDED) + comment (opens
-story scrolled to conversation) + donated. Top Boosted (⚡) + "Commons today" stats in STICKY right rail.
+story scrolled to conversation) + RAISED LINE. Top Boosted (⚡) + "Commons today" stats in STICKY right rail.
+- RAISED LINE is funding-aware: GOAL -> "X / Y XOR raised"; OPEN -> "X XOR raised". This single line carries
+  the goal-vs-open signal (no separate funding badge — dropped as redundant).
 
 ## STORY (DONE)
-Hero + two columns: MAIN (story, FACTS grid, ACCOUNTABILITY [hides empty], CHAPTERS w/ evidence submit +
-dashed ATTACH-FILE placeholder, CONVERSATION) + STICKY SUPPORT RAIL (Donate primary, like/boost/save,
-+Follow, totals). All support actions GUARDED (disabled on own proposal; Save enabled). DONATE MODAL here.
+Hero + two columns: MAIN (one-line SUMMARY at top + "The story" [full p.story, See-more clamp], FACTS grid
+[See-more clamp], ACCOUNTABILITY [hides empty], CHAPTERS w/ evidence submit + dashed ATTACH-FILE placeholder,
+CONVERSATION) + STICKY SUPPORT RAIL (Donate primary, like/boost/save, +Follow, "Why boost?" expander, totals).
+All support actions GUARDED (disabled on own proposal; Save enabled). DONATE MODAL here.
+- DISPLAY FIX: "The story" now renders p.story (full narrative); the one-line summary shows separately at top
+  (was a bug — story section had been showing the summary).
+- Clampable.vue (src/web/components/): collapses text to ~5 lines, "See more"/"See less" toggle, only shown
+  when the text actually overflows (measured on mount). Applied to story + each fact box.
+- BADGES grouped on one row under the title: category + track ("Seeking donations"), color-matched to Feed
+  card (Production terracotta #E0986A). Old standalone trackline removed.
+- CHAPTERS show "due {date}" only (no per-chapter amount). Funding ask lives ONCE in the rail totals as a
+  stat: GOAL -> "{xorRequested} / XOR goal"; OPEN -> "— / Open to donations".
+- RAIL TOTALS grid: goal · raised · burned · backers · followers (funding ask folded in as the first stat,
+  not a floating line).
 
 ## COMPOSE (DONE)
 Story-first: title, summary, THE STORY (gold border), file attach (placeholder), category, track
-(donations active / Desk disabled), facts, chapters (desc / XOR amount [labeled,aligned] / "Evidence
-due by" date w/ sequential validation / "Evidence you'll present"), risk + public benefit.
+(donations active / Desk disabled), facts, FUNDING toggle (goal vs open), [goal: Total XOR requested],
+chapters (desc / "Evidence due by" date w/ sequential validation / "Evidence you'll present"), risk + public
+benefit. Every text field has a live CharCount; Post blocks on over-limit or missing required field.
+- Chapters have NO per-chapter XOR field (retired — see FUNDING MODES). Evidence is now REQUIRED per chapter.
+- Removed: per-chapter amount, the chapters-sum tally/mismatch, redundant "(optional)" on Public spillovers.
 
 ## PROFILE (DONE)
 PUBLIC: avatar/bio/label/reputation/posted proposals/track record. OWN: profile pic (placeholder),
 totals DONATED/BOOSTED/BURNED, SAVED (works), My Drafts (backend). Tap proposer OR top-right avatar.
+- NOTE: proposer LABEL is per-ACCOUNT (the person's track record), so it shows on ALL their stories —
+  correct (one delivery -> "Proven" everywhere their name appears). Per-PROPOSAL state lives on the chapters
+  (In progress / Delivered / Confirmed), separate from the account label.
 
 ## EXPLORE (DONE)
 Search + category/track chips + status toggle (Active/Delivered/All) + sort. Reuses Feed card. Icons
@@ -242,16 +327,17 @@ empty state. Why-burn explainer. Dropped dead proposal-fee + milestone-burn stat
 ## ABOUT (DONE — reframed)
 Hero (followable-record identity) + "What this is" + HOW IT WORKS (deep-link ids #burn #follow
 #challenge #boost, Phase-1 present-tense; challenge-window says no-verdicts BECAUSE donation already
-reached builder) + WHAT'S COMING (#desk: Desk = SORA Nexus initiative; escrow = maybe-Commons-later;
-adjudication = ecosystem, only matters w/ escrow) + collapsible "thinking behind it" (3Gi,
-reputation-can't-harden, separation-of-powers [cites self-support guard], SORTITION as ecosystem-watch/
-no-promise, verify-the-loop) + honest phase note. .mech sections have scroll-margin-top for deep-links.
+reached builder; #boost says "three a week") + WHAT'S COMING (#desk: Desk = SORA Nexus initiative; escrow
+= maybe-Commons-later; adjudication = ecosystem, only matters w/ escrow) + collapsible "thinking behind it"
+(3Gi, reputation-can't-harden, separation-of-powers [cites self-support guard], SORTITION as ecosystem-
+watch/no-promise, verify-the-loop) + honest phase note. .mech sections have scroll-margin-top for deep-links
+(WhyExpander links land here via App.go("about#anchor")).
 
 # ============================================================
 # IDENTITY / REPUTATION / ANTI-FRAUD (DECIDED)
 # ============================================================
 - PROPOSER LABELS: Newcomer/Proven/Veteran/Treasury Desk/Flagged. Today everyone=Newcomer (correct).
-  Later weight completion RATE / time active / clean disputes, not raw count.
+  Later weight completion RATE / time active / clean disputes, not raw count. Label is per-ACCOUNT.
 - REPUTATION: delivery-weighted; gates visibility/trust ONLY, NEVER weights a vote/draw.
 - SELF-SUPPORT GUARD (DONE): proposer can't like/boost/follow/donate own proposal — buttons VISIBLE but
   DISABLED (owner sees counts; can't self-inflate). Save enabled. Frontend disable + store guard on
@@ -280,10 +366,12 @@ no-promise, verify-the-loop) + honest phase note. .mech sections have scroll-mar
 # ============================================================
 # STRATEGY (DECIDED)
 # ============================================================
-- LAUNCH: SORA MAINNET, clearly-labeled EARLY BUILD, LOW stakes. Phase-1 set built+tested first. NO DEADLINE.
+- LAUNCH: SORA MAINNET (Minamoto), clearly-labeled EARLY BUILD, LOW stakes. Phase-1 set built+tested first.
+  NO DEADLINE. Rehearse everything on Taira until "failures are boring," then move the SAME proven ops to
+  Minamoto with SEPARATE keys.
 - INCENTIVES: NO airdrop-for-usage. Funnel to ecosystem funding + founding badges + white-glove + seed stories.
 - REPO: iroha-demo-javascript/testing. Public `sora-commons` repo EMPTY until runnable.
-- FONT: self-host official Sora (woff2 + OFL.txt) in real app. Demo used Google Fonts.
+- FONT: self-host official SORA typeface in real app. Demo used Google Fonts. (Details in FONT PASS.)
 - REGULATORY: Nick checks jurisdiction before real donations (Claude not a lawyer — flagged).
 - AUDITING: mostly self-audit; capacity = CEILING on money touched. Escrow/Desk MUST NOT ship until real
   capacity. Substitutes: open-source money code, exhaustive Taira testing, tiny/isolated/simple code.
@@ -291,10 +379,13 @@ no-promise, verify-the-loop) + honest phase note. .mech sections have scroll-mar
 # ============================================================
 # MONEY CODE — DISCIPLINE (non-negotiable)
 # ============================================================
-- INTEGER/BigInt only; base units at exact precision (CONFIRM from chain, don't assume 18); decimal for display.
+- INTEGER/BigInt only; base units at exact precision (CONFIRM from chain, don't assume 18 — STILL OPEN,
+  Iroha docs don't state XOR precision); decimal for display.
 - 1% split in base units; burn + proposer sum EXACTLY to input.
 - Validate (positive, >0, within balance, within precision, reject malformed/overflow). Explicit confirm.
 - TEST ON TAIRA FIRST (edge amounts, failures, double-submit). Read back on-chain.
+- Read-only Taira MCP bridge (taira.sora.org/v1/mcp) = useful inspection surface during money-code testing
+  (read-first, explicit human approval before any write) — fits public-review discipline.
 
 ## DONATE MODAL (DONE — in-memory preview)
 - Quick-picks (10/50/100/500) + manual decimal + live 1% split + confirm. Spinner-arrows removed,
@@ -302,18 +393,16 @@ no-promise, verify-the-loop) + honest phase note. .mech sections have scroll-mar
 - donate(): 99/1 split updates totalDonated/xorBurned; UNIQUE-backer keyed account::proposal;
   self-donation guarded. "Preview only" note. WARNING: simple decimal math = PREVIEW ONLY; real path =
   MONEY-CODE DISCIPLINE.
-- TODO (smart UX, incremental): inline "Why 1%?" expander in modal -> concise text + optional deep-link
-  to About #burn. Then similar contextual expanders (boost scarcity #boost, challenge #challenge, Desk,
-  labels) at each decision point. Donate one first.
+- "Why 1%?" expander DONE (WhyExpander -> About #burn).
 
 # ============================================================
 # ARCHITECTURE — FRONTEND / BACKEND / CHAIN
 # ============================================================
 - FRONTEND (DONE, against in-memory store): the Vue app.
 - SHARED BACKEND (next-major; PHASE-1 SCOPE): DB for ALL social data — stories, milestones, comments,
-  likes, boosts (+allotment), follows, saved, donations, DRAFTS, cadence, CHALLENGE WINDOWS + flags +
-  notifications. All users see same data across devices. localStorage = dead end.
-- SORA NEXUS CHAIN: truth for MONEY (donations, burns).
+  likes, boosts (+allotment + joinedAt), follows, saved, donations, DRAFTS, cadence, CHALLENGE WINDOWS +
+  flags + notifications. All users see same data across devices. localStorage = dead end.
+- SORA NEXUS CHAIN: truth for MONEY (donations, burns). Taira testnet first, then Minamoto mainnet.
 Path: frontend (done) -> shared backend (Phase-1 incl. challenge window) -> chain (money, Taira first) -> polish.
 
 # ============================================================
@@ -321,38 +410,51 @@ Path: frontend (done) -> shared backend (Phase-1 incl. challenge window) -> chai
 # ============================================================
 - DRAFTS (backend, not localStorage). EVIDENCE deadline/overdue/UPLOAD/persistence (backend+storage).
 - FILE ATTACHMENTS (storage). LIKE/BOOST/FOLLOW/DONATE persistence (in-memory now). SCARCE-BOOST
-  ALLOTMENT (backend). PROPOSER DISPLAY NAME (backend).
+  ALLOTMENT + joinedAt (backend). PROPOSER DISPLAY NAME (backend).
 
 # ============================================================
 # PROPOSAL LIFECYCLE — three paths (DECIDED; mostly backend-era)
 # ============================================================
-P1 Donations, already building: milestones from start (current). P2 Donations, "Raising" first
-(KS all-or-nothing: goal+deadline; met -> build, missed -> neutral "unable to build"; NO escrow here,
-escrow is Phase 2). P3 Treasury Desk track (SORA Nexus): under review -> approved (milestones) / not
-(neutral archive). States/clocks = backend.
+P1 Donations, already building: milestones from start (current). Funding = GOAL or OPEN (this session).
+P2 Donations, "Raising" first (KS all-or-nothing: goal+deadline; met -> build, missed -> neutral "unable to
+build"; NO escrow here, escrow is Phase 2). P3 Treasury Desk track (SORA Nexus): under review -> approved
+(milestones) / not (neutral archive). States/clocks = backend.
 
 # ============================================================
 # END-STAGE POLISH PASSES
 # ============================================================
 - MOBILE PASS (NEXT, before backend): parity already built; this = touch-targets/spacing/type-scale/
   collapse-filters/feel on phone.
-- LIGHT MODE (CSS tokens; gold on warm cream, red=danger). FONT PASS (self-host Sora). HERO motto shine.
-  MOTION (flame flicker, reduced-motion safe). COMPOSE inline field errors. Compose XOR spinner-removal.
-  i18n (EN+ES/ZH/HI/AR-RTL/PT/RU/JA/FR). Contextual "Why?" expanders app-wide.
+- LIGHT MODE (CSS tokens; gold on warm cream, red=danger).
+- FONT PASS: self-host official SORA typeface — repo github.com/sora-xor/sora-font (OFL-1.1). Full weight
+  range Thin100..ExtraBold800 + italics + a VARIABLE font. Ship a small SUBSET (e.g. 400/500/600/700, +800
+  for hero) OR the single variable woff2. OBLIGATIONS: bundle OFL.txt, keep copyright/reserved-name notice,
+  don't sell the font alone. VERIFY the repo's fonts/ dir contents FIRST (may need TTF/OTF->woff2 conversion
+  from sources) before wiring @font-face — don't assume prebuilt woff2 exist.
+- HERO motto shine. MOTION (flame flicker, reduced-motion safe). COMPOSE inline field errors.
+  i18n (EN+ES/ZH/HI/AR-RTL/PT/RU/JA/FR). Remaining contextual "Why?" expanders (challenge #challenge once
+  backend exists; Desk when it exists).
+- "See more" clamp already on Story story+facts (Clampable); could extend to chapter evidence / delivered
+  evidence if those run long.
 
 # ============================================================
 # DONE / REUSABLE
 # ============================================================
 - CORS proxy + Vite config + browser bridge (irohaBrowserBridge.ts + nativeStub.ts — PROVEN Taira read 25,000 XOR).
-- Shell src/web/ (App.vue [nav + gold Post + avatar->own profile + DEMO switcher], tokens.css [+themed
-  scrollbars], seal.png, flame.png). Components: CountUp.vue, Flame.vue (gold|fire variant).
+- Shell src/web/ (App.vue [nav + gold Post + avatar->own profile + DEMO switcher; go(id) handles "#anchor"
+  deep-links], tokens.css [+themed scrollbars], seal.png, flame.png).
+- COMPONENTS: CountUp.vue, Flame.vue (gold|fire variant), WhyExpander.vue (contextual expander + About deep-
+  link), CharCount.vue (live N/max counter, red over limit), Clampable.vue (See-more clamp, overflow-measured).
 - BUILT (ALL DONE): Feed, Story, Compose, Profile, Explore, Treasury, About. Citizens unwired (dormant).
-  Old Overview/Proposals/Submit dormant.
+  Old Overview/Proposals/Submit dormant (still reference milestone.xorAmount — that's why it's kept OPTIONAL).
 - GOLD BUTTONS unified hover (lift+brighten+shadow) in-place (Vue scoped styles, not a shared class).
 - DEMO ACCOUNT SWITCHER (DEMO_MODE only, crimson): DEMO_ACCOUNTS demo/viewer/maker; setDemoAccount;
   currentAccountId falls back to demoAccountId. Tests non-owner experience. NEVER SHIPS — gate before launch.
-- Store commons.ts: underwriting+story+track+milestone fields; saved/proposerLabel/markChapterDelivered/
-  viewingProfileId/draft refs. submitProposal stamps xorBurned "0" + track "donations".
+- Store commons.ts: story/track/category/fact/milestone fields; fundingMode (goal|open); Milestone.xorAmount
+  OPTIONAL; saved/proposerLabel/markChapterDelivered/viewingProfileId/draft refs (incl. draftFundingMode).
+  isDraftValid mode-aware (requires title/summary/story/category + each chapter desc+date+evidence; goal mode
+  also requires xorRequested>0; NO sum-match). submitProposal stamps xorBurned "0" + track "donations" +
+  fundingMode + xorRequested "0" when open.
 - Store social/donate: liked/boosted/followed/donatedProposals + isLiked/isBoosted/isFollowing +
   toggle* + donate (in-memory, unique-backer account::proposal, self-donation guarded). Proposal type
   +likes/boostCount/followers/backers/totalDonated. scrollToComments flag. DEMO_ACCOUNTS/demoAccountId/setDemoAccount.
@@ -364,16 +466,26 @@ escrow is Phase 2). P3 Treasury Desk track (SORA Nexus): under review -> approve
 6 Social/burn mechanics DONE (6a like/boost/follow/comment; 6b Donate modal — in-memory) ·
 7 Reframe Treasury/About/Citizens DONE (Treasury+About reframed; Citizens removed from nav)
 >>> FRONTEND COMPLETE <<<
-Next: (opt) Donate "Why 1%?" expander -> MOBILE polish -> SHARED BACKEND (Phase-1 incl. challenge window)
--> CHAIN (money, Taira first) -> end-stage polish.
+8 POST-FRONTEND UX PASS DONE: contextual "Why?" expanders (WhyExpander; Donate #burn + boost #boost);
+  per-field char limits + over-limit warning (CharCount); See-more clamps + summary line + full-story fix
+  (Clampable); funding modes (goal vs open) + per-chapter amounts retired; Story rail/badge cleanup; Feed
+  raised-line funding-aware.
+Next: MOBILE polish -> SHARED BACKEND (Phase-1 incl. challenge window) -> CHAIN (money, Taira first) -> end-stage polish.
 
 # ============================================================
 # KEY FACTS
 # ============================================================
-- Taira XOR asset id: 6TEAJqbb8oEPmLncoNiMRbLEK6tw (src/constants/chains.ts ~line 22).
-- "i105" = Iroha account-address format. DEMO_MODE:true relaxes gates + powers demo switcher; no XOR; gate before ship.
+- CHAIN: Taira testnet = https://taira.sora.org · Minamoto mainnet = https://minamoto.sora.org.
+  chain_discriminant: 369 = Taira, 753 = Minamoto. Rehearse on Taira, then same ops on Minamoto w/ separate keys.
+- Taira XOR (fee) asset id: 6TEAJqbb8oEPmLncoNiMRbLEK6tw (src/constants/chains.ts ~line 22) — confirmed as the
+  Taira fee asset the public faucet funds (~25,000 XOR).
+- Read-only Taira MCP bridge: https://taira.sora.org/v1/mcp (read-first, human-approval before writes).
+- XOR base-unit precision = STILL UNCONFIRMED from chain (don't assume 18) — resolve in CHAIN phase.
+- "i105" = Iroha account-address format (derived per-network from pubkey + prefix; NOT the TOML domain).
+- DEMO_MODE:true relaxes gates + powers demo switcher; no XOR; gate before ship.
 - citizenCount reads parliament.citizenCountDisplay (real number or "—") — connectable if a Commons-citizen role ever exists.
 - COMMONS_CONFIG import path = @/constants/commonsConfig (NOT commons). Vite root=src/web, port 5174.
+- VITE/esbuild does NOT type-check — Problems-panel TS errors don't block the dev server (clean them anyway).
 - PARKED: vote-to-fund, 5 XOR post fee, Signal=60% aye. TOP-BAR (later): notifications + feedback + connect/wallet.
 
 [SEARCH] Explore = primary search+filters+sort (DONE). Top-bar global search -> Explore (later). Real search = backend.
