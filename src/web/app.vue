@@ -15,7 +15,7 @@
         <select v-if="demoMode" class="demoswitch" :value="commons.demoAccountId" @change="onDemoSwitch" title="Demo: switch identity (dev only)">
           <option v-for="a in demoAccounts" :key="a" :value="a">{{ a.split('.')[0] }}</option>
         </select>
-        <div class="netchip"><span class="dot"></span>TAIRA</div>
+        <div class="netchip" title="Connected to Taira testnet"><span class="dot"></span><span class="netchip__lbl">TAIRA</span></div>
         <button class="meav" :style="avStyle(myId)" @click="goMyProfile" title="Your profile">{{ initials(myId) }}</button>
 
       </div>
@@ -162,6 +162,12 @@ const mobileTabs = [
     padding: 8px 6px;
     box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.3);
   }
+  .topbar__inner { gap: 8px; padding: 10px var(--pad); }
+  .brand__seal { height: 28px; }
+  .brand__name { font-size: 1rem; }
+  .netchip { padding: 6px; gap: 0; }
+  .netchip__lbl { display: none; }
+  .meav { width: 30px; height: 30px; margin-left: 4px; }
   .topbar { transition: transform .28s var(--ease); }
   .tabbar { transition: transform .28s var(--ease); }
   .topbar.nav-hidden { transform: translateY(-100%); }
