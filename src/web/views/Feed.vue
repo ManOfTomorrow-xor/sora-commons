@@ -4,7 +4,11 @@
     <header class="hero">
       <p class="hero__ey">THE PUBLIC RECORD OF REAL WORK</p>
       <h1>Follow the work being built on SORA.</h1>
-      <p class="hero__motto">Productive work <span class="bt">burns true</span>.</p>
+      <p class="hero__sub">A public record where builders share what they're making, prove it step by step, and earn direct support.</p>
+      <div class="hero__cta">
+        <button class="hero__btn" @click="$emit('nav', 'post')">Post your work</button>
+        <button class="hero__link" @click="$emit('nav', 'explore')">Explore the work →</button>
+      </div>
     </header>
 
     <div class="grid">
@@ -186,8 +190,12 @@ function avStyle(id: string) {
 .hero { margin-bottom: 22px; }
 .hero__ey { font-family: var(--mono); font-size: .72rem; letter-spacing: .16em; color: var(--gold-500); margin: 0 0 8px; }
 .hero h1 { font-family: var(--display); font-size: clamp(1.7rem, 4vw, 2.5rem); font-weight: 800; letter-spacing: -.02em; margin: 0 0 6px; line-height: 1.08; }
-.hero__motto { font-family: var(--display); font-size: 1.15rem; font-weight: 600; color: var(--ink-dim); margin: 0; }
-.hero__motto .bt { color: var(--gold-300); }
+.hero__sub { font-size: 1.02rem; color: var(--ink-dim); line-height: 1.55; margin: 8px 0 18px; max-width: 56ch; }
+.hero__cta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.hero__btn { background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 11px 20px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 12px rgba(201,168,76,.22); transition: transform .15s var(--ease), box-shadow .15s var(--ease), filter .15s var(--ease); }
+.hero__btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(201,168,76,.34); filter: brightness(1.06); }
+.hero__link { background: none; border: none; color: var(--gold-300); font-family: inherit; font-size: .95rem; font-weight: 600; cursor: pointer; padding: 6px 4px; }
+.hero__link:hover { text-decoration: underline; }
 
 .grid { display: grid; grid-template-columns: minmax(0,1fr) 280px; gap: 24px; align-items: start; }
 @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } .rail { display: none; } }

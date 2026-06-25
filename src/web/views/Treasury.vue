@@ -52,7 +52,7 @@
     <!-- WHY -->
     <section class="why">
       <h3>Why burn instead of collect?</h3>
-      <p>Burning rides on real support: when someone donates to work they believe in, 99% goes to the builder and 1% is destroyed. A burn can't be captured — no treasury skims it, no operator pockets it. The act of destroying it is proof that real value flowed to real work. Proposers are never charged; the burn comes only from those choosing to give. That's what the seal means: productive work burns true.</p>
+      <p>Burning rides on real support: when someone donates to work they believe in, 99% goes to the builder and 1% is destroyed. A burn can't be captured — no treasury skims it, no operator pockets it. The act of destroying it is proof that real value flowed to real work. Proposers are never charged; the burn comes only from those choosing to give. That's what the seal means: Productive work <span class="burns">burns true</span>.</p>
     </section>
   </div>
 </template>
@@ -88,6 +88,7 @@ const burns = computed(() => {
 .treasury { display: flex; flex-direction: column; gap: 24px; }
 .head h1 { font-family: var(--display); font-size: 2rem; margin: 0 0 4px; }
 .sub { color: var(--ink-dim); margin: 0; max-width: 60ch; }
+.burns { background: linear-gradient(95deg, var(--gold-300), #E0986A); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; font-weight: 700; }
 
 .hero-burn { display: flex; align-items: center; gap: 18px; background:
   radial-gradient(600px 200px at 0% 50%, rgba(201,168,76,.10), transparent 70%), var(--navy-850);

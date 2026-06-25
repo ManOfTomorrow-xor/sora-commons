@@ -408,7 +408,10 @@ Path: frontend (done) -> shared backend (Phase-1 incl. challenge window) -> chai
 # ============================================================
 # DEFERRED FEATURES (build once, properly)
 # ============================================================
-- DRAFTS (backend, not localStorage). EVIDENCE deadline/overdue/UPLOAD/persistence (backend+storage).
+- DRAFTS: single in-session draft already persists in the store (draft* refs survive nav within a session);
+  NAMED / multi / cross-device drafts + a "Save as draft" action + the Profile "My Drafts" list = BACKEND
+  (no interim button — saving to nowhere/localStorage would be the dishonest version). EVIDENCE
+  deadline/overdue/UPLOAD/persistence (backend+storage).
 - FILE ATTACHMENTS (storage). LIKE/BOOST/FOLLOW/DONATE persistence (in-memory now). SCARCE-BOOST
   ALLOTMENT + joinedAt (backend). PROPOSER DISPLAY NAME (backend).
 
