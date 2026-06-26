@@ -152,8 +152,9 @@ const mobileTabs = [
 .demoswitch:hover { border-color: var(--gold-600); }
 .meav { width: 34px; height: 34px; border-radius: 50%; border: none; display: grid; place-items: center; font-weight: 700; color: #22180a; font-size: .8rem; cursor: pointer; margin-left: 10px; flex: none; }
 .meav:hover { box-shadow: 0 0 0 2px var(--gold-600); }
+.app { min-height: 100vh; background: var(--navy-900); }
 
-.wrap { max-width: 1020px; margin: 0 auto; padding: 28px var(--pad) 96px; }
+.wrap { max-width: 1020px; margin: 0 auto; padding: 28px var(--pad) 96px; min-height: calc(100vh - 70px); }
 .page-title { font-family: var(--display); font-size: 2rem; margin: 0 0 8px; }
 .muted { color: var(--ink-dim); }
 

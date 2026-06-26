@@ -14,17 +14,23 @@
     <div class="ex__filters">
       <div class="ex__group">
         <span class="ex__lab">Category</span>
-        <button v-for="c in categories" :key="c.v" class="chip" :class="{ on: category === c.v }" @click="category = c.v">{{ c.t }}</button>
+        <div class="ex__chips">
+          <button v-for="c in categories" :key="c.v" class="chip" :class="{ on: category === c.v }" @click="category = c.v">{{ c.t }}</button>
+        </div>
       </div>
       <div class="ex__group">
         <span class="ex__lab">Track</span>
-        <button v-for="t in tracks" :key="t.v" class="chip" :class="{ on: track === t.v }" @click="track = t.v">{{ t.t }}</button>
+        <div class="ex__chips">
+          <button v-for="t in tracks" :key="t.v" class="chip" :class="{ on: track === t.v }" @click="track = t.v">{{ t.t }}</button>
+        </div>
       </div>
       <div class="ex__group">
         <span class="ex__lab">Status</span>
-        <button class="chip" :class="{ on: status === 'active' }" @click="status = 'active'">Active</button>
-        <button class="chip" :class="{ on: status === 'archive' }" @click="status = 'archive'">Delivered</button>
-        <button class="chip" :class="{ on: status === 'all' }" @click="status = 'all'">All</button>
+        <div class="ex__chips">
+          <button class="chip" :class="{ on: status === 'active' }" @click="status = 'active'">Active</button>
+          <button class="chip" :class="{ on: status === 'archive' }" @click="status = 'archive'">Delivered</button>
+          <button class="chip" :class="{ on: status === 'all' }" @click="status = 'all'">All</button>
+        </div>
       </div>
       <div class="ex__group ex__group--sort">
         <span class="ex__lab">Sort</span>
@@ -231,4 +237,14 @@ function avStyle(id: string) {
 .eng .bolts { color: var(--ink-faint); }
 .eng .donated { margin-left: auto; font-family: var(--mono); color: var(--gold-300); }
 @media (max-width: 600px) { .ex__lab { width: 100%; } }
+@media (max-width: 720px) {
+  .ex__h { font-size: 1.5rem; }
+  .ex__sub { font-size: .92rem; margin-bottom: 16px; }
+  .ex__filters { padding: 14px; gap: 12px; }
+  .ex__group { flex-direction: column; align-items: stretch; gap: 8px; }
+  .ex__lab { width: 100%; }
+  .ex__chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { min-height: 38px; padding: 8px 14px; white-space: normal; max-width: 100%; }
+  .ex__select { min-height: 44px; width: 100%; }
+}
 </style>

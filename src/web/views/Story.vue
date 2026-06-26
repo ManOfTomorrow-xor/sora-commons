@@ -284,6 +284,7 @@ onMounted(() => {
   .sd__grid { grid-template-columns: 1fr; }
   .sd__rail { position: static; }
   .support { flex-direction: column; }
+  .support { flex-direction: column; max-width: 460px; margin: 0 auto; }
 }
 .sd__main { min-width: 0; }
 
