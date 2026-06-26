@@ -292,4 +292,13 @@ function avStyle(id: string) {
   .tbchip__t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
   .tbchip__b { flex: none; display: inline-flex; align-items: center; gap: 3px; color: var(--gold-300); font-family: var(--mono); font-size: .78rem; }
 }
+@media (max-width: 720px) {
+  .card { padding: 14px; margin-bottom: 10px; }
+  .card__title { font-size: 1.12rem; }
+  .card__snip { font-size: .88rem; margin-bottom: 10px; }
+  .av { width: 30px; height: 30px; }
+  .badges { margin-bottom: 10px; }
+  .prog { margin-bottom: 10px; }
+  .card__top { margin-bottom: 8px; }
+}
 </style>
