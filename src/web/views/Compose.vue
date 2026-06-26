@@ -241,4 +241,19 @@ input:focus, textarea:focus { outline: none; border-color: var(--gold-600); }
 .result { padding: 12px 16px; border-radius: var(--r); background: rgba(100,220,170,.1); color: var(--affirm); margin: 0; }
 .result--err { background: rgba(255,100,100,.1); color: var(--negate); }
 @media (max-width: 720px) { .cats { grid-template-columns: 1fr; } }
+@media (max-width: 720px) 
+  .head h1 { font-size: 1.5rem; }
+  .sec { padding: 16px; }
+  .sec__body h2 { font-size: 1.12rem; margin-bottom: 12px; }
+  .cats { grid-template-columns: 1fr; }
+  .cat { padding: 12px; }
+  .field { margin-bottom: 12px; }
+  .ms__row { padding: 12px; }
+  .ms__date { max-width: 100%; }
+  .bar { padding: 12px 14px; gap: 10px; flex-wrap: wrap; }
+  .bar__btn { padding: 11px 18px; }
+  .bar { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 40; }
+  .compose { padding-bottom: 84px; }
+  .ms__row input, .ms__row textarea { font-size: .74rem; line-height: 1.4; }
+  .ms__row textarea { min-height: 76px; }
 </style>

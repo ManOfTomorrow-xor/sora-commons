@@ -39,7 +39,7 @@
     </main>
 
     <!-- MOBILE BOTTOM TAB BAR -->
-    <nav class="tabbar" :class="{ 'nav-hidden': navHidden }">
+    <nav class="tabbar" :class="{ 'nav-hidden': navHidden, 'tabbar--composing': active === 'post' }">
       <a v-for="t in mobileTabs" :key="t.id" class="tab" :class="{ active: active === t.id, 'tab-fab': t.id === 'post' }" @click="tabTap(t.id)">
         <span v-if="t.id === 'post'" class="fabc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
         <span v-else class="tab__ic" v-html="t.icon"></span>
@@ -171,6 +171,7 @@ const mobileTabs = [
   .topbar { transition: transform .28s var(--ease); }
   .tabbar { transition: transform .28s var(--ease); }
   .topbar.nav-hidden { transform: translateY(-100%); }
+  .tabbar--composing { display: none; }
   .tabbar.nav-hidden { transform: translateY(calc(100% + 16px + env(safe-area-inset-bottom, 0px))); }
   .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ink-faint); font-size: .62rem; font-weight: 600; min-height: 48px; justify-content: flex-end; cursor: pointer; }
   .tab.active { color: var(--gold-300); }

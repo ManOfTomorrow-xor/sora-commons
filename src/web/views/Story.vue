@@ -434,4 +434,21 @@ onMounted(() => {
 .ch__attach { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; background: var(--navy-900); border: 1px dashed var(--line); border-radius: var(--r-sm); padding: 8px 12px; color: var(--ink-faint); font-size: .82rem; cursor: not-allowed; }
 .ch__attach svg { width: 15px; height: 15px; flex: none; }
 .ch__soon { font-size: .68rem; color: var(--ink-faint); opacity: .7; font-style: italic; }
+@media (max-width: 720px) {
+  .sd__title { font-size: 1.5rem; margin: 4px 0 10px; }
+  .sd__summary { font-size: .95rem; line-height: 1.5; }
+  .sec { padding: 16px; margin-bottom: 12px; }
+  .sec h2 { font-size: 1.12rem; margin-bottom: 10px; }
+  .facts { grid-template-columns: 1fr; gap: 10px; }
+  .facts > div { padding: 13px 14px; }
+  .fact__v { font-size: .9rem; }
+  .support { padding: 16px; gap: 12px; }
+  .support__donate { padding: 13px; font-size: 1rem; }
+  .support__totals b { font-size: 1rem; }
+  .actbar { padding: 12px; gap: 8px; }
+  .totals { gap: 16px; padding: 12px 2px 18px; }
+  .chapter { gap: 10px; padding: 12px 0; }
+  .av { width: 32px; height: 32px; }
+  .ch__ev { font-size: .78rem; line-height: 1.45; padding: 7px 10px; }
+}
 </style>
