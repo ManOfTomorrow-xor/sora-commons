@@ -19,7 +19,9 @@
           <div class="tbstrip__h"><svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg> Top Boosted</div>
           <div class="tbstrip__row">
             <button v-for="(p, i) in topBoosted" :key="p.id" class="tbchip" @click="open(p)">
-              <span class="tbchip__r">{{ i + 1 }}</span>{{ p.title }}
+              <span class="tbchip__r">{{ i + 1 }}</span>
+              <span class="tbchip__t">{{ p.title }}</span>
+              <span class="tbchip__b"><svg viewBox="0 0 24 24" fill="currentColor" style="width:11px;height:11px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>{{ p.boostCount || 0 }}</span>
             </button>
           </div>
         </div>
@@ -198,8 +200,7 @@ function avStyle(id: string) {
 .hero__link:hover { text-decoration: underline; }
 
 .grid { display: grid; grid-template-columns: minmax(0,1fr) 280px; gap: 24px; align-items: start; }
-@media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
-@media (max-width: 720px) { .rail { display: none; } }
+@media (max-width: 980px) { .grid { grid-template-columns: 1fr; }}
 .sort { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
 .sort button { background: var(--navy-850); border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; color: var(--ink-dim); font-size: .82rem; cursor: pointer; }
 .sort button.on { background: rgba(201,168,76,.12); border-color: var(--gold-600); color: var(--gold-300); }
@@ -256,9 +257,12 @@ function avStyle(id: string) {
 @media (hover: none) { .engbtn { background: rgba(255,255,255,.05); border-color: var(--line); } }
 @media (max-width: 720px) {
   .hero__cta { display: none; }
+  .engbtn { min-height: 44px; padding: 8px 12px; }
+  .sort button { min-height: 44px; padding: 8px 16px; }
 }
 
 .rail { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 88px; align-self: start; }
+@media (max-width: 980px) { .rail { display: none; } }
 .panel { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; }
 .panel__h { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-size: 1rem; font-weight: 700; margin-bottom: 12px; }
 .panel__p { color: var(--ink-dim); font-size: .86rem; margin: 0 0 12px; }
@@ -279,8 +283,13 @@ function avStyle(id: string) {
 @media (max-width: 980px) {
   .tbstrip { display: block; background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r); padding: 12px; margin-bottom: 16px; }
   .tbstrip__h { display: flex; align-items: center; gap: 6px; font-family: var(--display); font-weight: 700; font-size: .92rem; margin-bottom: 8px; }
-  .tbstrip__row { display: flex; gap: 8px; overflow-x: auto; }
-  .tbchip { flex: none; display: inline-flex; align-items: center; gap: 6px; background: var(--navy-900); border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; color: var(--ink-dim); font-size: .8rem; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
-  .tbchip__r { color: var(--gold-500); font-weight: 700; }
+  .tbstrip__row { display: flex; flex-direction: column; gap: 2px; max-height: 138px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
+  .tbstrip__row::-webkit-scrollbar { display: none; }
+  .tbchip { width: 100%; display: flex; align-items: center; gap: 10px; background: none; border: none; border-bottom: 1px solid var(--line-soft); border-radius: 0; padding: 9px 2px; color: var(--ink-dim); font-size: .86rem; text-align: left; cursor: pointer; }
+  .tbchip:last-child { border-bottom: none; }
+  .tbchip:hover { background: var(--line-soft); border-radius: var(--r-sm); }
+  .tbchip__r { color: var(--gold-500); font-weight: 800; font-family: var(--display); flex: none; width: 16px; }
+  .tbchip__t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
+  .tbchip__b { flex: none; display: inline-flex; align-items: center; gap: 3px; color: var(--gold-300); font-family: var(--mono); font-size: .78rem; }
 }
 </style>

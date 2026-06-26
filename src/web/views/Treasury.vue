@@ -25,8 +25,8 @@
         <div class="stat__l">Burn events</div>
       </div>
       <div class="stat">
-        <div class="stat__n"><CountUp :value="backerTotal" /></div>
-        <div class="stat__l">Backers</div>
+        <div class="stat__n"><CountUp :value="commons.proposals.length" /></div>
+        <div class="stat__l">Proposals</div>
       </div>
     </section>
 
@@ -98,7 +98,8 @@ const burns = computed(() => {
 .hero-burn__n .unit { font-size: 1.1rem; color: var(--ink-dim); }
 .hero-burn__l { color: var(--ink-faint); font-size: .85rem; margin-top: 6px; }
 
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+@media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
 .stat { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; }
 .stat__n { font-family: var(--mono); font-size: 1.5rem; font-weight: 600; }
 .stat__l { color: var(--ink-faint); font-size: .8rem; margin-top: 4px; }
