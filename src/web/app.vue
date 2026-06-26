@@ -53,7 +53,7 @@
 import Story from "./views/Story.vue";
 import Explore from "./views/Explore.vue";
 import Feed from "./views/Feed.vue";
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import { COMMONS_CONFIG } from "@/constants/commonsConfig";
 const commons = useCommonsStore();
@@ -69,17 +69,27 @@ import Profile from "./views/Profile.vue";
 const active = ref("feed");
 const navHidden = ref(false);
 let lastY = 0;
-const go = (id: string) => { active.value = id; window.scrollTo(0, 0); navHidden.value = false; lastY = 0; };
+const go = (id: string) => {
+  const [view, anchor] = id.split("#");
+  active.value = view;
+  navHidden.value = false;
+  lastY = 0;
+  if (anchor) {
+    nextTick(() => requestAnimationFrame(() => document.getElementById(anchor)?.scrollIntoView({ behavior: "smooth" })));
+  } else {
+    window.scrollTo(0, 0);
+  }
+};
+function tabTap(id: string) {
+  if (navHidden.value) { navHidden.value = false; lastY = window.scrollY || 0; return; }
+  go(id);
+}
 function onScroll() {
   const y = window.scrollY || 0;
   if (y < 12) { navHidden.value = false; lastY = y; return; }
   if (Math.abs(y - lastY) < 6) return;
   navHidden.value = y > lastY;
   lastY = y;
-}
-function tabTap(id: string) {
-  if (navHidden.value) { navHidden.value = false; lastY = window.scrollY || 0; return; }
-  go(id);
 }
 onMounted(() => window.addEventListener("scroll", onScroll, { passive: true }));
 onUnmounted(() => window.removeEventListener("scroll", onScroll));

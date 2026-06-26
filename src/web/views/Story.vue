@@ -447,8 +447,15 @@ onMounted(() => {
   .support__totals b { font-size: 1rem; }
   .actbar { padding: 12px; gap: 8px; }
   .totals { gap: 16px; padding: 12px 2px 18px; }
-  .chapter { gap: 10px; padding: 12px 0; }
+  .chapter { gap: 8px; }
+  .chapter { gap: 8px; padding: 12px 0; flex-direction: column; }
+  .chapter { position: relative; }
+  .ch__st { position: absolute; right: 0; top: 38px; }
+  .ch__dot { width: 22px; height: 22px; font-size: .7rem; }
+  .ch__dot { width: 22px; height: 22px; font-size: .7rem; }
   .av { width: 32px; height: 32px; }
-  .ch__ev { font-size: .78rem; line-height: 1.45; padding: 7px 10px; }
+  .ch__ev { font-size: .78rem; line-height: 1.45; padding: 8px 10px; display: block; width: 100%; box-sizing: border-box; }
+  .ch__dot { width: 22px; height: 22px; font-size: .7rem; }
+  .ch__deliver textarea { font-size: .8rem; line-height: 1.4; min-height: 84px; }
 }
 </style>
