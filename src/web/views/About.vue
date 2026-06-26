@@ -122,7 +122,16 @@ function onLeave(el: Element) {
 .lead { color: var(--ink-dim); font-size: 1.05rem; max-width: 60ch; margin: 0; line-height: 1.6; }
 @media (max-width: 720px) {
   .hero { grid-template-columns: 1fr; justify-items: center; text-align: center; }
-  .lead { margin: 0 auto; }
+  .about { gap: 22px; }
+  .hero__seal { width: 90px; }
+  .hero h1 { font-size: 1.7rem; }
+  .lead { font-size: .95rem; }
+  .block h2 { font-size: 1.25rem; }
+  .mech { padding: 14px; }
+  .mech h3 { font-size: 1.05rem; }
+  .coming li { padding: 12px 14px; }
+  .disclose { font-size: 1.05rem; padding: 14px; }
+  .deep h3 { font-size: 1.05rem; }
 }
 
 .block h2 { font-family: var(--display); font-size: 1.5rem; margin: 0 0 12px; }

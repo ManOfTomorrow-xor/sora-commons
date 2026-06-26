@@ -451,7 +451,7 @@ onMounted(() => {
   .chapter { gap: 8px; }
   .chapter { gap: 8px; padding: 12px 0; flex-direction: column; }
   .chapter { position: relative; }
-  .ch__st { position: absolute; right: 0; top: 38px; }
+  .ch__st { position: absolute; right: 0; top: 10px; }
   .ch__dot { width: 22px; height: 22px; font-size: .7rem; }
   .ch__dot { width: 22px; height: 22px; font-size: .7rem; }
   .av { width: 32px; height: 32px; }

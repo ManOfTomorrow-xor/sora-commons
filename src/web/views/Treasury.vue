@@ -28,6 +28,10 @@
         <div class="stat__n"><CountUp :value="commons.proposals.length" /></div>
         <div class="stat__l">Proposals</div>
       </div>
+      <div class="stat">
+        <div class="stat__n"><CountUp :value="backerTotal" /></div>
+        <div class="stat__l">Backers</div>
+      </div>
     </section>
 
     <!-- LEDGER -->

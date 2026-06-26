@@ -246,5 +246,10 @@ function avStyle(id: string) {
   .ex__chips { display: flex; gap: 8px; flex-wrap: wrap; }
   .chip { min-height: 38px; padding: 8px 14px; white-space: normal; max-width: 100%; }
   .ex__select { min-height: 44px; width: 100%; }
+.ex__filters { max-width: 640px; margin: 0 auto 18px; }
+  .ex__search { max-width: 640px; margin: 0 auto 18px; }
+}
+@media (max-width: 980px) {
+  .explore { max-width: 600px; }
 }
 </style>
