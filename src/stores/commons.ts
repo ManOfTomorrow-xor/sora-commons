@@ -350,24 +350,44 @@ export const useCommonsStore = defineStore("commons", () => {
     );
   if (accErr) { console.error("account upsert failed:", accErr); return; }
 
-  // 2. insert the proposal
-  const { error: propErr } = await supabase.from("proposals").insert({
-    proposer_account_id: p.proposerAccountId,
-    title: p.title,
-    summary: p.description,
-    story: p.story ?? null,
-    category: p.category ?? null,
-    track: p.track,
-    funding_mode: p.fundingMode ?? "open",
-    xor_requested: p.xorRequested ?? "0",
-    public_benefit: p.publicBenefit ?? null,
-    risk_bearer: p.riskBearer ?? null,
-    failure_handling: p.failureHandling ?? null,
-    status: "active",
-  });
+  // 2. insert the proposal, returning its DB-generated id
+  const { data: propRows, error: propErr } = await supabase
+    .from("proposals")
+    .insert({
+      proposer_account_id: p.proposerAccountId,
+      title: p.title,
+      summary: p.description,
+      story: p.story ?? null,
+      category: p.category ?? null,
+      track: p.track,
+      funding_mode: p.fundingMode ?? "open",
+      xor_requested: p.xorRequested ?? "0",
+      public_benefit: p.publicBenefit ?? null,
+      risk_bearer: p.riskBearer ?? null,
+      failure_handling: p.failureHandling ?? null,
+      status: "active",
+    })
+    .select("id")
+    .single();
   if (propErr) { console.error("proposal insert failed:", propErr); return; }
 
-  console.log("✓ proposal persisted to Supabase:", p.id);
+  const dbProposalId = propRows.id;
+
+  // 3. insert the milestones (chapters) against the DB proposal id
+  if (p.milestones.length > 0) {
+    const rows = p.milestones.map((m, i) => ({
+      proposal_id: dbProposalId,
+      position: i,
+      description: m.description,
+      due_date: m.timeline || null,
+      evidence: m.evidence ?? null,
+      completed: false,
+    }));
+    const { error: msErr } = await supabase.from("milestones").insert(rows);
+    if (msErr) { console.error("milestone insert failed:", msErr); return; }
+  }
+
+  console.log("✓ proposal + milestones persisted:", dbProposalId);
 }
   const submitProposal = (): CommonsProposal | null => {
     if (!isDraftValid.value || !currentAccountId.value) return null;
@@ -434,6 +454,14 @@ export const useCommonsStore = defineStore("commons", () => {
       .order("created_at", { ascending: false });
     if (loadErr) { console.error("load proposals failed:", loadErr); return; }
     if (!data) return;
+    const { data: msData } = await supabase
+      .from("milestones")
+      .select("*")
+      .order("position", { ascending: true });
+    const msByProposal: Record<string, any[]> = {};
+    for (const m of msData ?? []) {
+      (msByProposal[m.proposal_id] ??= []).push(m);
+    }
     proposals.value = data.map((row: any): CommonsProposal => ({
       id: row.id,
       proposerAccountId: row.proposer_account_id,
@@ -447,7 +475,17 @@ export const useCommonsStore = defineStore("commons", () => {
       failureHandling: row.failure_handling ?? undefined,
       xorRequested: row.xor_requested ?? "0",
       fundingMode: row.funding_mode ?? "open",
-      milestones: [],
+    milestones: (msByProposal[row.id] ?? []).map((m: any) => ({
+      id: m.id,
+      description: m.description,
+      timeline: m.due_date ?? "",
+      evidence: m.evidence ?? undefined,
+      deliveredEvidence: m.delivered_evidence ?? undefined,
+      deliveredAt: m.delivered_at ?? null,
+      completed: m.completed ?? false,
+      completedAt: m.completed_at ?? null,
+      xorBurned: "0",
+    })),
       status: "signal",
       signals: [],
       signalEndsAt: null,
