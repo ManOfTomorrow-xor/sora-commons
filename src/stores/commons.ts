@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { useParliamentStore } from "@/stores/parliament";
 import { COMMONS_CONFIG } from "@/constants/commonsConfig";
+import { supabase } from "@/web/lib/supabase";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ProposalStatus =
@@ -339,6 +340,35 @@ export const useCommonsStore = defineStore("commons", () => {
   };
 
   // Stage 1 — Submit Proposal
+  async function persistProposalToSupabase(p: CommonsProposal) {
+  // 1. ensure the proposer's account row exists (FK target)
+  const { error: accErr } = await supabase
+    .from("accounts")
+    .upsert(
+      { account_id: p.proposerAccountId, public_key: "", network: "taira" },
+      { onConflict: "account_id", ignoreDuplicates: true },
+    );
+  if (accErr) { console.error("account upsert failed:", accErr); return; }
+
+  // 2. insert the proposal
+  const { error: propErr } = await supabase.from("proposals").insert({
+    proposer_account_id: p.proposerAccountId,
+    title: p.title,
+    summary: p.description,
+    story: p.story ?? null,
+    category: p.category ?? null,
+    track: p.track,
+    funding_mode: p.fundingMode ?? "open",
+    xor_requested: p.xorRequested ?? "0",
+    public_benefit: p.publicBenefit ?? null,
+    risk_bearer: p.riskBearer ?? null,
+    failure_handling: p.failureHandling ?? null,
+    status: "active",
+  });
+  if (propErr) { console.error("proposal insert failed:", propErr); return; }
+
+  console.log("✓ proposal persisted to Supabase:", p.id);
+}
   const submitProposal = (): CommonsProposal | null => {
     if (!isDraftValid.value || !currentAccountId.value) return null;
     const now = new Date();
@@ -392,10 +422,55 @@ export const useCommonsStore = defineStore("commons", () => {
       backers: 0,
       totalDonated: "0",
     };
-    proposals.value.unshift(newProposal);
+    proposals.value.unshift(newProposal);   // optimistic: instant feedback
+    persistProposalToSupabase(newProposal).then(() => loadProposals());  // then DB becomes source of truth
     resetDraft();
     return newProposal;
   };
+  async function loadProposals() {
+    const { data, error: loadErr } = await supabase
+      .from("proposals")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (loadErr) { console.error("load proposals failed:", loadErr); return; }
+    if (!data) return;
+    proposals.value = data.map((row: any): CommonsProposal => ({
+      id: row.id,
+      proposerAccountId: row.proposer_account_id,
+      title: row.title,
+      description: row.summary ?? "",
+      story: row.story ?? undefined,
+      track: row.track ?? "donations",
+      category: row.category ?? undefined,
+      publicBenefit: row.public_benefit ?? undefined,
+      riskBearer: row.risk_bearer ?? undefined,
+      failureHandling: row.failure_handling ?? undefined,
+      xorRequested: row.xor_requested ?? "0",
+      fundingMode: row.funding_mode ?? "open",
+      milestones: [],
+      status: "signal",
+      signals: [],
+      signalEndsAt: null,
+      discussionPosts: [],
+      amendments: [],
+      deliberationEndsAt: null,
+      sortitionExcluded: [row.proposer_account_id],
+      parliamentBrief: null,
+      parliamentRemarks: null,
+      panelMembers: [],
+      panelVotes: [],
+      sortitionEndsAt: null,
+      revisionCount: 0,
+      xorBurned: "0",
+      createdAt: row.created_at,
+      likes: 0,
+      boostCount: 0,
+      followers: 0,
+      backers: 0,
+      totalDonated: "0",
+    }));
+    console.log(`✓ loaded ${proposals.value.length} proposals from Supabase`);
+  }
 
   // Stage 2 — Cast Signal (Aye or Nay)
   const castSignal = (proposalId: string, vote: SignalVote): boolean => {
@@ -893,7 +968,7 @@ export const useCommonsStore = defineStore("commons", () => {
 
     // Actions
     setActiveProposal, addMilestone, removeMilestone,
-    resetDraft, submitProposal, castSignal,
+    resetDraft, submitProposal,loadProposals, castSignal,
     postDiscussion, submitAmendment, submitParliamentBrief, submitParliamentRemarks, reviseAndResubmit,
     advanceToSortition, castPanelVote, confirmMilestone, markChapterDelivered,
 

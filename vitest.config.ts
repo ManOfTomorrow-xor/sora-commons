@@ -8,6 +8,8 @@ const __dirname = dirname(__filename);
 
 export default defineConfig({
   plugins: [vue()],
+  root: resolve(__dirname, "src/web"),
+  envDir: resolve(__dirname, "."),
   resolve: {
     alias: {
       "@": resolve(__dirname, "src"),

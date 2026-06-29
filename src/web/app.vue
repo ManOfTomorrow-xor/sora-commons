@@ -91,7 +91,10 @@ function onScroll() {
   navHidden.value = y > lastY;
   lastY = y;
 }
-onMounted(() => window.addEventListener("scroll", onScroll, { passive: true }));
+onMounted(() => {
+  window.addEventListener("scroll", onScroll, { passive: true });
+  commons.loadProposals();
+});
 onUnmounted(() => window.removeEventListener("scroll", onScroll));
 const myId = computed(() => commons.currentAccountId);
 function goMyProfile() { commons.setViewingProfile(null); go("profile"); }

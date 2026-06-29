@@ -7,7 +7,8 @@ const projectRoot = process.cwd();
 const fromRoot = (...s: string[]) => resolve(projectRoot, ...s);
 
 export default defineConfig({
-  root: fromRoot("src/web"),
+  root: resolve(__dirname, "src/web"),
+  envDir: resolve(__dirname, "."),
   base: "./",
   plugins: [
     vue(),

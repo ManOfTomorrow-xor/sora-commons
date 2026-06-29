@@ -186,7 +186,7 @@ function onPost() {
   posting.value = true; message.value = ""; isError.value = false;
   try {
     const created = commons.submitProposal();
-    if (created) { message.value = "Your story is live."; commons.setActiveProposal(created.id); emit("nav", "story"); }
+   if (created) { message.value = "Your story is live."; emit("nav", "feed"); }
     else { message.value = "Could not post. Check the required fields."; isError.value = true; }
   } catch (e) { message.value = "Post failed."; isError.value = true; }
   finally { posting.value = false; }
