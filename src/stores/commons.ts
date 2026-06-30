@@ -458,6 +458,14 @@ export const useCommonsStore = defineStore("commons", () => {
       .from("milestones")
       .select("*")
       .order("position", { ascending: true });
+      const { data: cData } = await supabase
+      .from("comments")
+      .select("*")
+      .order("created_at", { ascending: true });
+    const cByProposal: Record<string, any[]> = {};
+    for (const c of cData ?? []) {
+      (cByProposal[c.proposal_id] ??= []).push(c);
+    }
     const msByProposal: Record<string, any[]> = {};
     for (const m of msData ?? []) {
       (msByProposal[m.proposal_id] ??= []).push(m);
@@ -489,7 +497,14 @@ export const useCommonsStore = defineStore("commons", () => {
       status: "signal",
       signals: [],
       signalEndsAt: null,
-      discussionPosts: [],
+      discussionPosts: (cByProposal[row.id] ?? []).map((c: any) => ({
+        id: c.id,
+        proposalId: c.proposal_id,
+        authorAccountId: c.author_account_id,
+        content: c.content,
+        isAmendment: c.is_amendment ?? false,
+        createdAt: c.created_at,
+      })),
       amendments: [],
       deliberationEndsAt: null,
       sortitionExcluded: [row.proposer_account_id],
@@ -509,6 +524,7 @@ export const useCommonsStore = defineStore("commons", () => {
     }));
     console.log(`✓ loaded ${proposals.value.length} proposals from Supabase`);
   }
+  
 
   // Stage 2 — Cast Signal (Aye or Nay)
   const castSignal = (proposalId: string, vote: SignalVote): boolean => {
@@ -554,7 +570,6 @@ export const useCommonsStore = defineStore("commons", () => {
     if (!accountId || !content.trim()) return false;
     const proposal = proposals.value.find((p) => p.id === proposalId);
     if (!proposal) return false;
-
     const post: DiscussionPost = {
       id: generateId(),
       proposalId,
@@ -564,6 +579,20 @@ export const useCommonsStore = defineStore("commons", () => {
       createdAt: new Date().toISOString(),
     };
     proposal.discussionPosts.push(post);
+    // persist to Supabase (account upsert first to satisfy FK, then insert comment)
+    (async () => {
+      await supabase.from("accounts").upsert(
+        { account_id: accountId, public_key: "", network: "taira" },
+        { onConflict: "account_id", ignoreDuplicates: true },
+      );
+      const { error: cErr } = await supabase.from("comments").insert({
+        proposal_id: proposalId,
+        author_account_id: accountId,
+        content: content.trim(),
+        is_amendment: false,
+      });
+      if (cErr) console.error("comment insert failed:", cErr);
+    })();
     return true;
   };
 
