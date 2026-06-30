@@ -136,6 +136,7 @@ export const useCommonsStore = defineStore("commons", () => {
 
   const proposals = ref<CommonsProposal[]>([]);
   const savedProposals = ref<string[]>([]); // proposal ids the user has bookmarked
+  const socialRows = ref<{ likes: any[]; boosts: any[]; follows: any[]; saves: any[] }>({ likes: [], boosts: [], follows: [], saves: [] });
   const reputation = ref<ReputationRecord[]>([]);
   const viewingProfileId = ref<string | null>(null); // whose profile we're viewing (null = own)
   const setViewingProfile = (accountId: string | null) => { viewingProfileId.value = accountId; };
@@ -167,7 +168,15 @@ export const useCommonsStore = defineStore("commons", () => {
   // Gated to DEMO_MODE; never ships. Real identity = wallet-connect + backend.
   const DEMO_ACCOUNTS = ["demo.commons.test", "viewer.commons.test", "maker.commons.test"];
   const demoAccountId = ref<string>("demo.commons.test");
-  const setDemoAccount = (id: string) => { if (COMMONS_CONFIG.DEMO_MODE) demoAccountId.value = id; };
+  const setDemoAccount = (id: string) => {
+    if (!COMMONS_CONFIG.DEMO_MODE) return;
+    demoAccountId.value = id;
+    const acct = id;
+    likedProposals.value = socialRows.value.likes.filter((r) => r.account_id === acct).map((r) => r.proposal_id);
+    boostedProposals.value = socialRows.value.boosts.filter((r) => r.account_id === acct).map((r) => r.proposal_id);
+    followedProposals.value = socialRows.value.follows.filter((r) => r.account_id === acct).map((r) => r.proposal_id);
+    savedProposals.value = socialRows.value.saves.filter((r) => r.account_id === acct).map((r) => r.proposal_id);
+  };
   // ── Derived from Parliament ────────────────────────────────────────────────
 
  const currentAccountId = computed(
@@ -470,6 +479,28 @@ export const useCommonsStore = defineStore("commons", () => {
     for (const m of msData ?? []) {
       (msByProposal[m.proposal_id] ??= []).push(m);
     }
+    const acct = currentAccountId.value;
+    const [likesRes, boostsRes, followsRes, savesRes] = await Promise.all([
+      supabase.from("likes").select("account_id, proposal_id"),
+      supabase.from("boosts").select("account_id, proposal_id"),
+      supabase.from("follows").select("account_id, proposal_id"),
+      supabase.from("saves").select("account_id, proposal_id"),
+    ]);
+    const countBy = (rows: any[] | null) => {
+      const m: Record<string, number> = {};
+      for (const r of rows ?? []) m[r.proposal_id] = (m[r.proposal_id] ?? 0) + 1;
+      return m;
+    };
+    const likeCount = countBy(likesRes.data);
+    const boostCount = countBy(boostsRes.data);
+    const followCount = countBy(followsRes.data);
+    // restore current account's lit state
+    socialRows.value = {
+      likes: likesRes.data ?? [],
+      boosts: boostsRes.data ?? [],
+      follows: followsRes.data ?? [],
+      saves: savesRes.data ?? [],
+    };
     proposals.value = data.map((row: any): CommonsProposal => ({
       id: row.id,
       proposerAccountId: row.proposer_account_id,
@@ -516,9 +547,9 @@ export const useCommonsStore = defineStore("commons", () => {
       revisionCount: 0,
       xorBurned: "0",
       createdAt: row.created_at,
-      likes: 0,
-      boostCount: 0,
-      followers: 0,
+      likes: likeCount[row.id] ?? 0,
+      boostCount: boostCount[row.id] ?? 0,
+      followers: followCount[row.id] ?? 0,
       backers: 0,
       totalDonated: "0",
     }));
@@ -932,27 +963,54 @@ export const useCommonsStore = defineStore("commons", () => {
   const isBoosted = (id: string): boolean => boostedProposals.value.includes(id);
   const isFollowing = (id: string): boolean => followedProposals.value.includes(id);
 
-  const toggleLike = (id: string): void => {
+ const toggleLike = (id: string): void => {
     const p = proposals.value.find((x) => x.id === id);
     if (!p) return;
+    const acct = currentAccountId.value;
     const i = likedProposals.value.indexOf(id);
-    if (i >= 0) { likedProposals.value.splice(i, 1); p.likes = Math.max(0, p.likes - 1); }
-    else { likedProposals.value.push(id); p.likes += 1; }
+    if (i >= 0) {
+      likedProposals.value.splice(i, 1); p.likes = Math.max(0, p.likes - 1);
+      supabase.from("likes").delete().match({ account_id: acct, proposal_id: id }).then();
+    } else {
+      likedProposals.value.push(id); p.likes += 1;
+      (async () => {
+        await supabase.from("accounts").upsert({ account_id: acct, public_key: "", network: "taira" }, { onConflict: "account_id", ignoreDuplicates: true });
+        await supabase.from("likes").insert({ account_id: acct, proposal_id: id });
+      })();
+    }
   };
   const toggleBoost = (id: string): void => {
     const p = proposals.value.find((x) => x.id === id);
     if (!p) return;
     // One boost per proposal. (Scarce weekly allotment per user = backend-era.)
+    const acct = currentAccountId.value;
     const i = boostedProposals.value.indexOf(id);
-    if (i >= 0) { boostedProposals.value.splice(i, 1); p.boostCount = Math.max(0, p.boostCount - 1); }
-    else { boostedProposals.value.push(id); p.boostCount += 1; }
+    if (i >= 0) {
+      boostedProposals.value.splice(i, 1); p.boostCount = Math.max(0, p.boostCount - 1);
+      supabase.from("boosts").delete().match({ account_id: acct, proposal_id: id }).then();
+    } else {
+      boostedProposals.value.push(id); p.boostCount += 1;
+      (async () => {
+        await supabase.from("accounts").upsert({ account_id: acct, public_key: "", network: "taira" }, { onConflict: "account_id", ignoreDuplicates: true });
+        await supabase.from("boosts").insert({ account_id: acct, proposal_id: id });
+      })();
+    }
   };
-  const toggleFollow = (id: string): void => {
+const toggleFollow = (id: string): void => {
     const p = proposals.value.find((x) => x.id === id);
     if (!p) return;
+    const acct = currentAccountId.value;
     const i = followedProposals.value.indexOf(id);
-    if (i >= 0) { followedProposals.value.splice(i, 1); p.followers = Math.max(0, p.followers - 1); }
-    else { followedProposals.value.push(id); p.followers += 1; }
+    if (i >= 0) {
+      followedProposals.value.splice(i, 1); p.followers = Math.max(0, p.followers - 1);
+      supabase.from("follows").delete().match({ account_id: acct, proposal_id: id }).then();
+    } else {
+      followedProposals.value.push(id); p.followers += 1;
+      (async () => {
+        await supabase.from("accounts").upsert({ account_id: acct, public_key: "", network: "taira" }, { onConflict: "account_id", ignoreDuplicates: true });
+        await supabase.from("follows").insert({ account_id: acct, proposal_id: id });
+      })();
+    }
   };
 
   // IN-MEMORY DONATION PREVIEW ONLY — NOT real money, NOT the production path.
@@ -982,9 +1040,18 @@ export const useCommonsStore = defineStore("commons", () => {
     savedProposals.value.includes(proposalId);
 
   const toggleSave = (proposalId: string): void => {
+    const acct = currentAccountId.value;
     const i = savedProposals.value.indexOf(proposalId);
-    if (i >= 0) savedProposals.value.splice(i, 1);
-    else savedProposals.value.push(proposalId);
+    if (i >= 0) {
+      savedProposals.value.splice(i, 1);
+      supabase.from("saves").delete().match({ account_id: acct, proposal_id: proposalId }).then();
+    } else {
+      savedProposals.value.push(proposalId);
+      (async () => {
+        await supabase.from("accounts").upsert({ account_id: acct, public_key: "", network: "taira" }, { onConflict: "account_id", ignoreDuplicates: true });
+        await supabase.from("saves").insert({ account_id: acct, proposal_id: proposalId });
+      })();
+    }
   };
 
   const daysRemaining = (iso: string | null): number => {
