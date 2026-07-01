@@ -486,6 +486,19 @@ export const useCommonsStore = defineStore("commons", () => {
       supabase.from("follows").select("account_id, proposal_id"),
       supabase.from("saves").select("account_id, proposal_id"),
     ]);
+    const { data: donData } = await supabase.from("donations").select("proposal_id, donor_account_id, amount, burned");
+    const backersByProposal: Record<string, Set<string>> = {};
+    const totalByProposal: Record<string, number> = {};
+    const burnedByProposal: Record<string, number> = {};
+    for (const d of donData ?? []) {
+      (backersByProposal[d.proposal_id] ??= new Set()).add(d.donor_account_id);
+      totalByProposal[d.proposal_id] = (totalByProposal[d.proposal_id] ?? 0) + parseFloat(d.amount || "0");
+      burnedByProposal[d.proposal_id] = (burnedByProposal[d.proposal_id] ?? 0) + parseFloat(d.burned || "0");
+    }
+    const acctNow = currentAccountId.value;
+    donatedProposals.value = (donData ?? [])
+      .filter((d) => d.donor_account_id === acctNow)
+      .map((d) => d.donor_account_id + "::" + d.proposal_id);
     const countBy = (rows: any[] | null) => {
       const m: Record<string, number> = {};
       for (const r of rows ?? []) m[r.proposal_id] = (m[r.proposal_id] ?? 0) + 1;
@@ -545,13 +558,13 @@ export const useCommonsStore = defineStore("commons", () => {
       panelVotes: [],
       sortitionEndsAt: null,
       revisionCount: 0,
-      xorBurned: "0",
+      xorBurned: (burnedByProposal[row.id] ?? 0).toFixed(4),
       createdAt: row.created_at,
       likes: likeCount[row.id] ?? 0,
       boostCount: boostCount[row.id] ?? 0,
       followers: followCount[row.id] ?? 0,
-      backers: 0,
-      totalDonated: "0",
+      backers: backersByProposal[row.id]?.size ?? 0,
+      totalDonated: (totalByProposal[row.id] ?? 0).toFixed(4),
     }));
     console.log(`✓ loaded ${proposals.value.length} proposals from Supabase`);
   }
@@ -1017,7 +1030,7 @@ const toggleFollow = (id: string): void => {
   // Real donations must use the MONEY-CODE DISCIPLINE: integer/BigInt base units, exact
   // precision, 1% split summing exactly, validation, confirm, Taira-first, on-chain readback.
   // This stub updates in-memory totals so the experience can be seen/refined. No XOR moves.
-  const donate = (proposalId: string, amount: number): boolean => {
+ const donate = (proposalId: string, amount: number): boolean => {
     const p = proposals.value.find((x) => x.id === proposalId);
     if (!p) return false;
     if (p.proposerAccountId === currentAccountId.value) return false; // no self-donation
@@ -1028,11 +1041,23 @@ const toggleFollow = (id: string): void => {
     p.xorBurned = (parseFloat(p.xorBurned || "0") + burn).toFixed(4);
     // Backers = UNIQUE donors per proposal. Key by account+proposal so different accounts
     // each count once (and the same account donating twice still counts once).
-    const key = currentAccountId.value + "::" + proposalId;
+    const acct = currentAccountId.value;
+    const key = acct + "::" + proposalId;
     if (!donatedProposals.value.includes(key)) {
       donatedProposals.value.push(key);
       p.backers = (p.backers || 0) + 1;
     }
+    // record to Supabase (display record only — money rides on-chain later)
+    (async () => {
+      await supabase.from("accounts").upsert({ account_id: acct, public_key: "", network: "taira" }, { onConflict: "account_id", ignoreDuplicates: true });
+      const { error: dErr } = await supabase.from("donations").insert({
+        proposal_id: proposalId,
+        donor_account_id: acct,
+        amount: toProposer.toFixed(4),
+        burned: burn.toFixed(4),
+      });
+      if (dErr) console.error("donation insert failed:", dErr);
+    })();
     return true;
   };
 
