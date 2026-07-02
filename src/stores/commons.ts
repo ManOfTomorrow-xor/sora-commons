@@ -482,10 +482,13 @@ export const useCommonsStore = defineStore("commons", () => {
     const acct = currentAccountId.value;
     const [likesRes, boostsRes, followsRes, savesRes] = await Promise.all([
       supabase.from("likes").select("account_id, proposal_id"),
-      supabase.from("boosts").select("account_id, proposal_id"),
+      supabase.from("boosts").select("account_id, proposal_id, created_at"),
       supabase.from("follows").select("account_id, proposal_id"),
       supabase.from("saves").select("account_id, proposal_id"),
     ]);
+    const { data: acctRow } = await supabase.from("accounts").select("joined_at").eq("account_id", acct).maybeSingle();
+    accountJoinedAt.value = acctRow?.joined_at ?? null;
+    boostRows.value = boostsRes.data ?? [];
     const { data: donData } = await supabase.from("donations").select("proposal_id, donor_account_id, amount, burned");
     const backersByProposal: Record<string, Set<string>> = {};
     const totalByProposal: Record<string, number> = {};
@@ -975,6 +978,9 @@ export const useCommonsStore = defineStore("commons", () => {
   const isLiked = (id: string): boolean => likedProposals.value.includes(id);
   const isBoosted = (id: string): boolean => boostedProposals.value.includes(id);
   const isFollowing = (id: string): boolean => followedProposals.value.includes(id);
+  const accountJoinedAt = ref<string | null>(null);
+  const boostRows = ref<any[]>([]);
+  const boostBlockedTick = ref(0); // increments each time a boost is blocked at 0 allotment
 
  const toggleLike = (id: string): void => {
     const p = proposals.value.find((x) => x.id === id);
@@ -992,17 +998,22 @@ export const useCommonsStore = defineStore("commons", () => {
       })();
     }
   };
-  const toggleBoost = (id: string): void => {
+ const toggleBoost = (id: string): void => {
     const p = proposals.value.find((x) => x.id === id);
     if (!p) return;
-    // One boost per proposal. (Scarce weekly allotment per user = backend-era.)
+    // One boost per proposal. Weekly allotment enforced via boostsRemaining.
     const acct = currentAccountId.value;
     const i = boostedProposals.value.indexOf(id);
     if (i >= 0) {
+      // un-boost — always allowed, refunds the allotment
       boostedProposals.value.splice(i, 1); p.boostCount = Math.max(0, p.boostCount - 1);
+      boostRows.value = boostRows.value.filter((r) => !(r.account_id === acct && r.proposal_id === id));
       supabase.from("boosts").delete().match({ account_id: acct, proposal_id: id }).then();
     } else {
+      // new boost — blocked if no allotment left this week
+      if (boostsRemaining.value <= 0) { boostBlockedTick.value++; return; }
       boostedProposals.value.push(id); p.boostCount += 1;
+      boostRows.value.push({ account_id: acct, proposal_id: id, created_at: new Date().toISOString() });
       (async () => {
         await supabase.from("accounts").upsert({ account_id: acct, public_key: "", network: "taira" }, { onConflict: "account_id", ignoreDuplicates: true });
         await supabase.from("boosts").insert({ account_id: acct, proposal_id: id });
@@ -1025,6 +1036,20 @@ const toggleFollow = (id: string): void => {
       })();
     }
   };
+
+  const boostsRemaining = computed((): number => {
+    const acct = currentAccountId.value;
+    const joined = accountJoinedAt.value;
+    if (!joined) return COMMONS_CONFIG.BOOSTS_PER_WEEK; // no join anchor yet → full allotment
+    const weekMs = COMMONS_CONFIG.BOOST_WEEK_DAYS * 24 * 60 * 60 * 1000;
+    const joinedMs = new Date(joined).getTime();
+    const weeksElapsed = Math.floor((Date.now() - joinedMs) / weekMs);
+    const bucketStart = joinedMs + weeksElapsed * weekMs;
+    const usedThisWeek = boostRows.value.filter(
+      (r) => r.account_id === acct && new Date(r.created_at).getTime() >= bucketStart,
+    ).length;
+    return Math.max(0, COMMONS_CONFIG.BOOSTS_PER_WEEK - usedThisWeek);
+  });
 
   // IN-MEMORY DONATION PREVIEW ONLY — NOT real money, NOT the production path.
   // Real donations must use the MONEY-CODE DISCIPLINE: integer/BigInt base units, exact
@@ -1134,7 +1159,9 @@ const toggleFollow = (id: string): void => {
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
     savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow, 
-    donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount,
+    donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount, boostsRemaining, boostBlockedTick,
+
+
     // Reputation
     reputation, effectiveReputation, reputationRecord, creditReputation, myReputation,
   };

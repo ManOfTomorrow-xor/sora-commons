@@ -16,6 +16,10 @@ export const COMMONS_CONFIG = {
   MINIMUM_AYE_SIGNALS: 5, 
   MINIMUM_AYE_PERCENT: 60,
 
+  // Social — Boost allotment (isonomia: free but scarce; no pay-to-rank)
+  BOOSTS_PER_WEEK: 3,
+  BOOST_WEEK_DAYS: 7,
+
   // Stage 3 — Parliament Deliberation
   PARLIAMENT_DELIBERATION_DAYS: 10,
   MAX_AMENDMENTS: 2,

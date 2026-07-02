@@ -31,6 +31,13 @@
           <button v-for="s in sorts" :key="s" :class="{ on: sort === s }" @click="sort = s">{{ s }}</button>
         </div>
 
+        <!-- weekly boost allotment indicator -->
+        <div class="boostmeter" :class="{ empty: commons.boostsRemaining === 0 }">
+          <svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor" style="width:12px;height:12px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
+          <span v-if="commons.boostsRemaining > 0">{{ commons.boostsRemaining }} of {{ boostsPerWeek }} boosts left this week</span>
+          <span v-else>No boosts left this week — resets soon</span>
+        </div>
+
         <!-- empty state -->
         <p v-if="visible.length === 0" class="empty">
           No stories yet. Be the first to post your work.
@@ -105,6 +112,8 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useCommonsStore } from "@/stores/commons";
+import { COMMONS_CONFIG } from "@/constants/commonsConfig";
+const boostsPerWeek = COMMONS_CONFIG.BOOSTS_PER_WEEK;
 
 const emit = defineEmits<{ (e: "nav", id: string): void }>();
 const commons = useCommonsStore();
@@ -260,6 +269,10 @@ function avStyle(id: string) {
   .engbtn { min-height: 44px; padding: 8px 12px; }
   .sort button { min-height: 44px; padding: 8px 16px; }
 }
+ .boostmeter { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; color: var(--ink-dim);
+  background: var(--navy-900); border: 1px solid var(--line-soft); border-radius: var(--r-sm); padding: 6px 12px; margin: 0 0 14px; }
+.boostmeter .i-bolt { color: var(--gold-300); }
+.boostmeter.empty { color: var(--gold-300); border-color: var(--gold-700, #7a5c1a); }
 
 .rail { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 88px; align-self: start; }
 @media (max-width: 980px) { .rail { display: none; } }
@@ -292,6 +305,7 @@ function avStyle(id: string) {
   .tbchip__t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
   .tbchip__b { flex: none; display: inline-flex; align-items: center; gap: 3px; color: var(--gold-300); font-family: var(--mono); font-size: .78rem; }
 }
+
 @media (max-width: 720px) {
   .card { padding: 14px; margin-bottom: 10px; }
   .card__title { font-size: 1.12rem; }

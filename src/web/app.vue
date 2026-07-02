@@ -7,6 +7,12 @@
           <img class="brand__seal" :src="sealUrl" alt="SORA Commons seal" />
           <span class="brand__name">SORA <b>Commons</b></span>
         </a>
+        <transition name="boostbanner">
+      <div v-if="boostBanner" class="boost-banner" role="status">
+        <svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
+        <span>You've used all {{ boostsPerWeek }} boosts this week. Your allotment resets soon.</span>
+      </div>
+    </transition>
        <nav class="nav">
           <a v-for="t in tabs" :key="t.id" :class="{ active: active === t.id }" @click="go(t.id)">{{ t.label }}</a>
           <button class="nav-post btn-gold" :class="{ active: active === 'post' }" @click="go('post')">Post</button>
@@ -53,10 +59,11 @@
 import Story from "./views/Story.vue";
 import Explore from "./views/Explore.vue";
 import Feed from "./views/Feed.vue";
-import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import { COMMONS_CONFIG } from "@/constants/commonsConfig";
 const commons = useCommonsStore();
+const boostsPerWeek = COMMONS_CONFIG.BOOSTS_PER_WEEK;
 import sealUrl from "./assets/seal.png";
 import Overview from "./views/Overview.vue";
 import About from "./views/About.vue";
@@ -65,6 +72,14 @@ import Treasury from "./views/Treasury.vue";
 import Submit from "./views/Submit.vue";
 import Compose from "./views/Compose.vue";
 import Profile from "./views/Profile.vue";
+
+const boostBanner = ref(false);
+let boostBannerTimer: ReturnType<typeof setTimeout> | null = null;
+watch(() => commons.boostBlockedTick, () => {
+  boostBanner.value = true;
+  if (boostBannerTimer) clearTimeout(boostBannerTimer);
+  boostBannerTimer = setTimeout(() => { boostBanner.value = false; }, 3200);
+});
 
 const active = ref("feed");
 const navHidden = ref(false);
@@ -197,5 +212,20 @@ const mobileTabs = [
 @media (prefers-reduced-motion: reduce) {
   .topbar, .tabbar { transition: none !important; }
   .topbar.nav-hidden, .tabbar.nav-hidden { transform: none !important; }
+}
+.boost-banner {
+  position: fixed; top: 18px; right: 18px; z-index: 1000;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--navy-850); border: 1px solid var(--gold-700, #7a5c1a);
+  color: var(--ink); font-size: .84rem; line-height: 1.4;
+  padding: 12px 16px; border-radius: var(--r); max-width: 320px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+}
+.boost-banner .i-bolt { color: var(--gold-300); flex-shrink: 0; }
+.boostbanner-enter-active, .boostbanner-leave-active { transition: opacity .25s ease, transform .25s ease; }
+.boostbanner-enter-from, .boostbanner-leave-to { opacity: 0; transform: translateY(-8px); }
+@media (prefers-reduced-motion: reduce) {
+  .boostbanner-enter-active, .boostbanner-leave-active { transition: opacity .25s ease; }
+  .boostbanner-enter-from, .boostbanner-leave-to { transform: none; }
 }
 </style>
