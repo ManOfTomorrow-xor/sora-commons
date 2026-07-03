@@ -8,7 +8,7 @@
           <span class="brand__name">SORA <b>Commons</b></span>
         </a>
         <transition name="boostbanner">
-      <div v-if="boostBanner" class="boost-banner" role="status">
+        <div v-if="boostBanner" class="boost-banner" role="status">
         <svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
         <span>You've used all {{ boostsPerWeek }} boosts this week. Your allotment resets soon.</span>
       </div>
@@ -106,8 +106,9 @@ function onScroll() {
   navHidden.value = y > lastY;
   lastY = y;
 }
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener("scroll", onScroll, { passive: true });
+  await commons.initMockWallet();
   commons.loadProposals();
 });
 onUnmounted(() => window.removeEventListener("scroll", onScroll));

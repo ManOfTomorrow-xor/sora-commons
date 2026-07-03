@@ -168,6 +168,7 @@ export const useCommonsStore = defineStore("commons", () => {
   // Gated to DEMO_MODE; never ships. Real identity = wallet-connect + backend.
   const DEMO_ACCOUNTS = ["demo.commons.test", "viewer.commons.test", "maker.commons.test"];
   const demoAccountId = ref<string>("demo.commons.test");
+  const mockWalletId = ref<string>("");
   const setDemoAccount = (id: string) => {
     if (!COMMONS_CONFIG.SHOW_DEV_TOOLS) return;
     demoAccountId.value = id;
@@ -177,13 +178,15 @@ export const useCommonsStore = defineStore("commons", () => {
     followedProposals.value = socialRows.value.follows.filter((r) => r.account_id === acct).map((r) => r.proposal_id);
     savedProposals.value = socialRows.value.saves.filter((r) => r.account_id === acct).map((r) => r.proposal_id);
   };
+
   // ── Derived from Parliament ────────────────────────────────────────────────
 
  const currentAccountId = computed(
     () =>
       parliament.activeAccountDisplayId ||
       parliament.requestAccountId ||
-      (COMMONS_CONFIG.DEMO_MODE ? demoAccountId.value : ""),
+      (COMMONS_CONFIG.SHOW_DEV_TOOLS ? demoAccountId.value : "") ||
+      (COMMONS_CONFIG.DEMO_MODE ? mockWalletId.value : ""),
   );
   const isConnected = computed(() => Boolean(currentAccountId.value));
   const isCitizen = computed(() => parliament.hasCitizenRecord);
@@ -571,8 +574,13 @@ export const useCommonsStore = defineStore("commons", () => {
     }));
     console.log(`✓ loaded ${proposals.value.length} proposals from Supabase`);
   }
-  
 
+  async function initMockWallet() {
+    if (!COMMONS_CONFIG.DEMO_MODE) return;
+    const { getAccountId } = await import("@/web/lib/mockWallet");
+    mockWalletId.value = await getAccountId();
+  }
+  
   // Stage 2 — Cast Signal (Aye or Nay)
   const castSignal = (proposalId: string, vote: SignalVote): boolean => {
     const accountId = currentAccountId.value;
@@ -1159,7 +1167,7 @@ const toggleFollow = (id: string): void => {
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
     savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow, 
-    donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount, boostsRemaining, boostBlockedTick,
+    donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount, boostsRemaining, boostBlockedTick,  mockWalletId, initMockWallet,
 
 
     // Reputation
