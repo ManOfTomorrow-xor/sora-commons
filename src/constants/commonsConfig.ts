@@ -6,6 +6,12 @@ export const COMMONS_CONFIG = {
   // DEMO_MODE: true  = Taira testnet, relaxed gates, demo banner shown
   // DEMO_MODE: false = Minamoto mainnet, full production rules
   DEMO_MODE: true,
+// SHOW_DEV_TOOLS: true = show the 3-account identity switcher (LOCAL DEV ONLY).
+  // Deploy for visitors with this FALSE — visitors get their own mock wallet, no switcher.
+  SHOW_DEV_TOOLS: false,
+  // TESTNET_NOTICE: shown to make clear this is a test version — NO real value moves.
+  // Donations are an in-memory preview only; no real XOR is transferred on Taira.
+  IS_TEST_VERSION: true,
 
   // Stage 1 — Proposal Submission
   PROPOSAL_FEE_XOR: "5",

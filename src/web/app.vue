@@ -18,7 +18,7 @@
           <button class="nav-post btn-gold" :class="{ active: active === 'post' }" @click="go('post')">Post</button>
         </nav>
         <span class="spacer"></span>
-        <select v-if="demoMode" class="demoswitch" :value="commons.demoAccountId" @change="onDemoSwitch" title="Demo: switch identity (dev only)">
+        <select v-if="showDevTools" class="demoswitch" :value="commons.demoAccountId" @change="onDemoSwitch" title="Demo: switch identity (dev only)">
           <option v-for="a in demoAccounts" :key="a" :value="a">{{ a.split('.')[0] }}</option>
         </select>
         <div class="netchip" title="Connected to Taira testnet"><span class="dot"></span><span class="netchip__lbl">TAIRA</span></div>
@@ -113,7 +113,7 @@ onMounted(() => {
 onUnmounted(() => window.removeEventListener("scroll", onScroll));
 const myId = computed(() => commons.currentAccountId);
 function goMyProfile() { commons.setViewingProfile(null); go("profile"); }
-const demoMode = COMMONS_CONFIG.DEMO_MODE;
+const showDevTools = COMMONS_CONFIG.SHOW_DEV_TOOLS;
 const demoAccounts = commons.DEMO_ACCOUNTS;
 function onDemoSwitch(e: Event) {
   commons.setDemoAccount((e.target as HTMLSelectElement).value);

@@ -169,7 +169,7 @@ export const useCommonsStore = defineStore("commons", () => {
   const DEMO_ACCOUNTS = ["demo.commons.test", "viewer.commons.test", "maker.commons.test"];
   const demoAccountId = ref<string>("demo.commons.test");
   const setDemoAccount = (id: string) => {
-    if (!COMMONS_CONFIG.DEMO_MODE) return;
+    if (!COMMONS_CONFIG.SHOW_DEV_TOOLS) return;
     demoAccountId.value = id;
     const acct = id;
     likedProposals.value = socialRows.value.likes.filter((r) => r.account_id === acct).map((r) => r.proposal_id);
