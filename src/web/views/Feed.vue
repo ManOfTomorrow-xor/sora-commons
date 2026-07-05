@@ -44,7 +44,7 @@
         </p>
 
         <!-- story cards -->
-       <article v-for="p in visible" :key="p.id" class="card" @click="open(p)">
+       <article v-for="p in visible" :key="p.id" class="card" :class="{ 'card--flagged': commons.proposalChallengeState(p) === 'flagged' }" @click="open(p)">
           <div class="card__top">
             <span class="av" :style="avStyle(p.proposerAccountId)">{{ initials(p.proposerAccountId) }}</span>
             <span class="card__who">{{ shortId(p.proposerAccountId) }}</span>
@@ -54,7 +54,10 @@
             </button>
           </div>
 
-          <h3 class="card__title">{{ p.title }}</h3>
+          <h3 class="card__title">
+            {{ p.title }}
+            <span v-if="commons.proposalChallengeState(p) === 'flagged'" class="card__flag">⚑ Flagged</span>
+          </h3>
           <p class="card__snip">{{ p.description }}</p>
 
           <div class="badges">
@@ -229,6 +232,8 @@ function avStyle(id: string) {
 .card__save { margin-left: auto; background: none; border: none; color: var(--ink-faint); cursor: pointer; padding: 4px; display: flex; }
 .card__save svg { width: 18px; height: 18px; }
 .card__save:hover, .card__save.on { color: var(--gold-300); }
+.card--flagged { border-left: 4px solid var(--negate); padding-left: calc(var(--card-pad, 18px) - 4px); }
+.card__flag { display: inline-flex; align-items: center; gap: 3px; font-size: .66rem; font-weight: 700; font-family: var(--mono); color: var(--negate); background: rgba(139,30,45,.12); border: 1px solid rgba(139,30,45,.3); border-radius: 999px; padding: 2px 8px; margin-left: 8px; vertical-align: middle; letter-spacing: .02em; }
 
 .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 .badge__ic { width: 13px; height: 13px; flex: none; }
@@ -315,4 +320,5 @@ function avStyle(id: string) {
   .prog { margin-bottom: 10px; }
   .card__top { margin-bottom: 8px; }
 }
+
 </style>

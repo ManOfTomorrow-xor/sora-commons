@@ -70,6 +70,42 @@
               <div v-if="m.completed && m.deliveredEvidence" class="ch__ev ch__ev--delivered">
                 <span class="ch__evlab">Evidence presented:</span> {{ m.deliveredEvidence }}
               </div>
+              <!-- Challenge window (delivered chapters) -->
+              <div v-if="m.completed && m.deliveredAt" class="ch__cw">
+                <div class="ch__cwstate" :class="'cw--' + commons.milestoneChallengeState(m)">
+                  <template v-if="commons.milestoneChallengeState(m) === 'in-window'">⏳ Challenge window — {{ windowDaysLeft(m) }} day{{ windowDaysLeft(m) === 1 ? '' : 's' }} left for backers to review</template>
+                  <template v-else-if="commons.milestoneChallengeState(m) === 'flagged'">⚑ This delivery has an open flag on the record</template>
+                  <template v-else-if="commons.milestoneChallengeState(m) === 'confirmed'">✓ Confirmed — challenge window passed</template>
+                </div>
+
+                <!-- flag threads -->
+                <div v-for="f in (m.flags || [])" :key="f.id" class="ch__flag" :class="{ 'is-withdrawn': f.status === 'withdrawn' }">
+                  <div class="ch__flag_h">
+                    <span class="ch__flag_who">Flag by {{ shortId(f.flaggerAccountId) }}</span>
+                    <span v-if="f.status === 'withdrawn'" class="ch__flag_wd">withdrawn {{ f.withdrawnAt ? new Date(f.withdrawnAt).toLocaleDateString() : '' }}</span>
+                  </div>
+                  <p class="ch__flag_reason">{{ f.reason }}</p>
+                  <p v-if="f.proposerResponse" class="ch__flag_resp"><span class="ch__evlab">Proposer's response:</span> {{ f.proposerResponse }}</p>
+                  <button v-if="f.status === 'open' && f.flaggerAccountId === commons.currentAccountId" class="ch__flag_act" @click="doWithdraw(m.id, f.id)">Withdraw flag</button>
+                  <div v-if="isMine && f.status === 'open' && !f.proposerResponse" class="ch__flag_respbox">
+                    <textarea v-model="responseText[f.id]" rows="2" placeholder="Respond to this flag (stays on the record)"></textarea>
+                    <button class="ch__deliverbtn btn-gold" :disabled="!(responseText[f.id] || '').trim()" @click="doRespond(m.id, f.id)">Post response</button>
+                  </div>
+                </div>
+                <!-- point deeper discussion to the conversation -->
+                <button v-if="(m.flags || []).length > 0" class="ch__flag_discuss" @click="goToComments()">
+                  Discuss this further in the conversation below ↓
+                </button>
+                <!-- raise a flag (shown to all non-proposers; gated on click) -->
+                <div v-if="!isMine" class="ch__flagraise">
+                  <button v-if="!flagOpenFor[m.id]" class="ch__flag_open" @click="openFlag(m)">Flag this delivery</button>
+                  <div v-else class="ch__flag_form">
+                    <textarea v-model="flagText[m.id]" rows="2" placeholder="Why are you flagging this delivery? (stays permanently on the record)"></textarea>
+                    <button class="ch__deliverbtn btn-gold" :disabled="!(flagText[m.id] || '').trim()" @click="doFlag(m.id)">Submit flag</button>
+                  </div>
+                  <p v-if="flagNotice[m.id]" class="ch__flag_notice">{{ flagNotice[m.id] }}</p>
+                </div>
+              </div>
               <div v-if="isMine && !m.completed && i === firstIncomplete" class="ch__deliver">
                 <textarea v-model="deliverText" rows="2" placeholder="Present the actual evidence this chapter is done (link, receipt, photo description...)"></textarea>
                 <button class="ch__attach" disabled title="File uploads arrive with file storage">
@@ -185,6 +221,7 @@ import { ref, computed, onMounted } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import WhyExpander from "../components/WhyExpander.vue";
 import Clampable from "../components/Clampable.vue";
+import { COMMONS_CONFIG } from "@/constants/commonsConfig";
 
 const emit = defineEmits<{ (e: "nav", id: string): void }>();
 const commons = useCommonsStore();
@@ -202,6 +239,9 @@ function postComment() {
 function goProfile() {
   if (p.value) commons.setViewingProfile(p.value.proposerAccountId);
   emit("nav", "profile");
+}
+function goToComments() {
+  document.getElementById("conversation")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 const firstIncomplete = computed(() => {
@@ -257,6 +297,52 @@ function submitDelivery(milestoneId: string) {
   if (!p.value || !deliverText.value.trim()) return;
   const ok = commons.markChapterDelivered(p.value.id, milestoneId, deliverText.value.trim());
   if (ok) deliverText.value = "";
+}
+const flagText = ref<Record<string, string>>({});
+const responseText = ref<Record<string, string>>({});
+const flagOpenFor = ref<Record<string, boolean>>({});
+const flagNotice = ref<Record<string, string>>({});
+
+function windowDaysLeft(m: any): number {
+  if (!m.deliveredAt) return 0;
+  const ends = new Date(m.deliveredAt).getTime() + COMMONS_CONFIG.CHALLENGE_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+  return Math.max(0, Math.ceil((ends - Date.now()) / (1000 * 60 * 60 * 24)));
+}
+function canFlag(m: any): boolean {
+  if (!p.value) return false;
+  const acct = commons.currentAccountId;
+  const isBacker = commons.donatedProposals.includes(acct + "::" + p.value.id);
+  return Boolean(m.deliveredAt) && isBacker;
+}
+function openFlag(m: any) {
+  if (!p.value) return;
+  if (!canFlag(m)) {
+    flagNotice.value[m.id] = "You need to be a backer of this work to flag a delivery. Support it first, then you can raise a flag.";
+    return;
+  }
+  flagNotice.value[m.id] = "";
+  flagOpenFor.value[m.id] = true;
+}
+function doFlag(milestoneId: string) {
+  if (!p.value) return;
+  const reason = (flagText.value[milestoneId] || "").trim();
+  if (!reason) return;
+  if (commons.raiseFlag(p.value.id, milestoneId, reason)) {
+    flagText.value[milestoneId] = "";
+    flagOpenFor.value[milestoneId] = false;
+  }
+}
+function doWithdraw(milestoneId: string, flagId: string) {
+  if (!p.value) return;
+  commons.withdrawFlag(p.value.id, milestoneId, flagId);
+}
+function doRespond(milestoneId: string, flagId: string) {
+  if (!p.value) return;
+  const resp = (responseText.value[flagId] || "").trim();
+  if (!resp) return;
+  if (commons.respondToFlag(p.value.id, milestoneId, flagId, resp)) {
+    responseText.value[flagId] = "";
+  }
 }
 function initials(id?: string) { return (id || "?").slice(0, 2).toUpperCase(); }
 function avStyle(id?: string) {
@@ -459,4 +545,25 @@ onMounted(() => {
   .ch__dot { width: 22px; height: 22px; font-size: .7rem; }
   .ch__deliver textarea { font-size: .8rem; line-height: 1.4; min-height: 84px; }
 }
+.ch__cw { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line-soft); }
+.ch__cwstate { font-size: .78rem; font-family: var(--mono); padding: 4px 0; }
+.cw--in-window { color: var(--gold-300); }
+.cw--flagged { color: var(--negate); }
+.cw--confirmed { color: var(--affirm); }
+.ch__flag { background: rgba(139,30,45,.08); border: 1px solid rgba(139,30,45,.3); border-radius: var(--r-sm); padding: 10px 12px; margin: 8px 0; }
+.ch__flag.is-withdrawn { opacity: .55; border-style: dashed; }
+.ch__flag_h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.ch__flag_who { font-size: .74rem; font-weight: 700; color: var(--negate); }
+.ch__flag_wd { font-size: .68rem; font-family: var(--mono); color: var(--ink-faint); }
+.ch__flag_reason { font-size: .88rem; margin: 6px 0; color: var(--ink); }
+.ch__flag_resp { font-size: .85rem; margin: 6px 0; color: var(--ink-dim); }
+.ch__flag_act { background: none; border: none; color: var(--negate); font-size: .74rem; cursor: pointer; text-decoration: underline; padding: 2px 0; }
+.ch__flag_respbox textarea, .ch__flag_form textarea { width: 100%; margin: 6px 0; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px; color: var(--ink); font-family: inherit; font-size: .85rem; }
+.ch__flagraise { margin-top: 8px; }
+.ch__flag_open { background: none; border: 1px solid rgba(139,30,45,.4); color: var(--negate); border-radius: 999px; padding: 5px 12px; font-size: .76rem; cursor: pointer; }
+.ch__flag_open:hover { background: rgba(139,30,45,.12); }
+.ch__flag_form { margin-top: 6px; }
+.ch__flag_notice { font-size: .78rem; color: var(--ink-dim); margin: 6px 0 0; padding: 8px 10px; background: var(--navy-900); border: 1px solid var(--line-soft); border-radius: var(--r-sm); }
+.ch__flag_discuss { background: none; border: none; color: var(--ink-dim); font-size: .78rem; cursor: pointer; padding: 4px 0; text-decoration: underline; }
+.ch__flag_discuss:hover { color: var(--gold-300); }
 </style>

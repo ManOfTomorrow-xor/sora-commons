@@ -34,6 +34,7 @@ export type Milestone = {
   completed: boolean;
   completedAt: string | null;
   xorBurned: string;
+  flags?: Flag[];
 };
 
 export type DiscussionPost = {
@@ -42,6 +43,19 @@ export type DiscussionPost = {
   authorAccountId: string;
   content: string;
   isAmendment: boolean;
+  createdAt: string;
+};
+
+export type Flag = {
+  id: string;
+  proposalId: string;
+  milestoneId: string | null;
+  flaggerAccountId: string;
+  reason: string;
+  status: "open" | "withdrawn";
+  withdrawnAt: string | null;
+  proposerResponse: string | null;
+  respondedAt: string | null;
   createdAt: string;
 };
 
@@ -482,6 +496,7 @@ export const useCommonsStore = defineStore("commons", () => {
     for (const m of msData ?? []) {
       (msByProposal[m.proposal_id] ??= []).push(m);
     }
+    console.log("MS LOAD:", (msData ?? []).map((m: any) => ({ id: m.id, completed: m.completed, delivered: m.delivered_evidence })));
     const acct = currentAccountId.value;
     const [likesRes, boostsRes, followsRes, savesRes] = await Promise.all([
       supabase.from("likes").select("account_id, proposal_id"),
@@ -500,6 +515,14 @@ export const useCommonsStore = defineStore("commons", () => {
       (backersByProposal[d.proposal_id] ??= new Set()).add(d.donor_account_id);
       totalByProposal[d.proposal_id] = (totalByProposal[d.proposal_id] ?? 0) + parseFloat(d.amount || "0");
       burnedByProposal[d.proposal_id] = (burnedByProposal[d.proposal_id] ?? 0) + parseFloat(d.burned || "0");
+    }
+    const { data: flagData } = await supabase
+      .from("flags")
+      .select("*")
+      .order("created_at", { ascending: true });
+    const flagsByMilestone: Record<string, any[]> = {};
+    for (const f of flagData ?? []) {
+      if (f.milestone_id) (flagsByMilestone[f.milestone_id] ??= []).push(f);
     }
     const acctNow = currentAccountId.value;
     donatedProposals.value = (donData ?? [])
@@ -543,6 +566,18 @@ export const useCommonsStore = defineStore("commons", () => {
       completed: m.completed ?? false,
       completedAt: m.completed_at ?? null,
       xorBurned: "0",
+        flags: (flagsByMilestone[m.id] ?? []).map((f: any) => ({
+        id: f.id,
+        proposalId: f.proposal_id,
+        milestoneId: f.milestone_id,
+        flaggerAccountId: f.flagger_account_id,
+        reason: f.reason,
+        status: f.status ?? "open",
+        withdrawnAt: f.withdrawn_at ?? null,
+        proposerResponse: f.proposer_response ?? null,
+        respondedAt: f.responded_at ?? null,
+        createdAt: f.created_at,
+      })),
     })),
       status: "signal",
       signals: [],
@@ -555,6 +590,7 @@ export const useCommonsStore = defineStore("commons", () => {
         isAmendment: c.is_amendment ?? false,
         createdAt: c.created_at,
       })),
+      
       amendments: [],
       deliberationEndsAt: null,
       sortitionExcluded: [row.proposer_account_id],
@@ -580,7 +616,7 @@ export const useCommonsStore = defineStore("commons", () => {
     const { getAccountId } = await import("@/web/lib/mockWallet");
     mockWalletId.value = await getAccountId();
   }
-  
+
   // Stage 2 — Cast Signal (Aye or Nay)
   const castSignal = (proposalId: string, vote: SignalVote): boolean => {
     const accountId = currentAccountId.value;
@@ -856,13 +892,104 @@ export const useCommonsStore = defineStore("commons", () => {
     const milestone = proposal.milestones.find((m) => m.id === milestoneId);
     if (!milestone || milestone.completed) return false;
     if (!evidence.trim()) return false;
+    const now = new Date().toISOString();
     milestone.deliveredEvidence = evidence.trim();
-    milestone.deliveredAt = new Date().toISOString();
+    milestone.deliveredAt = now;
     milestone.completed = true;
-    milestone.completedAt = new Date().toISOString();
+    milestone.completedAt = now;
     if (proposal.milestones.every((m) => m.completed)) {
       proposal.status = "complete";
     }
+    // persist the delivery to Supabase so it survives refresh
+    (async () => {
+      const { error } = await supabase.from("milestones").update({
+        delivered_evidence: evidence.trim(),
+        delivered_at: now,
+        completed: true,
+        completed_at: now,
+      }).eq("id", milestoneId);
+      if (error) console.error("delivery persist failed:", error);
+    })();
+    return true;
+  };
+  // ── Challenge Window — flags (no verdicts; permanent record) ──────────────
+
+  // Raise a flag on a delivered milestone. Only backers/donors of the proposal.
+  const raiseFlag = (proposalId: string, milestoneId: string, reason: string): boolean => {
+    const acct = currentAccountId.value;
+    if (!acct || !reason.trim()) return false;
+    const proposal = proposals.value.find((p) => p.id === proposalId);
+    if (!proposal) return false;
+    const milestone = proposal.milestones.find((m) => m.id === milestoneId);
+    if (!milestone || !milestone.deliveredAt) return false; // can only flag a delivered chapter
+    // must be a backer/donor of this proposal
+    const isBacker = donatedProposals.value.includes(acct + "::" + proposalId);
+    if (!isBacker && proposal.proposerAccountId !== acct) {
+      // proposer can't flag their own; and non-donors can't flag
+    }
+    if (!isBacker) return false;
+    // one open flag per person per milestone
+    if ((milestone.flags ?? []).some((f) => f.flaggerAccountId === acct && f.status === "open")) return false;
+
+    const now = new Date().toISOString();
+    const newFlag: Flag = {
+      id: generateId(), proposalId, milestoneId,
+      flaggerAccountId: acct, reason: reason.trim(),
+      status: "open", withdrawnAt: null,
+      proposerResponse: null, respondedAt: null, createdAt: now,
+    };
+    (milestone.flags ??= []).push(newFlag);
+    (async () => {
+      await supabase.from("accounts").upsert({ account_id: acct, public_key: "", network: "taira" }, { onConflict: "account_id", ignoreDuplicates: true });
+      const { data, error } = await supabase.from("flags").insert({
+        proposal_id: proposalId, milestone_id: milestoneId,
+        flagger_account_id: acct, reason: reason.trim(), status: "open",
+      }).select("id").single();
+      if (error) { console.error("flag insert failed:", error); return; }
+      if (data) newFlag.id = data.id; // adopt DB id
+    })();
+    return true;
+  };
+
+  // Withdraw a flag — only the flagger. Not deletion: marks withdrawn, stays visible.
+  const withdrawFlag = (proposalId: string, milestoneId: string, flagId: string): boolean => {
+    const acct = currentAccountId.value;
+    const proposal = proposals.value.find((p) => p.id === proposalId);
+    const milestone = proposal?.milestones.find((m) => m.id === milestoneId);
+    const flag = milestone?.flags?.find((f) => f.id === flagId);
+    if (!flag || flag.flaggerAccountId !== acct || flag.status !== "open") return false;
+    const now = new Date().toISOString();
+    flag.status = "withdrawn"; flag.withdrawnAt = now;
+    (async () => {
+      const { error } = await supabase.from("flags")
+        .update({ status: "withdrawn", withdrawn_at: now })
+        .eq("milestone_id", milestoneId)
+        .eq("flagger_account_id", flag.flaggerAccountId)
+        .eq("status", "open");
+      if (error) console.error("withdraw persist failed:", error);
+    })();
+    return true;
+  };
+
+  // Proposer responds to a flag — response stays in the thread, resolves nothing.
+  const respondToFlag = (proposalId: string, milestoneId: string, flagId: string, response: string): boolean => {
+    const acct = currentAccountId.value;
+    const proposal = proposals.value.find((p) => p.id === proposalId);
+    if (!proposal || proposal.proposerAccountId !== acct || !response.trim()) return false;
+    const milestone = proposal.milestones.find((m) => m.id === milestoneId);
+    const flag = milestone?.flags?.find((f) => f.id === flagId);
+    if (!flag) return false;
+    const now = new Date().toISOString();
+    flag.proposerResponse = response.trim(); flag.respondedAt = now;
+    (async () => {
+      const { data, error } = await supabase.from("flags")
+        .update({ proposer_response: response.trim(), responded_at: now })
+        .eq("milestone_id", milestoneId)
+        .eq("flagger_account_id", flag.flaggerAccountId)
+        .eq("status", "open")
+        .select();
+      console.log("RESPOND update →", { milestoneId, flagger: flag.flaggerAccountId, matched: data?.length, error });
+    })();
     return true;
   };
 // ── Reputation ───────────────────────────────────────────────────────────
@@ -1117,6 +1244,25 @@ const toggleFollow = (id: string): void => {
     const diff = new Date(iso).getTime() - Date.now();
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   };
+  // Derived challenge-window state for a delivered milestone (no stored status).
+  const milestoneChallengeState = (m: Milestone): "in-progress" | "in-window" | "flagged" | "confirmed" => {
+    if (!m.deliveredAt) return "in-progress";
+    const openFlags = (m.flags ?? []).filter((f) => f.status === "open");
+    if (openFlags.length > 0) return "flagged";
+    const windowEnds = new Date(m.deliveredAt).getTime() + COMMONS_CONFIG.CHALLENGE_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+    if (Date.now() < windowEnds) return "in-window";
+    return "confirmed";
+  };
+  // Proposal-level challenge state, derived from its milestones.
+  const proposalChallengeState = (p: CommonsProposal): "flagged" | "in-window" | null => {
+    let inWindow = false;
+    for (const m of p.milestones ?? []) {
+      const s = milestoneChallengeState(m);
+      if (s === "flagged") return "flagged";
+      if (s === "in-window") inWindow = true;
+    }
+    return inWindow ? "in-window" : null;
+  };
   // Revise and Resubmit — pre-fills draft from rejected proposal
   const reviseAndResubmit = (proposalId: string): void => {
     const proposal = proposals.value.find((p) => p.id === proposalId);
@@ -1137,7 +1283,7 @@ const toggleFollow = (id: string): void => {
   return {
     // State
     proposals, isLoading, error, activeProposalId,
-  draftTitle, draftDescription, draftStory, draftXorRequested, draftFundingMode, draftMilestones,
+    draftTitle, draftDescription, draftStory, draftXorRequested, draftFundingMode, draftMilestones,
     draftCategory, draftProductiveClaim, draftInputs, draftExpectedOutput,
     draftDemandSignal, draftRiskBearer, draftFailureHandling, draftPublicBenefit, scrollToComments, setScrollToComments,
 
@@ -1162,7 +1308,7 @@ const toggleFollow = (id: string): void => {
     setActiveProposal, addMilestone, removeMilestone,
     resetDraft, submitProposal,loadProposals, castSignal,
     postDiscussion, submitAmendment, submitParliamentBrief, submitParliamentRemarks, reviseAndResubmit,
-    advanceToSortition, castPanelVote, confirmMilestone, markChapterDelivered,
+    advanceToSortition, castPanelVote, confirmMilestone, markChapterDelivered, milestoneChallengeState, proposalChallengeState, raiseFlag, withdrawFlag, respondToFlag,
 
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,

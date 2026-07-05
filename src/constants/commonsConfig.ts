@@ -8,7 +8,7 @@ export const COMMONS_CONFIG = {
   DEMO_MODE: true,
 // SHOW_DEV_TOOLS: true = show the 3-account identity switcher (LOCAL DEV ONLY).
   // Deploy for visitors with this FALSE — visitors get their own mock wallet, no switcher.
-  SHOW_DEV_TOOLS: false,
+  SHOW_DEV_TOOLS: true,
   // TESTNET_NOTICE: shown to make clear this is a test version — NO real value moves.
   // Donations are an in-memory preview only; no real XOR is transferred on Taira.
   IS_TEST_VERSION: true,
@@ -39,6 +39,11 @@ export const COMMONS_CONFIG = {
 // Stage 5 — Milestone Execution
   MILESTONE_CONFIRM_DAYS: 7,
  MILESTONE_BURN_PERCENT: 1,
+
+ // Challenge Window — accountability period after a delivery is marked.
+  // Delivered milestones enter a window where backers/donors can flag.
+  // No verdicts: flags are permanent record, never a clawback. (Phase 1)
+  CHALLENGE_WINDOW_DAYS: 7,
 
   // Citizen Reputation (Decision 40)
   // INVARIANT: reputation gates ACCESS only — it NEVER weights a sortition draw
