@@ -183,6 +183,10 @@ export const useCommonsStore = defineStore("commons", () => {
   const DEMO_ACCOUNTS = ["demo.commons.test", "viewer.commons.test", "maker.commons.test"];
   const demoAccountId = ref<string>("demo.commons.test");
   const mockWalletId = ref<string>("");
+  const avatarUrl = ref<string>("");
+  const avatarByAccount = ref<Record<string, string>>({});
+  const displayNameByAccount = ref<Record<string, string>>({});
+  const bioByAccount = ref<Record<string, string>>({});
   const setDemoAccount = (id: string) => {
     if (!COMMONS_CONFIG.SHOW_DEV_TOOLS) return;
     demoAccountId.value = id;
@@ -478,8 +482,19 @@ export const useCommonsStore = defineStore("commons", () => {
       .from("proposals")
       .select("*")
       .order("created_at", { ascending: false });
-    if (loadErr) { console.error("load proposals failed:", loadErr); return; }
-    if (!data) return;
+   const { data: acctData } = await supabase.from("accounts").select("account_id, avatar_url, display_name, bio");
+    const avMap: Record<string, string> = {};
+    const nameMap: Record<string, string> = {};
+    const bioMap: Record<string, string> = {};
+    for (const a of acctData ?? []) {
+      if (a.avatar_url) avMap[a.account_id] = a.avatar_url;
+      if (a.display_name) nameMap[a.account_id] = a.display_name;
+      if (a.bio) bioMap[a.account_id] = a.bio;
+    }
+    avatarByAccount.value = avMap;
+    displayNameByAccount.value = nameMap;
+    bioByAccount.value = bioMap;
+    avatarUrl.value = avMap[currentAccountId.value] || "";
     const { data: msData } = await supabase
       .from("milestones")
       .select("*")
@@ -616,6 +631,41 @@ export const useCommonsStore = defineStore("commons", () => {
     const { getAccountId } = await import("@/web/lib/mockWallet");
     mockWalletId.value = await getAccountId();
   }
+  async function uploadAvatar(file: File | Blob): Promise<{ ok: boolean; error?: string }> {
+    const acct = currentAccountId.value;
+    if (!acct) return { ok: false, error: "No account" };
+    const okTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!okTypes.includes(file.type)) return { ok: false, error: "Use a JPG, PNG, or WebP image." };
+    if (file.size > 2 * 1024 * 1024) return { ok: false, error: "Image must be under 2 MB." };
+    const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+    const path = `${acct}/avatar.${ext}`;
+    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) { console.error("avatar upload failed:", upErr); return { ok: false, error: upErr.message }; }
+    const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+    const url = pub.publicUrl + "?t=" + Date.now();
+    await supabase.from("accounts").upsert({ account_id: acct, public_key: "", network: "taira" }, { onConflict: "account_id", ignoreDuplicates: true });
+    const { error: dbErr } = await supabase.from("accounts").update({ avatar_url: url }).eq("account_id", acct);
+    if (dbErr) { console.error("avatar url save failed:", dbErr); return { ok: false, error: dbErr.message }; }
+    avatarUrl.value = url;
+    avatarByAccount.value[acct] = url;
+    return { ok: true };
+  }
+
+  function getAvatar(accountId: string): string {
+    return avatarByAccount.value[accountId] || "";
+  }
+  async function updateProfile(name: string, bio: string): Promise<{ ok: boolean; error?: string }> {
+    const acct = currentAccountId.value;
+    if (!acct) return { ok: false, error: "No account" };
+    await supabase.from("accounts").upsert({ account_id: acct, public_key: "", network: "taira" }, { onConflict: "account_id", ignoreDuplicates: true });
+    const { error } = await supabase.from("accounts").update({ display_name: name.trim() || null, bio: bio.trim() || null }).eq("account_id", acct);
+    if (error) { console.error("profile save failed:", error); return { ok: false, error: error.message }; }
+    displayNameByAccount.value[acct] = name.trim();
+    bioByAccount.value[acct] = bio.trim();
+    return { ok: true };
+  }
+  function getDisplayName(accountId: string): string { return displayNameByAccount.value[accountId] || ""; }
+  function getBio(accountId: string): string { return bioByAccount.value[accountId] || ""; }
 
   // Stage 2 — Cast Signal (Aye or Nay)
   const castSignal = (proposalId: string, vote: SignalVote): boolean => {
@@ -1308,8 +1358,8 @@ const toggleFollow = (id: string): void => {
     setActiveProposal, addMilestone, removeMilestone,
     resetDraft, submitProposal,loadProposals, castSignal,
     postDiscussion, submitAmendment, submitParliamentBrief, submitParliamentRemarks, reviseAndResubmit,
-    advanceToSortition, castPanelVote, confirmMilestone, markChapterDelivered, milestoneChallengeState, proposalChallengeState, raiseFlag, withdrawFlag, respondToFlag,
-
+    advanceToSortition, castPanelVote, confirmMilestone, markChapterDelivered, milestoneChallengeState, proposalChallengeState, raiseFlag, withdrawFlag, respondToFlag,uploadAvatar, getAvatar, avatarUrl, avatarByAccount,
+    updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount,
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
     savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow, 

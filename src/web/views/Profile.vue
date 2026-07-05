@@ -4,16 +4,24 @@
 
     <!-- IDENTITY HERO -->
     <div class="phero">
-      <span class="pav" :style="avStyle(accountId)">{{ initials(accountId) }}</span>
+      <span class="pavwrap" :class="{ 'pavwrap--clickable': isOwn }" @click="isOwn && (showEditor = true)">
+        <span class="pav" :style="commons.getAvatar(accountId) ? {} : avStyle(accountId)">
+          <img v-if="commons.getAvatar(accountId)" :src="commons.getAvatar(accountId)" class="pav__img" alt="" />
+          <template v-else>{{ initials(accountId) }}</template>
+          <span v-if="isOwn" class="pav__edit" title="Change photo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </span>
+        </span>
+      </span>
       <div class="phero__b">
         <div class="phero__name">
-          <h1>{{ shortId(accountId) }}</h1>
+          <h1>{{ commons.getDisplayName(accountId) || shortId(accountId) }}</h1>
           <span class="plabel" :class="labelClass">{{ commons.proposerLabel(accountId) }}</span>
         </div>
-        <p class="pbio">{{ bio }}</p>
+        <p class="pbio">{{ commons.getBio(accountId) || bio }}</p>
         <div class="prep"><span class="prep__dot"></span> Reputation: {{ reputationWord }}</div>
       </div>
-      <button v-if="isOwn" class="pedit" @click="editNote">Edit profile</button>
+      <button v-if="isOwn" class="pedit" @click="showEditor = true">Edit profile</button>
     </div>
 
     <!-- TRACK-RECORD STRIP -->
@@ -72,15 +80,19 @@
       <h2 class="asec">My drafts</h2>
       <p class="anote">Saved drafts will live here once the backend is connected.</p>
     </div>
+    <ProfileEditor v-if="showEditor" :account-id="accountId" @close="showEditor = false" @saved="onProfileSaved" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useCommonsStore } from "@/stores/commons";
+import ProfileEditor from "@/web/components/ProfileEditor.vue";
 
 const emit = defineEmits<{ (e: "nav", id: string): void }>();
 const commons = useCommonsStore();
+const showEditor = ref(false);
+function onProfileSaved() { /* display refreshes reactively via store maps */ }
 
 const tab = ref<"work" | "activity">("work");
 
@@ -105,7 +117,6 @@ const bio = computed(() => isOwn.value ? "Add a short bio once profiles are edit
 const reputationWord = computed(() => deliveredCount.value > 0 ? "established" : "building");
 const labelClass = computed(() => "lbl--" + commons.proposerLabel(accountId.value).toLowerCase());
 
-function editNote() { /* placeholder — real editing comes with backend */ }
 function open(p: any) { commons.setActiveProposal(p.id); emit("nav", "story"); }
 
 function catLabel(c?: string) {
@@ -129,7 +140,19 @@ function avStyle(id?: string) {
 .back { color: var(--gold-300); font-size: .86rem; margin-bottom: 18px; display: inline-block; cursor: pointer; }
 
 .phero { display: flex; align-items: flex-start; gap: 18px; margin-bottom: 22px; }
-.pav { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #22180a; font-size: 1.6rem; flex: none; }
+.pav { position: relative; overflow: hidden; width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #22180a; font-size: 1.6rem; flex: none; }
+.pav__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pav--clickable { cursor: pointer; }
+.pav--clickable:hover .pav__edit { opacity: 1; }
+.pav__status { font-size: .78rem; color: var(--ink-dim); margin: 6px 0 0; }
+.pav__status--err { color: var(--negate); }
+.pavwrap { position: relative; display: inline-grid; flex: none; }
+.pavwrap--clickable { cursor: pointer; }
+.pavwrap { position: relative; display: inline-block; flex: none; line-height: 0; }
+.pavwrap--clickable { cursor: pointer; }
+.pav__edit { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.45); color: #fff; opacity: 0; transition: opacity .15s; }
+.pavwrap--clickable:hover .pav__edit { opacity: 1; }
+.pavwrap--clickable:hover .pav__edit { opacity: 1; }
 .phero__b { flex: 1; min-width: 0; }
 .phero__name { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .phero__name h1 { font-family: var(--display); font-size: 1.8rem; font-weight: 800; margin: 0; }

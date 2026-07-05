@@ -22,7 +22,10 @@
           <option v-for="a in demoAccounts" :key="a" :value="a">{{ a.split('.')[0] }}</option>
         </select>
         <div class="netchip" title="Connected to Taira testnet"><span class="dot"></span><span class="netchip__lbl">TAIRA</span></div>
-        <button class="meav" :style="avStyle(myId)" @click="goMyProfile" title="Your profile">{{ initials(myId) }}</button>
+        <button class="meav" :style="commons.getAvatar(myId) ? {} : avStyle(myId)" @click="goMyProfile" title="Your profile">
+          <img v-if="commons.getAvatar(myId)" :src="commons.getAvatar(myId)" class="meav__img" alt="" />
+          <template v-else>{{ initials(myId) }}</template>
+        </button>
 
       </div>
     </header>
@@ -169,7 +172,8 @@ const mobileTabs = [
 .netchip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--affirm); }
 .demoswitch { background: rgba(139,30,45,.15); border: 1px solid #8B1E2D; border-radius: 999px; padding: 5px 10px; color: var(--ink-dim); font-family: var(--mono); font-size: .68rem; cursor: pointer; margin-right: 8px; }
 .demoswitch:hover { border-color: var(--gold-600); }
-.meav { width: 34px; height: 34px; border-radius: 50%; border: none; display: grid; place-items: center; font-weight: 700; color: #22180a; font-size: .8rem; cursor: pointer; margin-left: 10px; flex: none; }
+.meav { position: relative; overflow: hidden; width: 34px; height: 34px; border-radius: 50%; border: none; display: grid; place-items: center; font-weight: 700; color: #22180a; font-size: .8rem; cursor: pointer; margin-left: 10px; flex: none; }
+.meav__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .meav:hover { box-shadow: 0 0 0 2px var(--gold-600); }
 .app { min-height: 100vh; background: var(--navy-900); }
 

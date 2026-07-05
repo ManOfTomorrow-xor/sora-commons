@@ -9,7 +9,10 @@
     </div>
     <h1 class="sd__title">{{ p.title }}</h1>
     <div class="sd__who" @click="goProfile">
-      <span class="av" :style="avStyle(p.proposerAccountId)">{{ initials(p.proposerAccountId) }}</span>
+      <span class="av" :style="commons.getAvatar(p.proposerAccountId) ? {} : avStyle(p.proposerAccountId)">
+        <img v-if="commons.getAvatar(p.proposerAccountId)" :src="commons.getAvatar(p.proposerAccountId)" class="av__img" alt="" />
+        <template v-else>{{ initials(p.proposerAccountId) }}</template>
+      </span>
       <div class="sd__whoinfo">
         <span class="sd__name"><b>{{ shortId(p.proposerAccountId) }}</b><span class="sd__label" :class="labelClass">{{ commons.proposerLabel(p.proposerAccountId) }}</span></span>
         <span class="sd__chap">{{ chapterText }}</span>
@@ -127,7 +130,10 @@
           <h2 id="conversation">Conversation</h2>
           <p v-if="!p.discussionPosts || p.discussionPosts.length === 0" class="muted">No comments yet. Be the first to weigh in.</p>
           <div v-for="c in p.discussionPosts" :key="c.id" class="cmt" :class="{ isprop: c.authorAccountId === p.proposerAccountId }">
-            <span class="av sm" :style="avStyle(c.authorAccountId)">{{ initials(c.authorAccountId) }}</span>
+            <span class="av sm" :style="commons.getAvatar(c.authorAccountId) ? {} : avStyle(c.authorAccountId)">
+              <img v-if="commons.getAvatar(c.authorAccountId)" :src="commons.getAvatar(c.authorAccountId)" class="av__img" alt="" />
+              <template v-else>{{ initials(c.authorAccountId) }}</template>
+            </span>
             <div class="cmt__b">
               <div class="cmt__h"><b>{{ shortId(c.authorAccountId) }}</b><span v-if="c.authorAccountId === p.proposerAccountId" class="prop">PROPOSER</span></div>
               <div class="cmt__t">{{ c.content }}</div>
