@@ -14,7 +14,7 @@
         <template v-else>{{ initials(p.proposerAccountId) }}</template>
       </span>
       <div class="sd__whoinfo">
-        <span class="sd__name"><b>{{ shortId(p.proposerAccountId) }}</b><span class="sd__label" :class="labelClass">{{ commons.proposerLabel(p.proposerAccountId) }}</span></span>
+        <span class="sd__name"><b>{{ commons.getDisplayName(p.proposerAccountId) || shortId(p.proposerAccountId) }}</b><span class="sd__label" :class="labelClass">{{ commons.proposerLabel(p.proposerAccountId) }}</span></span>
         <span class="sd__chap">{{ chapterText }}</span>
       </div>
     </div>
@@ -84,7 +84,7 @@
                 <!-- flag threads -->
                 <div v-for="f in (m.flags || [])" :key="f.id" class="ch__flag" :class="{ 'is-withdrawn': f.status === 'withdrawn' }">
                   <div class="ch__flag_h">
-                    <span class="ch__flag_who">Flag by {{ shortId(f.flaggerAccountId) }}</span>
+                    <span class="ch__flag_who">Flag by {{ commons.getDisplayName(f.flaggerAccountId) || shortId(f.flaggerAccountId) }}</span>
                     <span v-if="f.status === 'withdrawn'" class="ch__flag_wd">withdrawn {{ f.withdrawnAt ? new Date(f.withdrawnAt).toLocaleDateString() : '' }}</span>
                   </div>
                   <p class="ch__flag_reason">{{ f.reason }}</p>
@@ -135,7 +135,7 @@
               <template v-else>{{ initials(c.authorAccountId) }}</template>
             </span>
             <div class="cmt__b">
-              <div class="cmt__h"><b>{{ shortId(c.authorAccountId) }}</b><span v-if="c.authorAccountId === p.proposerAccountId" class="prop">PROPOSER</span></div>
+              <div class="cmt__h"><b>{{ commons.getDisplayName(c.authorAccountId) || shortId(c.authorAccountId) }}</b><span v-if="c.authorAccountId === p.proposerAccountId" class="prop">PROPOSER</span></div>
               <div class="cmt__t">{{ c.content }}</div>
             </div>
           </div>
@@ -187,7 +187,7 @@
       <div class="dm">
         <button class="dm__x" @click="showDonate = false">×</button>
         <h3 class="dm__title">Support this work</h3>
-        <p class="dm__sub">Donate XOR directly to {{ shortId(p.proposerAccountId) }}. 1% is burned; 99% goes to the proposer.</p>
+        <p class="dm__sub">Donate XOR directly to {{ commons.getDisplayName(p.proposerAccountId) || shortId(p.proposerAccountId) }}. 1% is burned; 99% goes to the proposer.</p>
 
         <div class="dm__picks">
           <button v-for="q in [10, 50, 100, 500]" :key="q" class="dm__pick" :class="{ on: amount === q }" @click="setPick(q)">{{ q }}</button>

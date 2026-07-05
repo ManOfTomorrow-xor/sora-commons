@@ -51,7 +51,7 @@
     <article v-for="p in results" :key="p.id" class="card" @click="open(p)">
       <div class="card__top">
         <span class="av" :style="avStyle(p.proposerAccountId)">{{ initials(p.proposerAccountId) }}</span>
-        <span class="card__who">{{ shortId(p.proposerAccountId) }}</span>
+        <span class="card__who">{{ commons.getDisplayName(p.proposerAccountId) || shortId(p.proposerAccountId) }}</span>
         <span class="card__label" :class="labelClass(p)">{{ commons.proposerLabel(p.proposerAccountId) }}</span>
         <button class="card__save" :class="{ on: commons.isSaved(p.id) }" @click.stop="commons.toggleSave(p.id)" :title="commons.isSaved(p.id) ? 'Saved' : 'Save'">
           <svg viewBox="0 0 24 24" :fill="commons.isSaved(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2"><path d="M6 4h12v16l-6-4-6 4z"/></svg>
