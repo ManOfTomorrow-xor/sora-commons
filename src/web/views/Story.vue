@@ -425,7 +425,8 @@ onMounted(() => {
 .sd__who { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; cursor: pointer; }
 .sd__who b { color: var(--ink); } .sd__who span { color: var(--ink-dim); font-size: .88rem; }
 .sd__summary { color: var(--ink-dim); font-size: 1.05rem; line-height: 1.6; max-width: 70ch; margin: 0 0 4px; }
-.av { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #22180a; font-size: .85rem; flex: none; }
+.av { position: relative; overflow: hidden; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #22180a; font-size: .85rem; flex: none; }
+.av__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .av.sm { width: 30px; height: 30px; font-size: .72rem; }
 .trackline { margin-bottom: 16px; }
 .track { display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-family: var(--mono); padding: 4px 10px; border-radius: 999px; }

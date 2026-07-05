@@ -46,7 +46,10 @@
         <!-- story cards -->
        <article v-for="p in visible" :key="p.id" class="card" :class="{ 'card--flagged': commons.proposalChallengeState(p) === 'flagged' }" @click="open(p)">
           <div class="card__top">
-            <span class="av" :style="avStyle(p.proposerAccountId)">{{ initials(p.proposerAccountId) }}</span>
+            <span class="av" :style="commons.getAvatar(p.proposerAccountId) ? {} : avStyle(p.proposerAccountId)">
+              <img v-if="commons.getAvatar(p.proposerAccountId)" :src="commons.getAvatar(p.proposerAccountId)" class="av__img" alt="" />
+              <template v-else>{{ initials(p.proposerAccountId) }}</template>
+            </span>
             <span class="card__who">{{ shortId(p.proposerAccountId) }}</span>
             <span class="card__label" :class="labelClass(p)">{{ commons.proposerLabel(p.proposerAccountId) }}</span>
             <button class="card__save" :class="{ on: commons.isSaved(p.id) }" @click.stop="commons.toggleSave(p.id)" :title="commons.isSaved(p.id) ? 'Saved' : 'Save'">
@@ -222,7 +225,8 @@ function avStyle(id: string) {
 .card { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; margin-bottom: 14px; cursor: pointer; transition: border-color .2s var(--ease), transform .2s var(--ease); }
 .card:hover { border-color: var(--gold-600); transform: translateY(-2px); }
 .card__top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.av { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #22180a; font-size: .8rem; flex: none; }
+.av { position: relative; overflow: hidden; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #22180a; font-size: .8rem; flex: none; }
+.av__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .card__who { font-size: .86rem; color: var(--ink); font-weight: 600; }
 .card__label { font-family: var(--mono); font-size: .6rem; text-transform: uppercase; letter-spacing: .05em; padding: 3px 8px; border-radius: 999px; }
 .card__label.lbl--newcomer { color: var(--info); border: 1px solid rgba(126,155,224,.4); }

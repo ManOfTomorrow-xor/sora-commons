@@ -2,6 +2,10 @@
   <div class="app">
     <!-- TOP BAR -->
     <header class="topbar" :class="{ 'nav-hidden': navHidden }">
+    <div v-if="isTestVersion" class="testbar">
+      <span class="testbar__dot"></span>
+      Test version — identities and donations are simulated. No real XOR moves.
+    </div>
       <div class="topbar__inner">
         <a class="brand" @click="go('feed')">
           <img class="brand__seal" :src="sealUrl" alt="SORA Commons seal" />
@@ -67,6 +71,7 @@ import { useCommonsStore } from "@/stores/commons";
 import { COMMONS_CONFIG } from "@/constants/commonsConfig";
 const commons = useCommonsStore();
 const boostsPerWeek = COMMONS_CONFIG.BOOSTS_PER_WEEK;
+const isTestVersion = COMMONS_CONFIG.IS_TEST_VERSION;
 import sealUrl from "./assets/seal.png";
 import Overview from "./views/Overview.vue";
 import About from "./views/About.vue";
@@ -176,6 +181,8 @@ const mobileTabs = [
 .meav__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .meav:hover { box-shadow: 0 0 0 2px var(--gold-600); }
 .app { min-height: 100vh; background: var(--navy-900); }
+.testbar { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: .74rem; color: var(--ink-dim); background: rgba(201,168,76,.08); border-bottom: 1px solid var(--line-soft); padding: 6px 12px; text-align: center; letter-spacing: .01em; }
+.testbar__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold-400, #d4b95e); flex: none; }
 
 .wrap { max-width: 1020px; margin: 0 auto; padding: 28px var(--pad) 96px; min-height: calc(100vh - 70px); }
 .page-title { font-family: var(--display); font-size: 2rem; margin: 0 0 8px; }
