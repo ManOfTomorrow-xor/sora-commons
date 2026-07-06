@@ -99,7 +99,7 @@
               <span v-if="p.category" class="tbrow__cat">{{ catLabel(p.category) }}</span>
               <span class="tbrow__t">{{ p.title }}</span>
             </span>
-            <svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
+            <span class="tbrow__b"><svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>{{ p.boostCount || 0 }}</span>
           </button>
         </div>
 
@@ -300,6 +300,7 @@ function avStyle(id: string) {
 .tbrow__cat { display: block; font-family: var(--mono); font-size: .58rem; color: var(--ink-faint); text-transform: uppercase; }
 .tbrow__t { display: block; font-family: var(--display); font-size: .92rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tbrow__b { color: var(--gold-300); font-size: .78rem; font-family: var(--mono); flex: none; display: inline-flex; align-items: center; gap: 3px; }
+.tbrow__b { display: inline-flex; align-items: center; gap: 3px; font-size: .82rem; font-weight: 600; color: var(--gold-300); flex: none; }
 
 .tbstrip { display: none; }
 @media (max-width: 980px) {

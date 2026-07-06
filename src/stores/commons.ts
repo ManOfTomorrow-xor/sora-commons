@@ -7,8 +7,9 @@ import { supabase } from "@/web/lib/supabase";
 
 export type ProposalStatus =
   | "draft"
-  | "signal"          // Stage 2 — Community Signal
-  | "deliberation"    // Stage 3 — Parliament Deliberation
+  | "active"          // Phase 1 — live / in progress
+  | "signal"          // Stage 2 — Community Signal (legacy five-stage; Phase 2)
+  | "deliberation"    // Stage 3 — Parliament Deliberation (legacy; Phase 2)
   | "sortition"       // Stage 4 — Sortition Decision
   | "funded"          // Stage 5 — Milestone Escrow active
   | "complete"        // All milestones confirmed
@@ -451,7 +452,7 @@ export const useCommonsStore = defineStore("commons", () => {
         completedAt: null,
         xorBurned: "0",
       })),
-      status: "signal",
+      status: "active",
       signals: [],
       signalEndsAt: signalEnd.toISOString(),
       discussionPosts: [],
@@ -594,7 +595,7 @@ export const useCommonsStore = defineStore("commons", () => {
         createdAt: f.created_at,
       })),
     })),
-      status: "signal",
+      status: row.status ?? "active",
       signals: [],
       signalEndsAt: null,
       discussionPosts: (cByProposal[row.id] ?? []).map((c: any) => ({
@@ -918,6 +919,7 @@ export const useCommonsStore = defineStore("commons", () => {
     // Check if all milestones complete
     if (proposal.milestones.every((m) => m.completed)) {
       proposal.status = "complete";
+      supabase.from("proposals").update({ status: "complete" }).eq("id", proposal.id).then(({ error }) => { if (error) console.error("status persist failed:", error); });
     // Completion → proposer reputation (separate scope, never blended with panel).
       creditReputation(
         proposal.proposerAccountId,
@@ -949,6 +951,7 @@ export const useCommonsStore = defineStore("commons", () => {
     milestone.completedAt = now;
     if (proposal.milestones.every((m) => m.completed)) {
       proposal.status = "complete";
+      supabase.from("proposals").update({ status: "complete" }).eq("id", proposal.id).then(({ error }) => { if (error) console.error("status persist failed:", error); });
     }
     // persist the delivery to Supabase so it survives refresh
     (async () => {
@@ -1100,6 +1103,7 @@ export const useCommonsStore = defineStore("commons", () => {
 
   const statusLabel = (status: ProposalStatus): string => ({
     draft: "Draft",
+    active: "Active",
     signal: "Community Signal",
     deliberation: "Parliament Deliberation",
     sortition: "Sortition",
@@ -1111,6 +1115,7 @@ export const useCommonsStore = defineStore("commons", () => {
 
   const stageNumber = (status: ProposalStatus): number => ({
     draft: 0,
+    active: 1,
     signal: 2,
     deliberation: 3,
     sortition: 4,
@@ -1359,7 +1364,7 @@ const toggleFollow = (id: string): void => {
     resetDraft, submitProposal,loadProposals, castSignal,
     postDiscussion, submitAmendment, submitParliamentBrief, submitParliamentRemarks, reviseAndResubmit,
     advanceToSortition, castPanelVote, confirmMilestone, markChapterDelivered, milestoneChallengeState, proposalChallengeState, raiseFlag, withdrawFlag, respondToFlag,uploadAvatar, getAvatar, avatarUrl, avatarByAccount,
-    updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount,
+    updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount, formatDate,
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
     savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow, 
