@@ -31,7 +31,14 @@
             <span v-for="f in p.files" :key="f" class="file">📎 {{ f }}</span>
           </div>
         </section>
-
+         <section class="sec" v-if="(p.documents || []).length">
+          <h2>Supporting documents</h2>
+          <div class="pdocs">
+            <a v-for="d in p.documents" :key="d.id" :href="d.url" target="_blank" rel="noopener" class="pdoc">
+              <span class="pdoc_ic">{{ d.fileType === 'pdf' ? '📄' : '🖼️' }}</span>{{ d.filename }}
+            </a>
+          </div>
+        </section>
         <!-- FACTS -->
         <section class="sec" v-if="hasFacts">
           <h2>The facts behind it</h2>
@@ -111,13 +118,28 @@
               </div>
               <div v-if="isMine && !m.completed && i === firstIncomplete" class="ch__deliver">
                 <textarea v-model="deliverText" rows="2" placeholder="Present the actual evidence this chapter is done (link, receipt, photo description...)"></textarea>
-                <button class="ch__attach" disabled title="File uploads arrive with file storage">
+                <button class="ch__attach" @click="pickEvidence(m.id)" :disabled="evUploading[m.id]">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.49"/></svg>
-                  Attach evidence file
-                  <span class="ch__soon">coming with file storage</span>
+                  {{ evUploading[m.id] ? "Uploading…" : "Attach supporting document" }}
                 </button>
-                <button class="ch__deliverbtn btn-gold" :disabled="!deliverText.trim()" @click="submitDelivery(m.id)">Submit evidence &amp; mark delivered</button>
+                <span class="ch__evhint">Optional — but attaching proof (PDF or image) strengthens your case and helps backers trust the work. You can remove files until you submit; after that they're part of the record.</span>
+                <div v-if="(stagedEvidence[m.id] || []).length" class="ch__staged">
+                  <div v-for="(f, idx) in stagedEvidence[m.id]" :key="idx" class="ch__stagedrow">
+                    <span class="ch__staged_ic">{{ f.type === 'application/pdf' ? '📄' : '🖼️' }}</span>
+                    <span class="ch__staged_nm">{{ f.name }}</span>
+                    <button class="ch__staged_x" @click="removeStagedEvidence(m.id, idx)" title="Remove">✕</button>
+                  </div>
+                </div>
+                <input :ref="el => setEvInput(el, m.id)" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" style="display:none" @change="onEvidencePicked($event, m.id)" />
+                <p v-if="evError[m.id]" class="ch__everr">{{ evError[m.id] }}</p>
+                <button class="ch__deliverbtn btn-gold" :disabled="!deliverText.trim() || evUploading[m.id]" @click="submitDelivery(m.id)">{{ evUploading[m.id] ? "Submitting…" : "Submit evidence & mark delivered" }}</button>
+                <p v-if="evUploading[m.id]" class="ch__uploadnote">Uploading your documents to the record — this may take a moment.</p>
               </div>
+              <div v-if="(m.documents || []).length" class="ch__evdocs">
+                  <a v-for="d in m.documents" :key="d.id" :href="d.url" target="_blank" rel="noopener" class="ch__evdoc">
+                    <span class="ch__evdoc_ic">{{ d.fileType === 'pdf' ? '📄' : '🖼️' }}</span>{{ d.filename }}
+                  </a>
+                </div>
             </div>
             <span class="ch__st" :class="m.completed ? 'st-done' : (i === firstIncomplete ? 'st-now' : 'st-up')">
               {{ m.completed ? "✓ Evidence submitted" : (i === firstIncomplete ? "In progress" : "Upcoming") }}
@@ -299,11 +321,45 @@ function shortId(id?: string) {
 }
 const deliverText = ref("");
 const isMine = computed(() => p.value && p.value.proposerAccountId === commons.currentAccountId);
-function submitDelivery(milestoneId: string) {
-  if (!p.value || !deliverText.value.trim()) return;
-  const ok = commons.markChapterDelivered(p.value.id, milestoneId, deliverText.value.trim());
-  if (ok) deliverText.value = "";
+const stagedEvidence = ref<Record<string, File[]>>({});
+const evError = ref<Record<string, string>>({});
+const evUploading = ref<Record<string, boolean>>({});
+const evInputs = ref<Record<string, HTMLInputElement | null>>({});
+
+function setEvInput(el: any, milestoneId: string) { evInputs.value[milestoneId] = el; }
+function pickEvidence(milestoneId: string) { evError.value[milestoneId] = ""; evInputs.value[milestoneId]?.click(); }
+function onEvidencePicked(e: Event, milestoneId: string) {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  const okTypes = ["application/pdf","image/jpeg","image/png","image/webp"];
+  if (!okTypes.includes(file.type)) { evError.value[milestoneId] = "Use a PDF or image."; return; }
+  if (file.size > 10*1024*1024) { evError.value[milestoneId] = "File must be under 10 MB."; return; }
+  if (((stagedEvidence.value[milestoneId] || []).length) >= 5) { evError.value[milestoneId] = "Up to 5 files per chapter."; return; }
+  (stagedEvidence.value[milestoneId] ??= []).push(file);
+  evError.value[milestoneId] = "";
+  (e.target as HTMLInputElement).value = "";
 }
+function removeStagedEvidence(milestoneId: string, idx: number) {
+  stagedEvidence.value[milestoneId]?.splice(idx, 1);
+}
+async function submitDelivery(milestoneId: string) {
+  if (!p.value || !deliverText.value.trim()) return;
+  evUploading.value = { ...evUploading.value, [milestoneId]: true };
+  // upload staged files FIRST (while the deliver block is still visible)
+  for (const file of stagedEvidence.value[milestoneId] || []) {
+    const res = await commons.uploadDocument(file, { proposalId: p.value.id, milestoneId });
+    if (!res.ok) { evError.value = { ...evError.value, [milestoneId]: res.error || "A file failed to upload." }; }
+  }
+  // THEN mark delivered (this flips m.completed and hides the block)
+  const ok = commons.markChapterDelivered(p.value.id, milestoneId, deliverText.value.trim());
+  evUploading.value = { ...evUploading.value, [milestoneId]: false };
+  if (!ok) return;
+  stagedEvidence.value[milestoneId] = [];
+  deliverText.value = "";
+  await commons.loadProposals();
+  console.log("UPLOADING SET:", milestoneId, evUploading.value[milestoneId]);
+}
+
 const flagText = ref<Record<string, string>>({});
 const responseText = ref<Record<string, string>>({});
 const flagOpenFor = ref<Record<string, boolean>>({});
@@ -525,14 +581,31 @@ onMounted(() => {
 .dm__split b { overflow-wrap: anywhere; }
 .dm__max { color: var(--ink-faint); font-weight: 400; }
 .dm__capnote { font-size: .74rem; color: var(--gold-300); margin: 6px 0 0; }
-.ch__attach { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; background: var(--navy-900); border: 1px dashed var(--line); border-radius: var(--r-sm); padding: 8px 12px; color: var(--ink-faint); font-size: .82rem; cursor: not-allowed; }
+.ch__attach { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; background: var(--navy-900); border: 1px dashed var(--line); border-radius: var(--r-sm); padding: 8px 12px; color: var(--ink-dim); font-size: .82rem; cursor: pointer; transition: border-color .15s var(--ease), color .15s var(--ease), background .15s var(--ease); }
+.ch__uploadnote { font-size: .74rem; color: var(--ink-dim); margin: 4px 0 0; font-style: italic; }
+.ch__attach:hover:not(:disabled) { border-color: var(--gold-600); color: var(--gold-300); background: rgba(201,168,76,.08); }
+.ch__attach:disabled { opacity: .6; cursor: default; }
 .ch__attach svg { width: 15px; height: 15px; flex: none; }
 .ch__soon { font-size: .68rem; color: var(--ink-faint); opacity: .7; font-style: italic; }
+.ch__evhint { font-size: .74rem; color: var(--ink-faint); line-height: 1.4; margin: -2px 0 0; }
+.ch__everr { font-size: .78rem; color: var(--negate); margin: 4px 0 0; }
+.ch__evdocs { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.ch__evdoc { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--gold-300); text-decoration: none; padding: 4px 0; }
+.ch__evdoc:hover { text-decoration: underline; }
+.ch__evdoc_ic { flex: none; }
+.ch__staged { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.ch__stagedrow { display: flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--ink); background: var(--navy-900); border: 1px solid var(--line-soft); border-radius: var(--r-sm); padding: 5px 10px; }
+.ch__staged_ic { flex: none; }
+.ch__staged_nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ch__staged_x { background: none; border: none; color: var(--ink-dim); cursor: pointer; font-size: .9rem; flex: none; }
+.ch__staged_x:hover { color: var(--negate); }
+.ch__evdocs_lab { font-size: .72rem; color: var(--ink-faint); font-weight: 600; margin-bottom: 2px; }
+
 @media (max-width: 720px) {
   .sd__title { font-size: 1.5rem; margin: 4px 0 10px; }
   .sd__summary { font-size: .95rem; line-height: 1.5; }
   .sec { padding: 16px; margin-bottom: 12px; }
-  .sec h2 { font-size: 1.12rem; margin-bottom: 10px; }
+  .sec h2 { font-size: 1.12rem; masrgin-bottom: 10px; }
   .facts { grid-template-columns: 1fr; gap: 10px; }
   .facts > div { padding: 13px 14px; }
   .fact__v { font-size: .9rem; }
@@ -573,4 +646,8 @@ onMounted(() => {
 .ch__flag_notice { font-size: .78rem; color: var(--ink-dim); margin: 6px 0 0; padding: 8px 10px; background: var(--navy-900); border: 1px solid var(--line-soft); border-radius: var(--r-sm); }
 .ch__flag_discuss { background: none; border: none; color: var(--ink-dim); font-size: .78rem; cursor: pointer; padding: 4px 0; text-decoration: underline; }
 .ch__flag_discuss:hover { color: var(--gold-300); }
+.pdocs { display: flex; flex-direction: column; gap: 6px; }
+.pdoc { display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; color: var(--gold-300); text-decoration: none; padding: 6px 10px; background: var(--navy-900); border: 1px solid var(--line-soft); border-radius: var(--r-sm); }
+.pdoc:hover { text-decoration: underline; border-color: var(--gold-600); }
+.pdoc_ic { flex: none; }
 </style>

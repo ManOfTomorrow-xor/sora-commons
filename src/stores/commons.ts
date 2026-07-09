@@ -36,6 +36,7 @@ export type Milestone = {
   completedAt: string | null;
   xorBurned: string;
   flags?: Flag[];
+  documents?: DocumentRef[];
 };
 
 export type DiscussionPost = {
@@ -58,6 +59,14 @@ export type Flag = {
   proposerResponse: string | null;
   respondedAt: string | null;
   createdAt: string;
+};
+
+export type DocumentRef = {
+  id: string;
+  filename: string;
+  url: string;
+  fileType: string;
+  uploadedAt: string;
 };
 
 export type Amendment = {
@@ -117,6 +126,7 @@ export type CommonsProposal = {
   followers: number;
   backers: number;
   totalDonated: string;
+  documents?: DocumentRef[];
 };
 
 export type CommonsRole =
@@ -394,6 +404,10 @@ export const useCommonsStore = defineStore("commons", () => {
       funding_mode: p.fundingMode ?? "open",
       xor_requested: p.xorRequested ?? "0",
       public_benefit: p.publicBenefit ?? null,
+      productive_claim: p.productiveClaim ?? null,
+      inputs: p.inputs ?? null,
+      expected_output: p.expectedOutput ?? null,
+      demand_signal: p.demandSignal ?? null,
       risk_bearer: p.riskBearer ?? null,
       failure_handling: p.failureHandling ?? null,
       status: "active",
@@ -403,7 +417,7 @@ export const useCommonsStore = defineStore("commons", () => {
   if (propErr) { console.error("proposal insert failed:", propErr); return; }
 
   const dbProposalId = propRows.id;
-
+  p.id = dbProposalId;   // adopt the real DB id so later references (documents) resolve
   // 3. insert the milestones (chapters) against the DB proposal id
   if (p.milestones.length > 0) {
     const rows = p.milestones.map((m, i) => ({
@@ -419,8 +433,9 @@ export const useCommonsStore = defineStore("commons", () => {
   }
 
   console.log("✓ proposal + milestones persisted:", dbProposalId);
+  return dbProposalId;
 }
-  const submitProposal = (): CommonsProposal | null => {
+ const submitProposal = async (): Promise<CommonsProposal | null> => {
     if (!isDraftValid.value || !currentAccountId.value) return null;
     const now = new Date();
     const signalEnd = new Date(
@@ -474,7 +489,7 @@ export const useCommonsStore = defineStore("commons", () => {
       totalDonated: "0",
     };
     proposals.value.unshift(newProposal);   // optimistic: instant feedback
-    persistProposalToSupabase(newProposal).then(() => loadProposals());  // then DB becomes source of truth
+    await persistProposalToSupabase(newProposal);   // wait for DB row + adopt real id
     resetDraft();
     return newProposal;
   };
@@ -540,6 +555,12 @@ export const useCommonsStore = defineStore("commons", () => {
     for (const f of flagData ?? []) {
       if (f.milestone_id) (flagsByMilestone[f.milestone_id] ??= []).push(f);
     }
+    const { data: pDocs } = await supabase.from("proposal_documents").select("*");
+    const { data: mDocs } = await supabase.from("milestone_documents").select("*");
+    const docsByProposal: Record<string, any[]> = {};
+    const docsByMilestone: Record<string, any[]> = {};
+    for (const d of pDocs ?? []) { (docsByProposal[d.proposal_id] ??= []).push(d); }
+    for (const d of mDocs ?? []) { (docsByMilestone[d.milestone_id] ??= []).push(d); }
     const acctNow = currentAccountId.value;
     donatedProposals.value = (donData ?? [])
       .filter((d) => d.donor_account_id === acctNow)
@@ -549,6 +570,7 @@ export const useCommonsStore = defineStore("commons", () => {
       for (const r of rows ?? []) m[r.proposal_id] = (m[r.proposal_id] ?? 0) + 1;
       return m;
     };
+    console.log("MDOCS:", (mDocs ?? []).map(d => ({ mid: d.milestone_id, name: d.filename })));
     const likeCount = countBy(likesRes.data);
     const boostCount = countBy(boostsRes.data);
     const followCount = countBy(followsRes.data);
@@ -568,6 +590,10 @@ export const useCommonsStore = defineStore("commons", () => {
       track: row.track ?? "donations",
       category: row.category ?? undefined,
       publicBenefit: row.public_benefit ?? undefined,
+      productiveClaim: row.productive_claim ?? undefined,
+      inputs: row.inputs ?? undefined,
+      expectedOutput: row.expected_output ?? undefined,
+      demandSignal: row.demand_signal ?? undefined,
       riskBearer: row.risk_bearer ?? undefined,
       failureHandling: row.failure_handling ?? undefined,
       xorRequested: row.xor_requested ?? "0",
@@ -594,8 +620,10 @@ export const useCommonsStore = defineStore("commons", () => {
         respondedAt: f.responded_at ?? null,
         createdAt: f.created_at,
       })),
+            documents: (docsByMilestone[m.id] ?? []).map((d: any) => ({ id: d.id, filename: d.filename, url: d.url, fileType: d.file_type, uploadedAt: d.uploaded_at })),
     })),
       status: row.status ?? "active",
+      documents: (docsByProposal[row.id] ?? []).map((d: any) => ({ id: d.id, filename: d.filename, url: d.url, fileType: d.file_type, uploadedAt: d.uploaded_at })),
       signals: [],
       signalEndsAt: null,
       discussionPosts: (cByProposal[row.id] ?? []).map((c: any) => ({
@@ -654,6 +682,27 @@ export const useCommonsStore = defineStore("commons", () => {
 
   function getAvatar(accountId: string): string {
     return avatarByAccount.value[accountId] || "";
+  }
+  async function uploadDocument(
+    file: File,
+    target: { proposalId?: string; milestoneId?: string }
+  ): Promise<{ ok: boolean; error?: string }> {
+    const okTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+    if (!okTypes.includes(file.type)) return { ok: false, error: "Use a PDF or image (JPG, PNG, WebP)." };
+    if (file.size > 10 * 1024 * 1024) return { ok: false, error: "File must be under 10 MB." };
+    const fileType = file.type === "application/pdf" ? "pdf" : "image";
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const path = `${target.proposalId || target.milestoneId}/${Date.now()}_${safeName}`;
+    const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { contentType: file.type });
+    if (upErr) { console.error("doc upload failed:", upErr); return { ok: false, error: upErr.message }; }
+    const { data: pub } = supabase.storage.from("documents").getPublicUrl(path);
+    const table = target.milestoneId ? "milestone_documents" : "proposal_documents";
+    const row: any = { filename: file.name, url: pub.publicUrl, file_type: fileType };
+    if (target.milestoneId) { row.milestone_id = target.milestoneId; row.proposal_id = target.proposalId; }
+    else { row.proposal_id = target.proposalId; }
+    const { error: dbErr } = await supabase.from(table).insert(row);
+    if (dbErr) { console.error("doc record failed:", dbErr); return { ok: false, error: dbErr.message }; }
+    return { ok: true };
   }
   async function updateProfile(name: string, bio: string): Promise<{ ok: boolean; error?: string }> {
     const acct = currentAccountId.value;
@@ -1363,7 +1412,7 @@ const toggleFollow = (id: string): void => {
     setActiveProposal, addMilestone, removeMilestone,
     resetDraft, submitProposal,loadProposals, castSignal,
     postDiscussion, submitAmendment, submitParliamentBrief, submitParliamentRemarks, reviseAndResubmit,
-    advanceToSortition, castPanelVote, confirmMilestone, markChapterDelivered, milestoneChallengeState, proposalChallengeState, raiseFlag, withdrawFlag, respondToFlag,uploadAvatar, getAvatar, avatarUrl, avatarByAccount,
+    advanceToSortition, castPanelVote, confirmMilestone, markChapterDelivered, milestoneChallengeState, proposalChallengeState, raiseFlag, withdrawFlag, respondToFlag,uploadAvatar,uploadDocument, getAvatar, avatarUrl, avatarByAccount,
     updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount, formatDate,
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,

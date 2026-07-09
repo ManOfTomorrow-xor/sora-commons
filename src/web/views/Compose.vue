@@ -16,8 +16,18 @@
           <textarea v-model="commons.draftStory" rows="8" placeholder="Who are you? What are you building, and why does it matter? Tell people the real story behind the work — the more honest and specific, the more they'll connect with it."></textarea>
           <CharCount :value="commons.draftStory" :max="LIMITS.story" />
         </label>
-        <label class="field"><span class="field__label">Attach files <span class="hint">(coming soon)</span></span>
-          <button type="button" class="filebtn" @click="filesNote">📎 Add files</button>
+        <label class="field"><span class="field__label">Supporting documents <span class="hint">(optional)</span></span>
+          <button type="button" class="filebtn" @click="pickDoc" :disabled="posting">📎 Add files</button>
+          <span class="field__hint">Optional — attaching a spec, whitepaper, or reference (PDF or image) strengthens your story and helps backers trust the work. Removable until you post.</span>
+          <div v-if="stagedDocs.length" class="cdocs">
+            <div v-for="(f, idx) in stagedDocs" :key="idx" class="cdocrow">
+              <span class="cdoc_ic">{{ f.type === 'application/pdf' ? '📄' : '🖼️' }}</span>
+              <span class="cdoc_nm">{{ f.name }}</span>
+              <button type="button" class="cdoc_x" @click="removeDoc(idx)" title="Remove">✕</button>
+            </div>
+          </div>
+          <input ref="docInput" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" style="display:none" @change="onDocPicked" />
+          <p v-if="docError" class="cdoc_err">{{ docError }}</p>
         </label>
         <div class="field"><span class="field__label">Category</span>
           <div class="cats">
@@ -168,26 +178,46 @@ const todo = computed(() => {
   return "Complete the required fields";
 });
 
-function filesNote() { message.value = "File attachments are coming soon."; isError.value = false; }
-
-function minDate(i: number): string {
-  // a chapter's date can't be before the previous chapter's date
-  if (i === 0) {
-    const today = new Date();
-    return today.toISOString().split("T")[0]; // first chapter: not in the past
-  }
-  const prev = commons.draftMilestones[i - 1]?.timeline;
-  return prev || new Date().toISOString().split("T")[0];
+const stagedDocs = ref<File[]>([]);
+const docInput = ref<HTMLInputElement | null>(null);
+const docError = ref("");
+function pickDoc() { docError.value = ""; docInput.value?.click(); }
+function onDocPicked(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  const okTypes = ["application/pdf","image/jpeg","image/png","image/webp"];
+  if (!okTypes.includes(file.type)) { docError.value = "Use a PDF or image."; return; }
+  if (file.size > 10*1024*1024) { docError.value = "File must be under 10 MB."; return; }
+  if (stagedDocs.value.length >= 5) { docError.value = "Up to 5 files."; return; }
+  stagedDocs.value = [...stagedDocs.value, file];
+    console.log("STAGED DOCS:", stagedDocs.value.length, file.name);
+  docError.value = "";
+  (e.target as HTMLInputElement).value = "";
 }
-
-function onPost() {
+function removeDoc(idx: number) { stagedDocs.value = stagedDocs.value.filter((_, i) => i !== idx); }
+function minDate(_i?: number): string {
+  // earliest selectable date for a chapter's due-date input = today
+  return new Date().toISOString().split("T")[0];
+}
+async function onPost() {
   if (!ready.value) return;
   if (!commons.isConnected) { message.value = "Connect an account to post. Your story is saved in this form."; isError.value = true; return; }
   posting.value = true; message.value = ""; isError.value = false;
   try {
-    const created = commons.submitProposal();
-   if (created) { message.value = "Your story is live."; emit("nav", "feed"); }
-    else { message.value = "Could not post. Check the required fields."; isError.value = true; }
+    const created = await commons.submitProposal();
+    if (created) {
+      // upload staged supporting documents against the new proposal id
+      for (const file of stagedDocs.value) {
+        const res = await commons.uploadDocument(file, { proposalId: created.id });
+        if (!res.ok) console.error("proposal doc upload failed:", res.error);
+      }
+      stagedDocs.value = [];
+      await commons.loadProposals();
+      message.value = "Your story is live.";
+      emit("nav", "feed");
+    } else {
+      message.value = "Could not post. Check the required fields."; isError.value = true;
+    }
   } catch (e) { message.value = "Post failed."; isError.value = true; }
   finally { posting.value = false; }
 }
@@ -240,6 +270,15 @@ input:focus, textarea:focus { outline: none; border-color: var(--gold-600); }
 .bar__btn:disabled { opacity: .45; cursor: not-allowed; }
 .result { padding: 12px 16px; border-radius: var(--r); background: rgba(100,220,170,.1); color: var(--affirm); margin: 0; }
 .result--err { background: rgba(255,100,100,.1); color: var(--negate); }
+.ch__attach:hover:not(:disabled) { border-color: var(--gold-600); color: var(--gold-300); }
+.cdocs { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.cdocrow { display: flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--ink); background: var(--navy-900); border: 1px solid var(--line-soft); border-radius: var(--r-sm); padding: 5px 10px; }
+.cdoc_ic { flex: none; }
+.cdoc_nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cdoc_x { background: none; border: none; color: var(--ink-dim); cursor: pointer; font-size: .9rem; flex: none; }
+.cdoc_x:hover { color: var(--negate); }
+.cdoc_err { font-size: .78rem; color: var(--negate); margin: 4px 0 0; }
+.field__hint { font-size: .74rem; color: var(--ink-faint); line-height: 1.4; margin-top: 4px; display: block; }
 @media (max-width: 720px) { .cats { grid-template-columns: 1fr; } }
 @media (max-width: 720px) 
   .head h1 { font-size: 1.5rem; }
