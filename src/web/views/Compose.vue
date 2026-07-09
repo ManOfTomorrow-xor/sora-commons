@@ -92,10 +92,13 @@
       </div>
     </section>
 
-    <div class="bar">
-      <div class="bar__status"><span v-if="overLimit" class="bar__over">Some fields are over the character limit — trim them to post.</span><span v-else-if="!ready" class="bar__todo">{{ todo }}</span><span v-else class="bar__ok">Ready to post your story.</span></div>
-      <button class="bar__btn btn-gold" :disabled="!ready || posting" @click="onPost">{{ posting ? "Posting..." : "Post your story" }}</button>
-    </div>
+    <div class="bar__status">
+        <div v-if="showBlockers && blockers.length" class="bar__blockers">
+          <span class="bar__blockers_h">To post, finish {{ blockers.length }} {{ blockers.length === 1 ? 'thing' : 'things' }}:</span>
+          <ul><li v-for="(b, i) in blockers" :key="i">{{ b }}</li></ul>
+        </div>
+      </div>
+      <button class="bar__btn btn-gold" :disabled="posting" @click="onPost">{{ posting ? "Posting..." : "Post your story" }}</button>
     <p v-if="message" class="result" :class="{ 'result--err': isError }">{{ message }}</p>
   </div>
 </template>
@@ -127,6 +130,7 @@ const isConnected = computed(() => commons.isConnected);
 const posting = ref(false);
 const message = ref("");
 const isError = ref(false);
+const showBlockers = ref(false);
 
 const datesOutOfOrder = computed(() => {
   const ms = commons.draftMilestones;
@@ -154,28 +158,28 @@ const overLimit = computed(() => {
   return c.draftMilestones.some((m: any) => len(m.description) > LIMITS.chapterDesc || len(m.evidence) > LIMITS.chapterEvidence);
 });
 
-const ready = computed(() => {
-  if (!commons.draftTitle.trim()) return false;
-  if (!commons.draftDescription.trim()) return false;
-  if (!commons.draftStory.trim()) return false;
-  if (!commons.draftCategory) return false;
-  if (commons.draftFundingMode === "goal" && !(Number(commons.draftXorRequested) > 0)) return false;
-  if (commons.draftMilestones.length === 0) return false;
-  if (!commons.draftMilestones.every((m: any) => m.description.trim() && m.timeline.trim() && (m.evidence || "").trim())) return false;
-  if (datesOutOfOrder.value) return false;
-  if (overLimit.value) return false;
-  return true;
-});
+const ready = computed(() => blockers.value.length === 0);
 
-const todo = computed(() => {
-  if (!commons.draftTitle.trim()) return "Add a title";
-  if (!commons.draftDescription.trim()) return "Add a one-line summary";
-  if (!commons.draftStory.trim()) return "Tell your story";
-  if (!commons.draftCategory) return "Pick a category";
-  if (commons.draftFundingMode === "goal" && !(Number(commons.draftXorRequested) > 0)) return "Set the total XOR requested";
-  if (!commons.draftMilestones.every((m: any) => m.description.trim() && m.timeline.trim() && (m.evidence || "").trim())) return "Each chapter needs a description, a due date, and the evidence you'll present";
-  if (datesOutOfOrder.value) return "Each chapter's date must be on or after the previous chapter's";
-  return "Complete the required fields";
+const blockers = computed(() => {
+  const c = commons;
+  const out: string[] = [];
+  const todayStr = new Date().toISOString().split("T")[0];
+  if (!c.draftTitle.trim()) out.push("Add a title");
+  if (!c.draftDescription.trim()) out.push("Add a one-line summary");
+  if (!c.draftStory.trim()) out.push("Tell your story");
+  if (!c.draftCategory) out.push("Pick a category (Production or Productivity / Public-good)");
+  if (c.draftFundingMode === "goal" && !(Number(c.draftXorRequested) > 0)) out.push("Set the total XOR requested");
+  if (c.draftMilestones.length === 0) out.push("Add at least one chapter");
+  c.draftMilestones.forEach((m: any, i: number) => {
+    const n = i + 1;
+    if (!m.description.trim()) out.push(`Chapter ${n}: add what gets delivered`);
+    if (!m.timeline.trim()) out.push(`Chapter ${n}: set the evidence due date`);
+    else if (m.timeline < todayStr) out.push(`Chapter ${n}: the due date can't be in the past`);
+    if (!(m.evidence || "").trim()) out.push(`Chapter ${n}: add the evidence you'll present`);
+  });
+  if (datesOutOfOrder.value) out.push("Each chapter's date must be on or after the previous chapter's");
+  if (overLimit.value) out.push("Some fields are over the character limit — trim them");
+  return out;
 });
 
 const stagedDocs = ref<File[]>([]);
@@ -200,7 +204,8 @@ function minDate(_i?: number): string {
   return new Date().toISOString().split("T")[0];
 }
 async function onPost() {
-  if (!ready.value) return;
+  if (!ready.value) { showBlockers.value = true; return; }
+  showBlockers.value = false;
   if (!commons.isConnected) { message.value = "Connect an account to post. Your story is saved in this form."; isError.value = true; return; }
   posting.value = true; message.value = ""; isError.value = false;
   try {
@@ -268,6 +273,10 @@ input:focus, textarea:focus { outline: none; border-color: var(--gold-600); }
 .bar__btn { background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 12px 22px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 12px rgba(201,168,76,.22); transition: transform .15s var(--ease), box-shadow .15s var(--ease), filter .15s var(--ease); }
 .bar__btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(201,168,76,.34); filter: brightness(1.06); }
 .bar__btn:disabled { opacity: .45; cursor: not-allowed; }
+.bar__blockers { font-size: .8rem; max-height: 120px; overflow-y: auto; }
+.bar__blockers_h { color: var(--negate); font-weight: 600; display: block; margin-bottom: 4px; }
+.bar__blockers ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; }
+.bar__blockers li { color: var(--ink-dim); }
 .result { padding: 12px 16px; border-radius: var(--r); background: rgba(100,220,170,.1); color: var(--affirm); margin: 0; }
 .result--err { background: rgba(255,100,100,.1); color: var(--negate); }
 .ch__attach:hover:not(:disabled) { border-color: var(--gold-600); color: var(--gold-300); }
