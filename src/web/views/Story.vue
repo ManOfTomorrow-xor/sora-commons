@@ -245,7 +245,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch, nextTick } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import WhyExpander from "../components/WhyExpander.vue";
 import Clampable from "../components/Clampable.vue";
@@ -413,14 +413,16 @@ function avStyle(id?: string) {
   for (let i = 0; i < (id || "").length; i++) h = (id as string).charCodeAt(i) + ((h << 5) - h);
   return { background: colors[Math.abs(h) % colors.length] };
 }
-onMounted(() => {
-  if (commons.scrollToComments) {
+watch(() => commons.scrollToComments, (should) => {
+  if (should) {
     commons.setScrollToComments(false);
-    setTimeout(() => {
-      document.getElementById("conversation")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 100);
+    nextTick(() => {
+      setTimeout(() => {
+        document.getElementById("conversation")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 150);
+    });
   }
-});
+}, { immediate: true });
 </script>
 
 <style scoped>

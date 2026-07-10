@@ -206,6 +206,7 @@ export const useCommonsStore = defineStore("commons", () => {
     boostedProposals.value = socialRows.value.boosts.filter((r) => r.account_id === acct).map((r) => r.proposal_id);
     followedProposals.value = socialRows.value.follows.filter((r) => r.account_id === acct).map((r) => r.proposal_id);
     savedProposals.value = socialRows.value.saves.filter((r) => r.account_id === acct).map((r) => r.proposal_id);
+    loadNotifications();   // refresh the bell for the newly-selected account
   };
 
   // ── Derived from Parliament ────────────────────────────────────────────────
@@ -653,6 +654,7 @@ export const useCommonsStore = defineStore("commons", () => {
       totalDonated: (totalByProposal[row.id] ?? 0).toFixed(4),
     }));
     console.log(`✓ loaded ${proposals.value.length} proposals from Supabase`);
+    await loadNotifications();
   }
 
   async function initMockWallet() {
@@ -769,8 +771,19 @@ export const useCommonsStore = defineStore("commons", () => {
       isAmendment: false,
       createdAt: new Date().toISOString(),
     };
-    proposal.discussionPosts.push(post);
-    // persist to Supabase (account upsert first to satisfy FK, then insert comment)
+     proposal.discussionPosts.push(post);
+    if (accountId !== proposal.proposerAccountId) {
+      createNotification({ recipient: proposal.proposerAccountId, type: "comment", proposalId });
+    } else {
+      const priorCommenters = new Set(
+        proposal.discussionPosts
+          .map((c) => c.authorAccountId)
+          .filter((a) => a && a !== proposal.proposerAccountId),
+      );
+      for (const commenter of priorCommenters) {
+        createNotification({ recipient: commenter, type: "reply", proposalId });
+      }
+    }
     (async () => {
       await supabase.from("accounts").upsert(
         { account_id: accountId, public_key: "", network: "taira" },
@@ -1041,6 +1054,7 @@ export const useCommonsStore = defineStore("commons", () => {
       proposerResponse: null, respondedAt: null, createdAt: now,
     };
     (milestone.flags ??= []).push(newFlag);
+     createNotification({ recipient: proposal.proposerAccountId, type: "flag", proposalId, milestoneId });
     (async () => {
       await supabase.from("accounts").upsert({ account_id: acct, public_key: "", network: "taira" }, { onConflict: "account_id", ignoreDuplicates: true });
       const { data, error } = await supabase.from("flags").insert({
@@ -1214,13 +1228,58 @@ export const useCommonsStore = defineStore("commons", () => {
   const boostedProposals = ref<string[]>([]);
   const followedProposals = ref<string[]>([]);
   const donatedProposals = ref<string[]>([]); // proposal ids the current account has donated to (for unique-backer counting)
+  const notifications = ref<any[]>([]);
+  const unreadCount = computed(() => notifications.value.filter((n) => !n.read).length);
+
+  async function loadNotifications() {
+    const acct = currentAccountId.value;
+    if (!acct) { notifications.value = []; return; }
+    const { data, error } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("recipient_account_id", acct)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) { console.error("load notifications failed:", error); return; }
+    notifications.value = data ?? [];
+  }
+
+  async function markNotificationsRead() {
+    const acct = currentAccountId.value;
+    if (!acct) return;
+    notifications.value = notifications.value.map((n) => ({ ...n, read: true }));
+    const { error } = await supabase
+      .from("notifications")
+      .update({ read: true })
+      .eq("recipient_account_id", acct)
+      .eq("read", false);
+    if (error) console.error("mark read failed:", error);
+  }
   const isLiked = (id: string): boolean => likedProposals.value.includes(id);
   const isBoosted = (id: string): boolean => boostedProposals.value.includes(id);
   const isFollowing = (id: string): boolean => followedProposals.value.includes(id);
   const accountJoinedAt = ref<string | null>(null);
   const boostRows = ref<any[]>([]);
   const boostBlockedTick = ref(0); // increments each time a boost is blocked at 0 allotment
-
+async function createNotification(opts: {
+    recipient: string;
+    type: "like" | "boost" | "donate" | "flag" | "comment" | "reply";
+    proposalId: string;
+    milestoneId?: string;
+    meta?: string;
+  }) {
+    const actor = currentAccountId.value;
+    if (!opts.recipient || opts.recipient === actor) return;   // self-guard
+    const { error } = await supabase.from("notifications").insert({
+      recipient_account_id: opts.recipient,
+      actor_account_id: actor,
+      type: opts.type,
+      proposal_id: opts.proposalId,
+      milestone_id: opts.milestoneId ?? null,
+      meta: opts.meta ?? null,
+    });
+    if (error) console.error("notification insert failed:", error);
+  }
  const toggleLike = (id: string): void => {
     const p = proposals.value.find((x) => x.id === id);
     if (!p) return;
@@ -1231,6 +1290,7 @@ export const useCommonsStore = defineStore("commons", () => {
       supabase.from("likes").delete().match({ account_id: acct, proposal_id: id }).then();
     } else {
       likedProposals.value.push(id); p.likes += 1;
+      createNotification({ recipient: p.proposerAccountId, type: "like", proposalId: id });
       (async () => {
         await supabase.from("accounts").upsert({ account_id: acct, public_key: "", network: "taira" }, { onConflict: "account_id", ignoreDuplicates: true });
         await supabase.from("likes").insert({ account_id: acct, proposal_id: id });
@@ -1252,6 +1312,7 @@ export const useCommonsStore = defineStore("commons", () => {
       // new boost — blocked if no allotment left this week
       if (boostsRemaining.value <= 0) { boostBlockedTick.value++; return; }
       boostedProposals.value.push(id); p.boostCount += 1;
+      createNotification({ recipient: p.proposerAccountId, type: "boost", proposalId: id });
       boostRows.value.push({ account_id: acct, proposal_id: id, created_at: new Date().toISOString() });
       (async () => {
         await supabase.from("accounts").upsert({ account_id: acct, public_key: "", network: "taira" }, { onConflict: "account_id", ignoreDuplicates: true });
@@ -1322,6 +1383,8 @@ const toggleFollow = (id: string): void => {
       });
       if (dErr) console.error("donation insert failed:", dErr);
     })();
+        createNotification({ recipient: p.proposerAccountId, type: "donate", proposalId, meta: amount.toFixed(4) });
+
     return true;
   };
 
@@ -1417,7 +1480,8 @@ const toggleFollow = (id: string): void => {
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
     savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow, 
-    donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount, boostsRemaining, boostBlockedTick,  mockWalletId, initMockWallet,
+   donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount, boostsRemaining, boostBlockedTick,  mockWalletId, initMockWallet,
+    notifications, unreadCount, loadNotifications, markNotificationsRead,
 
 
     // Reputation

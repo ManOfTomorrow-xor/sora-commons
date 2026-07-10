@@ -26,6 +26,28 @@
           <option v-for="a in demoAccounts" :key="a" :value="a">{{ a.split('.')[0] }}</option>
         </select>
         <div class="netchip" title="Connected to Taira testnet"><span class="dot"></span><span class="netchip__lbl">TAIRA</span></div>
+        <div class="bell" v-if="commons.currentAccountId" ref="bellEl">
+          <button class="bell__btn" @click="toggleNotifs" title="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span v-if="commons.unreadCount > 0" class="bell__badge">{{ commons.unreadCount > 9 ? '9+' : commons.unreadCount }}</span>
+          </button>
+          <div v-if="notifsOpen" class="notifs">
+            <div class="notifs__h">Notifications</div>
+            <div v-if="commons.notifications.length === 0" class="notifs__empty">No notifications yet.</div>
+            <button v-for="n in commons.notifications" :key="n.id" class="notif" :class="{ 'notif--unread': !n.read }" @click="openNotif(n)">
+              <span class="notif__av" :style="commons.getAvatar(n.actor_account_id) ? {} : avStyle(n.actor_account_id)">
+                <img v-if="commons.getAvatar(n.actor_account_id)" :src="commons.getAvatar(n.actor_account_id)" class="notif__avimg" alt="" />
+                <template v-else>{{ initials(n.actor_account_id) }}</template>
+                <span class="notif__badge" :class="'nb--' + n.type">{{ notifIcon(n.type) }}</span>
+              </span>
+              <span class="notif__body">
+                <span class="notif__txt">{{ notifText(n) }}</span>
+                <span class="notif__time">{{ notifTime(n.created_at) }}</span>
+              </span>
+              <span v-if="!n.read" class="notif__dot"></span>
+            </button>
+          </div>
+        </div>
         <button class="meav" :style="commons.getAvatar(myId) ? {} : avStyle(myId)" @click="goMyProfile" title="Your profile">
           <img v-if="commons.getAvatar(myId)" :src="commons.getAvatar(myId)" class="meav__img" alt="" />
           <template v-else>{{ initials(myId) }}</template>
@@ -116,10 +138,14 @@ function onScroll() {
 }
 onMounted(async () => {
   window.addEventListener("scroll", onScroll, { passive: true });
+  document.addEventListener("click", onDocClick);
   await commons.initMockWallet();
   commons.loadProposals();
 });
-onUnmounted(() => window.removeEventListener("scroll", onScroll));
+onUnmounted(() => {
+  window.removeEventListener("scroll", onScroll);
+  document.removeEventListener("click", onDocClick);   
+});
 const myId = computed(() => commons.currentAccountId);
 function goMyProfile() { commons.setViewingProfile(null); go("profile"); }
 const showDevTools = COMMONS_CONFIG.SHOW_DEV_TOOLS;
@@ -134,6 +160,7 @@ function avStyle(id: string) {
   for (let i = 0; i < (id || "").length; i++) h = id.charCodeAt(i) + ((h << 5) - h);
   return { background: colors[Math.abs(h) % colors.length] };
 }
+function shortId(id?: string) { if (!id) return "Someone"; return id.length > 16 ? id.slice(0,8)+"…"+id.slice(-4) : id; }
 
 const tabs = [
   { id: "feed", label: "Feed" },
@@ -157,6 +184,54 @@ const mobileTabs = [
   { id: "treasury", label: "Treasury", icon: ic.flame },
   { id: "about", label: "About", icon: ic.info },
 ];
+const notifsOpen = ref(false);
+function toggleNotifs() {
+  if (notifsOpen.value) {
+    notifsOpen.value = false;
+    commons.markNotificationsRead();   // closing → mark read (dots were visible while open)
+  } else {
+    notifsOpen.value = true;
+  }
+}
+function openNotif(n: any) {
+  notifsOpen.value = false;
+  commons.markNotificationsRead();
+  if (n.proposal_id) {
+    commons.setActiveProposal(n.proposal_id);
+    if (n.type === "comment" || n.type === "reply") commons.setScrollToComments(true);
+    go("story");
+  }
+}
+function notifIcon(type: string) {
+  return { like: "♥", boost: "⚡", donate: "◈", flag: "⚑", comment: "💬", reply: "↩" }[type] || "•";
+}
+function notifText(n: any) {
+  const who = commons.getDisplayName(n.actor_account_id) || shortId(n.actor_account_id);
+  switch (n.type) {
+    case "like": return `${who} liked your proposal`;
+    case "boost": return `${who} boosted your proposal`;
+    case "donate": return `${who} donated ${n.meta || ""} XOR to your proposal`;
+    case "flag": return `${who} flagged one of your deliveries`;
+    case "comment": return `${who} commented on your proposal`;
+    case "reply": return `${who} replied on a proposal you commented on`;
+    default: return "New notification";
+  }
+}
+function notifTime(iso: string) {
+  const d = new Date(iso), now = Date.now(), diff = (now - d.getTime()) / 1000;
+  if (diff < 60) return "just now";
+  if (diff < 3600) return Math.floor(diff / 60) + "m ago";
+  if (diff < 86400) return Math.floor(diff / 3600) + "h ago";
+  return Math.floor(diff / 86400) + "d ago";
+}
+
+const bellEl = ref<HTMLElement | null>(null);
+function onDocClick(e: MouseEvent) {
+  if (notifsOpen.value && bellEl.value && !bellEl.value.contains(e.target as Node)) {
+    notifsOpen.value = false;
+    commons.markNotificationsRead();
+  }
+}
 </script>
 
 <style scoped>
@@ -240,4 +315,22 @@ const mobileTabs = [
   .boostbanner-enter-active, .boostbanner-leave-active { transition: opacity .25s ease; }
   .boostbanner-enter-from, .boostbanner-leave-to { transform: none; }
 }
+.bell { position: relative; margin-left: 4px; }
+.bell__btn { position: relative; background: none; border: none; color: var(--ink-dim); cursor: pointer; padding: 6px; display: grid; place-items: center; border-radius: 50%; }
+.bell__btn:hover { color: var(--ink); background: var(--navy-800); }
+.bell__badge { position: absolute; top: 0; right: 0; min-width: 16px; height: 16px; padding: 0 4px; background: var(--gold-500); color: #22180a; font-size: .62rem; font-weight: 800; border-radius: 999px; display: grid; place-items: center; font-family: var(--mono); }
+.notifs { position: absolute; top: 44px; right: 0; width: 340px; max-height: 440px; overflow-y: auto; background: color-mix(in srgb, var(--navy-850) 92%, transparent); backdrop-filter: blur(16px); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.02) inset; z-index: 200; padding: 8px; }
+.notifs__h { font-family: var(--display); font-size: .95rem; font-weight: 700; padding: 10px 12px 8px; color: var(--ink); letter-spacing: -.01em; }
+.notifs__empty { padding: 28px 12px; color: var(--ink-faint); font-size: .84rem; text-align: center; }
+.notif { position: relative; display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; background: none; border: none; border-radius: 12px; padding: 11px 12px; cursor: pointer; transition: background .14s var(--ease); }
+.notif:hover { background: var(--navy-900); }
+.notif__av { position: relative; flex: none; width: 38px; height: 38px; border-radius: 50%; overflow: visible; display: grid; place-items: center; font-weight: 700; color: #22180a; font-size: .82rem; }
+.notif__avimg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.notif__badge { position: absolute; bottom: -3px; right: -3px; width: 18px; height: 18px; border-radius: 50%; background: var(--navy-850); border: 2px solid var(--navy-850); display: grid; place-items: center; font-size: .64rem; color: var(--gold-300); box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+.notif__badge.nb--flag { color: var(--negate); }
+.notif__badge.nb--donate { color: var(--gold-300); }
+.notif__body { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.notif__txt { font-size: .855rem; color: var(--ink); line-height: 1.4; overflow-wrap: anywhere; }
+.notif__time { font-size: .7rem; color: var(--ink-faint); font-family: var(--mono); }
+.notif__dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--gold-400, var(--gold-300)); box-shadow: 0 0 8px rgba(201,168,76,.5); }
 </style>
