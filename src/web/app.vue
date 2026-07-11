@@ -142,11 +142,19 @@ onMounted(async () => {
   await commons.initMockWallet();
   commons.loadProposals();
   commons.subscribeToProposals();   // ← add
+  commons.subscribeToNotifications();
+  commons.subscribeToSocial();
+  commons.subscribeToDonations();
+
 });
 onUnmounted(() => {
   window.removeEventListener("scroll", onScroll);
   document.removeEventListener("click", onDocClick);
   commons.unsubscribeProposals();   // ← add
+  commons.unsubscribeNotifications();
+  commons.unsubscribeSocial();
+  commons.unsubscribeDonations();
+
 });
 const myId = computed(() => commons.currentAccountId);
 function goMyProfile() { commons.setViewingProfile(null); go("profile"); }

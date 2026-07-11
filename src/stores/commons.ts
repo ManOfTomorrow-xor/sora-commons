@@ -207,6 +207,8 @@ export const useCommonsStore = defineStore("commons", () => {
     followedProposals.value = socialRows.value.follows.filter((r) => r.account_id === acct).map((r) => r.proposal_id);
     savedProposals.value = socialRows.value.saves.filter((r) => r.account_id === acct).map((r) => r.proposal_id);
     loadNotifications();   // refresh the bell for the newly-selected account
+    subscribeToNotifications();   // re-subscribe realtime with the new account's filter
+
   };
 
   // ── Derived from Parliament ────────────────────────────────────────────────
@@ -548,6 +550,7 @@ export const useCommonsStore = defineStore("commons", () => {
       totalByProposal[d.proposal_id] = (totalByProposal[d.proposal_id] ?? 0) + parseFloat(d.amount || "0");
       burnedByProposal[d.proposal_id] = (burnedByProposal[d.proposal_id] ?? 0) + parseFloat(d.burned || "0");
     }
+    backersByProposalRef.value = backersByProposal;
     const { data: flagData } = await supabase
       .from("flags")
       .select("*")
@@ -1230,6 +1233,7 @@ export const useCommonsStore = defineStore("commons", () => {
   const followedProposals = ref<string[]>([]);
   const donatedProposals = ref<string[]>([]); // proposal ids the current account has donated to (for unique-backer counting)
   const notifications = ref<any[]>([]);
+  const backersByProposalRef = ref<Record<string, Set<string>>>({});
   const feedShownIds = ref<Set<string>>(new Set());
   const feedInitialized = ref(false);
   function initFeedSnapshot() {
@@ -1301,8 +1305,74 @@ export const useCommonsStore = defineStore("commons", () => {
   function unsubscribeProposals() {
     if (proposalChannel) { supabase.removeChannel(proposalChannel); proposalChannel = null; }
   }
+  let notifChannel: any = null;
+  function subscribeToNotifications() {
+    if (notifChannel) { supabase.removeChannel(notifChannel); notifChannel = null; }
+    const acct = currentAccountId.value;
+    if (!acct) return;
+    notifChannel = supabase
+      .channel("public:notifications")
+      .on("postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_account_id=eq.${acct}` },
+        (payload: any) => {
+          const row = payload.new;
+          if (!row || notifications.value.some((n) => n.id === row.id)) return;
+          notifications.value = [row, ...notifications.value];
+        })
+      .subscribe();
+  }
+  function unsubscribeNotifications() {
+    if (notifChannel) { supabase.removeChannel(notifChannel); notifChannel = null; }
+  }
   const unreadCount = computed(() => notifications.value.filter((n) => !n.read).length);
-
+  let socialChannel: any = null;
+  function subscribeToSocial() {
+    if (socialChannel) return;
+    const bump = (table: string, row: any, delta: number) => {
+      if (!row) return;
+      if (row.account_id === currentAccountId.value) return;   // skip own actions (handled optimistically)
+      const p = proposals.value.find((x) => x.id === row.proposal_id);
+      if (!p) return;
+      if (table === "likes") p.likes = Math.max(0, p.likes + delta);
+      else if (table === "boosts") p.boostCount = Math.max(0, p.boostCount + delta);
+      else if (table === "follows") p.followers = Math.max(0, p.followers + delta);
+    };
+    socialChannel = supabase
+      .channel("public:social")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "likes" }, (pl: any) => bump("likes", pl.new, +1))
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "likes" }, (pl: any) => bump("likes", pl.old, -1))
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "boosts" }, (pl: any) => bump("boosts", pl.new, +1))
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "boosts" }, (pl: any) => bump("boosts", pl.old, -1))
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "follows" }, (pl: any) => bump("follows", pl.new, +1))
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "follows" }, (pl: any) => bump("follows", pl.old, -1))
+      .subscribe();
+  }
+  function unsubscribeSocial() {
+    if (socialChannel) { supabase.removeChannel(socialChannel); socialChannel = null; }
+  }
+  let donationChannel: any = null;
+  function subscribeToDonations() {
+    if (donationChannel) return;
+    donationChannel = supabase
+      .channel("public:donations")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "donations" }, (pl: any) => {
+        const row = pl.new;
+        if (!row || row.donor_account_id === currentAccountId.value) return;   // skip own (optimistic)
+        const p = proposals.value.find((x) => x.id === row.proposal_id);
+        if (!p) return;
+        p.totalDonated = (parseFloat(p.totalDonated || "0") + parseFloat(row.amount || "0")).toFixed(4);
+        p.xorBurned = (parseFloat(p.xorBurned || "0") + parseFloat(row.burned || "0")).toFixed(4);
+        const set = (backersByProposalRef.value[row.proposal_id] ??= new Set());
+        if (!set.has(row.donor_account_id)) {
+          set.add(row.donor_account_id);
+          p.backers = (p.backers || 0) + 1;
+        }
+      })
+      .subscribe();
+  }
+  function unsubscribeDonations() {
+    if (donationChannel) { supabase.removeChannel(donationChannel); donationChannel = null; }
+  }
   async function loadNotifications() {
     const acct = currentAccountId.value;
     if (!acct) { notifications.value = []; return; }
@@ -1552,10 +1622,10 @@ const toggleFollow = (id: string): void => {
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
     savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow, 
-   donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount, boostsRemaining, boostBlockedTick,  mockWalletId, initMockWallet,
+    donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount, boostsRemaining, boostBlockedTick,  mockWalletId, initMockWallet,
     notifications, unreadCount, loadNotifications, markNotificationsRead,
-    feedShownIds, feedInitialized, initFeedSnapshot, revealFeedPending, subscribeToProposals, unsubscribeProposals,
-
+    feedShownIds, feedInitialized, initFeedSnapshot, revealFeedPending, subscribeToProposals, unsubscribeProposals, subscribeToNotifications, unsubscribeNotifications, subscribeToSocial, unsubscribeSocial, createNotification, boostRows,
+    subscribeToDonations, unsubscribeDonations,
 
     // Reputation
     reputation, effectiveReputation, reputationRecord, creditReputation, myReputation,

@@ -98,6 +98,21 @@ Replaced the single-message `todo` with a `blockers` computed (array of ALL spec
 - **Bell UI (App.vue):** top-bar bell between netchip + avatar, unread badge (9+ cap). Modernized dropdown panel: actor avatar per row with a small corner type-badge (♥/⚡/◈/⚑/💬/↩, flag in red), frosted-glass panel, glowing gold **dot** on unread rows (tint dropped — dot only). `notifText(n)` builds readable text per type using `getDisplayName(actor)||shortId`. `notifTime` relative.
 - **Interactions:** mark-read-on-CLOSE (so unread dots stay visible while the panel is open) via all three close-paths (bell toggle, click-outside via document listener + `bellEl` ref, clicking a notification). Comment/reply notifications `setScrollToComments(true)` → Story scrolls to `#conversation`. **Story scroll uses a `watch(() => commons.scrollToComments, ..., {immediate:true})`, NOT onMounted** — onMounted doesn't re-fire on story→story navigation (Vue reuses the mounted component), so a watch is required for the already-on-a-story case.
 
+### Realtime feed + "new stories" pill  [DONE for proposals]
+The pill genuinely REQUIRES realtime to function (no other trigger delivers new data — in-app nav doesn't refetch, full refresh re-snapshots). So proposals-realtime got built now.
+- **Supabase realtime** already enabled on `proposals` (`alter publication supabase_realtime add table proposals` — was already a member). `subscribeToProposals()` opens a `channel("public:proposals").on("postgres_changes", {event:"INSERT"})`; `unsubscribeProposals()` removes it. Wired in App.vue onMounted/onUnmounted.
+- `mapProposalRow(row)` — standalone mapper for a live INSERT payload: the proposal's own columns + EMPTY children (milestones/comments/documents `[]`) + ZERO counts. Correct for a brand-new proposal; children fill on next full load. Deliberately does NOT touch `loadProposals` (avoids breaking that load-bearing function). Dedup: skips if `proposals` already has the id (your own optimistic insert).
+- **Feed snapshot moved to the STORE** (`feedShownIds` Set + `feedInitialized`, `initFeedSnapshot()` called once at end of loadProposals, `revealFeedPending()`). CRITICAL: it had to move out of Feed.vue because views are `v-if`-switched (`<Feed v-if="active==='feed'">`) → Feed unmounts/remounts on nav → component-local snapshot reset every time → nothing ever pended. Store state survives remount.
+- `pending` = loaded-but-not-in-snapshot, EXCLUDING your own posts (those show instantly, no pill for your own work). `pendingCount` gated on `feedInitialized` (kills the load-flash). Pill click → `revealFeedPending()`.
+- **Pill UI:** translucent gold (`rgba(201,168,76,.12)` + gold border), gold text, `width:fit-content` centered, spring entrance (`loadmore-in` + `--ease-spring`), gently bobbing ↑ arrow (`bob` infinite, disabled under reduced-motion).
+
+### Realtime — remaining (next: social + notifications)
+- [ ] Same recipe for **likes/boosts/follows/donations** (live counts on visible cards) and **notifications** (live bell). Each: enable table in publication, subscribe to changes, merge into store state, dedup vs optimistic local. Deferred deliberately — proved the pattern on proposals first. Best validated with concurrent users.
+- [ ] Reveal animation (Step 4, deferred): `<TransitionGroup>` around the cards so clicking the pill animates new cards expanding at top + others sliding down (`-move` class). Currently the reveal just pops in.
+
+### Motion foundation  [DONE]
+In `tokens.css`: motion tokens (`--ease-spring`, `--dur-fast/.dur/.dur-slow`), reusable keyframes (fade-up, fade-in, pop, zap, slide-scale, shake), and a global `@media (prefers-reduced-motion: reduce)` guard that neutralizes all animation/transition app-wide. Feed cards have a staggered `fade-up` entrance (`--i` index × 40ms, capped at 12). NEXT animation targets (not yet built): like/boost micro-interactions (pop/zap keyframes ready), notification panel open transition + bell shake on new, page transitions, value tick-ups.
+
 ### Config flags
 `DEMO_MODE` (testnet mode), `SHOW_DEV_TOOLS` (gates 3-account switcher, LOCAL DEV ONLY — false for visitor deploy), `IS_TEST_VERSION` (honesty flag, banner live).
 
