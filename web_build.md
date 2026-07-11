@@ -120,6 +120,16 @@ Same recipe as proposals, applied to every table. **The whole app is now realtim
 ### Motion foundation  [DONE]
 In `tokens.css`: motion tokens (`--ease-spring`, `--dur-fast/.dur/.dur-slow`), reusable keyframes (fade-up, fade-in, pop, zap, slide-scale, shake), and a global `@media (prefers-reduced-motion: reduce)` guard that neutralizes all animation/transition app-wide. Feed cards have a staggered `fade-up` entrance (`--i` index × 40ms, capped at 12). NEXT animation targets (not yet built): like/boost micro-interactions (pop/zap keyframes ready), notification panel open transition + bell shake on new, page transitions, value tick-ups.
 
+### Search — server-side FTS (stories) + trigram (people)  [DONE]
+Dedicated Search.vue view, opened by a magnifying-glass icon in the top bar (`go("search")`, registered in App.vue's `v-if` switcher as `active === 'search'`).
+- **Stories:** `proposals.search_vector` = a `generated always as ... stored` tsvector, weighted `setweight` A=title / B=summary / C=story+productive_claim+expected_output, with a GIN index. Queried via an RPC `search_proposals(q)` (SQL function, `grant execute ... to anon`) that matches **FTS OR substring**: `search_vector @@ websearch_to_tsquery('english', q) OR title/summary/story ILIKE '%q%'`, ordered `ts_rank desc, (title ilike) desc, created_at desc`. This combo was the fix for "sora" returning nothing — pure FTS only matches whole words/stems, so we OR in `ilike` substring matching. `pg_trgm` GIN indexes on proposals title/summary/story keep the ilike fast.
+- **People:** trigram — `accounts` has `pg_trgm` GIN indexes on display_name + account_id; queried directly with `.or("display_name.ilike.%q%,account_id.ilike.%q%")`. FTS is pointless on short names; trigram is the right tool (fuzzy/substring).
+- **Store:** `searchAll(q)` → `{stories, people}` (FTS RPC + trigram query). Returns raw DB rows (snake_case); Search.vue reads them directly (title/summary/proposer_account_id for stories; account_id/display_name/avatar_url/bio for people).
+- **UI:** debounced 280ms with a stale-response guard (ignore a resolved query if the input changed while awaiting), People + Stories sections, resting/loading/empty states, click-through (story → setActiveProposal + Story page; person → setViewingProfile + profile).
+
+### Feed pagination  [DONE]
+Feed shows `PAGE_SIZE = 10` at a time via a `paged` computed (`visible.slice(0, shownCount)`), a "Load more stories" button + "Showing X of Y" count when `hasMore`, `shownCount += PAGE_SIZE` on click, resets to first page on sort change (`watch(sort, ...)`). Distinct from the top realtime "N new — show" pill (different feature: bottom = paginate existing, top = reveal new arrivals).
+
 ### Config flags
 `DEMO_MODE` (testnet mode), `SHOW_DEV_TOOLS` (gates 3-account switcher, LOCAL DEV ONLY — false for visitor deploy), `IS_TEST_VERSION` (honesty flag, banner live).
 

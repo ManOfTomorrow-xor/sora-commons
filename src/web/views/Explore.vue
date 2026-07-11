@@ -29,7 +29,16 @@
         <div class="ex__chips">
           <button class="chip" :class="{ on: status === 'active' }" @click="status = 'active'">Active</button>
           <button class="chip" :class="{ on: status === 'archive' }" @click="status = 'archive'">Delivered</button>
+          <button class="chip" :class="{ on: status === 'flagged' }" @click="status = 'flagged'">Flagged</button>
           <button class="chip" :class="{ on: status === 'all' }" @click="status = 'all'">All</button>
+        </div>
+      </div>
+      <div class="ex__group" v-if="commons.currentAccountId">
+        <span class="ex__lab">Show</span>
+        <div class="ex__chips">
+          <button class="chip" :class="{ on: show === 'all' }" @click="show = 'all'">All</button>
+          <button class="chip" :class="{ on: show === 'following' }" @click="show = 'following'">Following</button>
+          <button class="chip" :class="{ on: show === 'backed' }" @click="show = 'backed'">Backed</button>
         </div>
       </div>
       <div class="ex__group ex__group--sort">
@@ -38,6 +47,8 @@
           <option>Active</option>
           <option>Newest</option>
           <option>Most boosted</option>
+          <option>Most funded</option>
+          <option>Most backers</option>
         </select>
       </div>
     </div>
@@ -91,12 +102,14 @@ import { useCommonsStore } from "@/stores/commons";
 
 const emit = defineEmits<{ (e: "nav", id: string): void }>();
 const commons = useCommonsStore();
+const sort = ref<"Active" | "Newest" | "Most boosted" | "Most funded" | "Most backers">("Active");
+const show = ref<"all" | "following" | "backed">("all");
 
 const query = ref("");
 const category = ref("all");
 const track = ref("all");
-const status = ref<"active" | "archive" | "all">("active");
-const sort = ref<"Active" | "Newest" | "Most boosted">("Active");
+const status = ref<"active" | "archive" | "all" | "flagged">("active");
+
 
 const categories = [
   { v: "all", t: "All" },
@@ -127,14 +140,22 @@ const results = computed(() => {
   // track (default donations when unset)
   if (track.value !== "all") list = list.filter((p: any) => (p.track || "donations") === track.value);
 
-  // status
+// status
   if (status.value === "active") list = list.filter((p: any) => p.status !== "complete");
   else if (status.value === "archive") list = list.filter((p: any) => p.status === "complete");
-
+  else if (status.value === "flagged") list = list.filter((p: any) => commons.proposalChallengeState(p) === "flagged");
+  // show (personal — following / backed)
+  if (show.value === "following") list = list.filter((p: any) => commons.isFollowing(p.id));
+  else if (show.value === "backed") {
+    const acct = commons.currentAccountId;
+    list = list.filter((p: any) => commons.donatedProposals.includes(acct + "::" + p.id));
+  }
   // sort
   if (sort.value === "Newest") list.sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || ""));
   else if (sort.value === "Most boosted") list.sort((a: any, b: any) => (b.boostCount || 0) - (a.boostCount || 0));
-
+  else if (sort.value === "Most funded") list.sort((a: any, b: any) => parseFloat(b.totalDonated || "0") - parseFloat(a.totalDonated || "0"));
+  else if (sort.value === "Most backers") list.sort((a: any, b: any) => (b.backers || 0) - (a.backers || 0));
+  return list;
   return list;
 });
 

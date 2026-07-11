@@ -585,6 +585,12 @@ export const useCommonsStore = defineStore("commons", () => {
       follows: followsRes.data ?? [],
       saves: savesRes.data ?? [],
     };
+    // restore THIS account's lit state on load (not just on account switch)
+    const meAcct = currentAccountId.value;
+    likedProposals.value = (likesRes.data ?? []).filter((r) => r.account_id === meAcct).map((r) => r.proposal_id);
+    boostedProposals.value = (boostsRes.data ?? []).filter((r) => r.account_id === meAcct).map((r) => r.proposal_id);
+    followedProposals.value = (followsRes.data ?? []).filter((r) => r.account_id === meAcct).map((r) => r.proposal_id);
+    savedProposals.value = (savesRes.data ?? []).filter((r) => r.account_id === meAcct).map((r) => r.proposal_id);
     proposals.value = data.map((row: any): CommonsProposal => ({
       id: row.id,
       proposerAccountId: row.proposer_account_id,
