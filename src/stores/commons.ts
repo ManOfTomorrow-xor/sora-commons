@@ -685,6 +685,19 @@ export const useCommonsStore = defineStore("commons", () => {
     avatarByAccount.value[acct] = url;
     return { ok: true };
   }
+  async function searchAll(query: string) {
+    const q = query.trim();
+    if (!q) return { stories: [], people: [] };
+    const { data: storyData, error: sErr } = await supabase.rpc("search_proposals", { q });
+    if (sErr) console.error("story search failed:", sErr);
+    const { data: peopleData, error: pErr } = await supabase
+      .from("accounts")
+      .select("account_id, display_name, avatar_url, bio")
+      .or(`display_name.ilike.%${q}%,account_id.ilike.%${q}%`)
+      .limit(20);
+    if (pErr) console.error("people search failed:", pErr);
+    return { stories: storyData ?? [], people: peopleData ?? [] };
+  }
 
   function getAvatar(accountId: string): string {
     return avatarByAccount.value[accountId] || "";
@@ -1625,7 +1638,7 @@ const toggleFollow = (id: string): void => {
     donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount, boostsRemaining, boostBlockedTick,  mockWalletId, initMockWallet,
     notifications, unreadCount, loadNotifications, markNotificationsRead,
     feedShownIds, feedInitialized, initFeedSnapshot, revealFeedPending, subscribeToProposals, unsubscribeProposals, subscribeToNotifications, unsubscribeNotifications, subscribeToSocial, unsubscribeSocial, createNotification, boostRows,
-    subscribeToDonations, unsubscribeDonations,
+    subscribeToDonations, unsubscribeDonations, searchAll,
 
     // Reputation
     reputation, effectiveReputation, reputationRecord, creditReputation, myReputation,

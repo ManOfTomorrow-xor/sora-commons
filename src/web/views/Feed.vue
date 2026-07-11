@@ -49,7 +49,7 @@
           <span class="loadmore__ic">↑</span>
           {{ pendingCount }} new {{ pendingCount === 1 ? 'story' : 'stories' }} — show
         </button>
-       <article v-for="(p, i) in visible" :key="p.id" class="card" :class="{ 'card--flagged': commons.proposalChallengeState(p) === 'flagged' }" :style="{ '--i': Math.min(i, 12) }" @click="open(p)">
+       <article v-for="(p, i) in paged" :key="p.id" class="card":class="{ 'card--flagged': commons.proposalChallengeState(p) === 'flagged' }" :style="{ '--i': Math.min(i, 12) }" @click="open(p)">
           <div class="card__top">
             <span class="av" :style="commons.getAvatar(p.proposerAccountId) ? {} : avStyle(p.proposerAccountId)">
               <img v-if="commons.getAvatar(p.proposerAccountId)" :src="commons.getAvatar(p.proposerAccountId)" class="av__img" alt="" />
@@ -92,6 +92,10 @@
             <span class="donated"><template v-if="p.fundingMode === 'open'">{{ p.totalDonated || 0 }} XOR raised</template><template v-else>{{ p.totalDonated || 0 }} / {{ p.xorRequested || 0 }} XOR raised</template></span>
           </div>
         </article>
+        <div v-if="hasMore" class="loadmore-wrap">
+          <span class="loadmore-count">Showing {{ paged.length }} of {{ visible.length }}</span>
+          <button class="loadmore-btn" @click="loadMore">Load more stories</button>
+        </div>
       </div>
 
 <!-- RIGHT RAIL -->
@@ -121,7 +125,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, } from "vue";
+import { ref, computed, watch } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import { COMMONS_CONFIG } from "@/constants/commonsConfig";
 const boostsPerWeek = COMMONS_CONFIG.BOOSTS_PER_WEEK;
@@ -156,6 +160,13 @@ const visible = computed(() => {
   }
   return list; // Active = store order
 });
+const PAGE_SIZE = 10;
+const shownCount = ref(PAGE_SIZE);
+const paged = computed(() => visible.value.slice(0, shownCount.value));
+const hasMore = computed(() => visible.value.length > shownCount.value);
+function loadMore() { shownCount.value += PAGE_SIZE; }
+// reset to first page when the sort changes
+watch(sort, () => { shownCount.value = PAGE_SIZE; });
 
 const topBoosted = computed(() =>
   [...commons.proposals]
@@ -260,6 +271,10 @@ function avStyle(id: string) {
 .loadmore { display: flex; width: fit-content; align-items: center; gap: 8px; margin: 0 auto 18px; background: rgba(201,168,76,.12); color: var(--gold-300); border: 1px solid var(--gold-600); border-radius: 999px; padding: 9px 20px; font-family: var(--body); font-weight: 600; font-size: .84rem; letter-spacing: .01em; cursor: pointer; backdrop-filter: blur(8px); box-shadow: 0 4px 20px rgba(201,168,76,.15); animation: loadmore-in var(--dur) var(--ease-spring) both; transition: transform var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease); }
 .loadmore:hover { background: rgba(201,168,76,.2); transform: translateY(-1px); box-shadow: 0 6px 24px rgba(201,168,76,.28); }
 .loadmore__ic { font-size: .95rem; animation: bob 1.6s var(--ease) infinite; }
+.loadmore-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 20px 0 8px; }
+.loadmore-count { font-size: .76rem; color: var(--ink-faint); font-family: var(--mono); }
+.loadmore-btn { background: var(--navy-850); border: 1px solid var(--line); color: var(--ink-dim); border-radius: 999px; padding: 10px 24px; font-family: var(--body); font-weight: 600; font-size: .86rem; cursor: pointer; transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease); }
+.loadmore-btn:hover { border-color: var(--gold-600); color: var(--gold-300); background: var(--navy-800); }
 @keyframes loadmore-in { from { opacity: 0; transform: translateY(-10px) scale(.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 
@@ -349,5 +364,6 @@ function avStyle(id: string) {
   .prog { margin-bottom: 10px; }
   .card__top { margin-bottom: 8px; }
 }
+
 
 </style>

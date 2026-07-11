@@ -26,6 +26,9 @@
           <option v-for="a in demoAccounts" :key="a" :value="a">{{ a.split('.')[0] }}</option>
         </select>
         <div class="netchip" title="Connected to Taira testnet"><span class="dot"></span><span class="netchip__lbl">TAIRA</span></div>
+        <button class="topsearch" @click="go('search')" title="Search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        </button>
         <div class="bell" v-if="commons.currentAccountId" ref="bellEl">
           <button class="bell__btn" @click="toggleNotifs" title="Notifications">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -66,6 +69,7 @@
       <Proposals v-else-if="active === 'proposals'" @nav="go" />
       <Treasury v-else-if="active === 'treasury'" />
       <Explore v-else-if="active === 'explore'" @nav="go" />
+      <Search v-else-if="active === 'search'" @nav="go" />
       <Submit v-else-if="active === 'submit'" @nav="go" />
       <template v-else>
         <h1 class="page-title">{{ tabs.find(t => t.id === active)?.label }}</h1>
@@ -88,6 +92,7 @@
 import Story from "./views/Story.vue";
 import Explore from "./views/Explore.vue";
 import Feed from "./views/Feed.vue";
+import Search from "./views/Search.vue";
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import { COMMONS_CONFIG } from "@/constants/commonsConfig";
@@ -329,6 +334,9 @@ function onDocClick(e: MouseEvent) {
 .bell__btn { position: relative; background: none; border: none; color: var(--ink-dim); cursor: pointer; padding: 6px; display: grid; place-items: center; border-radius: 50%; }
 .bell__btn:hover { color: var(--ink); background: var(--navy-800); }
 .bell__badge { position: absolute; top: 0; right: 0; min-width: 16px; height: 16px; padding: 0 4px; background: var(--gold-500); color: #22180a; font-size: .62rem; font-weight: 800; border-radius: 999px; display: grid; place-items: center; font-family: var(--mono); }
+.topsearch { background: none; border: none; color: var(--ink-dim); cursor: pointer; padding: 6px; display: grid; place-items: center; border-radius: 50%; }
+.topsearch svg { width: 20px; height: 20px; }
+.topsearch:hover { color: var(--ink); background: var(--navy-800); }
 .notifs { position: absolute; top: 44px; right: 0; width: 340px; max-height: 440px; overflow-y: auto; background: color-mix(in srgb, var(--navy-850) 92%, transparent); backdrop-filter: blur(16px); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.02) inset; z-index: 200; padding: 8px; }
 .notifs__h { font-family: var(--display); font-size: .95rem; font-weight: 700; padding: 10px 12px 8px; color: var(--ink); letter-spacing: -.01em; }
 .notifs__empty { padding: 28px 12px; color: var(--ink-faint); font-size: .84rem; text-align: center; }
