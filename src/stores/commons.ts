@@ -655,6 +655,7 @@ export const useCommonsStore = defineStore("commons", () => {
     }));
     console.log(`✓ loaded ${proposals.value.length} proposals from Supabase`);
     await loadNotifications();
+    initFeedSnapshot();
   }
 
   async function initMockWallet() {
@@ -1229,6 +1230,77 @@ export const useCommonsStore = defineStore("commons", () => {
   const followedProposals = ref<string[]>([]);
   const donatedProposals = ref<string[]>([]); // proposal ids the current account has donated to (for unique-backer counting)
   const notifications = ref<any[]>([]);
+  const feedShownIds = ref<Set<string>>(new Set());
+  const feedInitialized = ref(false);
+  function initFeedSnapshot() {
+    if (!feedInitialized.value && proposals.value.length > 0) {
+      feedShownIds.value = new Set(proposals.value.map((p) => p.id));
+      feedInitialized.value = true;
+    }
+  }
+  function revealFeedPending() {
+    const next = new Set(feedShownIds.value);
+    for (const p of proposals.value) next.add(p.id);
+    feedShownIds.value = next;
+  }
+  function mapProposalRow(row: any): CommonsProposal {
+    return {
+      id: row.id,
+      proposerAccountId: row.proposer_account_id,
+      title: row.title,
+      description: row.summary ?? "",
+      story: row.story ?? undefined,
+      track: row.track ?? "donations",
+      category: row.category ?? undefined,
+      publicBenefit: row.public_benefit ?? undefined,
+      productiveClaim: row.productive_claim ?? undefined,
+      inputs: row.inputs ?? undefined,
+      expectedOutput: row.expected_output ?? undefined,
+      demandSignal: row.demand_signal ?? undefined,
+      riskBearer: row.risk_bearer ?? undefined,
+      failureHandling: row.failure_handling ?? undefined,
+      xorRequested: row.xor_requested ?? "0",
+      fundingMode: row.funding_mode ?? "open",
+      milestones: [],
+      status: row.status ?? "active",
+      documents: [],
+      signals: [],
+      signalEndsAt: null,
+      discussionPosts: [],
+      amendments: [],
+      deliberationEndsAt: null,
+      sortitionExcluded: [row.proposer_account_id],
+      parliamentBrief: null,
+      parliamentRemarks: null,
+      panelMembers: [],
+      panelVotes: [],
+      sortitionEndsAt: null,
+      revisionCount: 0,
+      xorBurned: "0.0000",
+      createdAt: row.created_at,
+      likes: 0,
+      boostCount: 0,
+      followers: 0,
+      backers: 0,
+      totalDonated: "0.0000",
+    };
+  }
+
+  let proposalChannel: any = null;
+  function subscribeToProposals() {
+    if (proposalChannel) return;
+    proposalChannel = supabase
+      .channel("public:proposals")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "proposals" }, (payload: any) => {
+        const row = payload.new;
+        if (!row || proposals.value.some((p) => p.id === row.id)) return;   // dedup own optimistic insert
+        proposals.value.unshift(mapProposalRow(row));   // → pending computed catches it → pill shows
+      })
+      .subscribe();
+  }
+  function unsubscribeProposals() {
+    if (proposalChannel) { supabase.removeChannel(proposalChannel); proposalChannel = null; }
+  }
   const unreadCount = computed(() => notifications.value.filter((n) => !n.read).length);
 
   async function loadNotifications() {
@@ -1482,6 +1554,7 @@ const toggleFollow = (id: string): void => {
     savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow, 
    donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount, boostsRemaining, boostBlockedTick,  mockWalletId, initMockWallet,
     notifications, unreadCount, loadNotifications, markNotificationsRead,
+    feedShownIds, feedInitialized, initFeedSnapshot, revealFeedPending, subscribeToProposals, unsubscribeProposals,
 
 
     // Reputation

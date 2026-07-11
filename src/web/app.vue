@@ -141,10 +141,12 @@ onMounted(async () => {
   document.addEventListener("click", onDocClick);
   await commons.initMockWallet();
   commons.loadProposals();
+  commons.subscribeToProposals();   // ← add
 });
 onUnmounted(() => {
   window.removeEventListener("scroll", onScroll);
-  document.removeEventListener("click", onDocClick);   
+  document.removeEventListener("click", onDocClick);
+  commons.unsubscribeProposals();   // ← add
 });
 const myId = computed(() => commons.currentAccountId);
 function goMyProfile() { commons.setViewingProfile(null); go("profile"); }

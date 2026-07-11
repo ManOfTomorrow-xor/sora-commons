@@ -47,7 +47,8 @@
 `flags` (id uuid PK, proposal_id CASCADE, milestone_id CASCADE nullable, flagger_account_id→accounts, reason, status default 'open', withdrawn_at, proposer_response, responded_at, created_at; partial unique index: one open flag per flagger per milestone) ·
 `donations` (RECORD ONLY — id uuid PK, proposal_id CASCADE, donor_account_id→accounts, amount TEXT, burned TEXT, created_at) ·
 `proposal_documents` (id uuid PK, proposal_id→proposals CASCADE, filename, url, file_type, uploaded_at) ·
-`milestone_documents` (id uuid PK, milestone_id→milestones CASCADE, proposal_id→proposals CASCADE, filename, url, file_type, uploaded_at)
+`milestone_documents` (id uuid PK, milestone_id→milestones CASCADE, proposal_id→proposals CASCADE, filename, url, file_type, uploaded_at) ·
+`notifications` (id uuid PK, recipient_account_id→accounts, actor_account_id→accounts, type, proposal_id→proposals CASCADE, milestone_id→milestones CASCADE nullable, meta text, read bool default false, created_at)
 
 **RLS lesson (cost real debugging time):** a table needs BOTH `grant <op> ... to anon` AND an RLS *policy* for that op. Missing either → silent zero-match with NO error. Bit us on `flags` UPDATE, `accounts` UPDATE, `proposals` UPDATE. **All dev-stage policies (`using(true)`) must be TIGHTENED to owner-only at the wallet-auth step.**
 
@@ -90,6 +91,13 @@ Storage `documents` bucket + `proposal_documents` / `milestone_documents` tables
 ### Compose "what's blocking you" validation  [DONE]
 Replaced the single-message `todo` with a `blockers` computed (array of ALL specific issues, per-chapter granular: "Chapter N: set the evidence due date", "Chapter N: the due date can't be in the past", etc.). `ready = blockers.length === 0`. Blockers list is HIDDEN by default and only revealed when the user clicks "Post your story" with something wrong (`showBlockers` ref; Post button always clickable to trigger the check). Includes past-date detection (`m.timeline < todayStr`).
 
+### Notification system  [DONE]
+`notifications` table (id, recipient_account_id→accounts, actor_account_id→accounts, type, proposal_id→proposals CASCADE, milestone_id→milestones CASCADE nullable, meta text, read bool, created_at) + grants select/insert/update + RLS policies (update needed for mark-as-read; dev-loose, tighten to recipient=authed at wallet-auth).
+- **Write side:** `createNotification({recipient,type,proposalId,milestoneId?,meta?})` async helper with self-guard (skips if recipient empty or === actor). Wired to all six triggers: `toggleLike`/`toggleBoost` (on add only, not un-toggle), `donate` (meta = amount), `raiseFlag` (includes milestoneId), `postDiscussion` — comment (non-proposer → notify proposer) AND reply (proposer comments → notify all OTHER prior commenters, deduped via Set; the honest read of "responded to your comment" given flat non-threaded comments).
+- **Read side:** `notifications` ref, `unreadCount` computed, `loadNotifications()` (recipient = current account, order desc, limit 50), `markNotificationsRead()` (optimistic). `loadNotifications()` called at end of `loadProposals` AND in `setDemoAccount` (so the bell refreshes on account switch — setDemoAccount doesn't reload proposals, just re-filters in-memory social rows, so it needs its own call).
+- **Bell UI (App.vue):** top-bar bell between netchip + avatar, unread badge (9+ cap). Modernized dropdown panel: actor avatar per row with a small corner type-badge (♥/⚡/◈/⚑/💬/↩, flag in red), frosted-glass panel, glowing gold **dot** on unread rows (tint dropped — dot only). `notifText(n)` builds readable text per type using `getDisplayName(actor)||shortId`. `notifTime` relative.
+- **Interactions:** mark-read-on-CLOSE (so unread dots stay visible while the panel is open) via all three close-paths (bell toggle, click-outside via document listener + `bellEl` ref, clicking a notification). Comment/reply notifications `setScrollToComments(true)` → Story scrolls to `#conversation`. **Story scroll uses a `watch(() => commons.scrollToComments, ..., {immediate:true})`, NOT onMounted** — onMounted doesn't re-fire on story→story navigation (Vue reuses the mounted component), so a watch is required for the already-on-a-story case.
+
 ### Config flags
 `DEMO_MODE` (testnet mode), `SHOW_DEV_TOOLS` (gates 3-account switcher, LOCAL DEV ONLY — false for visitor deploy), `IS_TEST_VERSION` (honesty flag, banner live).
 
@@ -109,14 +117,16 @@ Replaced the single-message `todo` with a `blockers` computed (array of ALL spec
 - **Paste corruption:** mangled tokens (`v○-if`, `display: f\\nx`, a stray `v-if="false"` left over from a diagnostic) have appeared — when something breaks right after a paste, suspect a corrupted/leftover char; retype rather than re-paste.
 - **envDir fix:** `vite.config.ts` has `root: src/web`, so `.env` needs `envDir: resolve(__dirname, ".")`.
 - **Adjacent-deletion collateral:** deleting one function can take a neighbor with it (lost `minDate` when replacing `filesNote`; lost the old `onPost`'s twin left a duplicate). After a deletion, grep for what the template still references.
+- **`onMounted` doesn't re-fire on same-component navigation:** navigating story→story reuses the mounted Story component (Vue swaps data, doesn't remount), so an `onMounted` side-effect (e.g. scroll-to-conversation) won't run the 2nd time. Use a `watch(..., {immediate:true})` on the triggering flag instead — it fires on mount AND on every later change.
+- **`setDemoAccount` doesn't reload proposals** — it only re-filters already-loaded in-memory social rows for the new account. So any per-account data that comes from the DB (e.g. notifications) needs its own explicit reload call inside setDemoAccount; it won't ride along on a loadProposals that doesn't happen.
 - Commit at each checkpoint; only surface the commit command when the user is satisfied.
 
 ---
 
 ## REMAINING WORK
 
-### Next feature (scoped, build next session)
-- [ ] **Notification system** — notify a proposer when someone likes / boosts / donates to their proposal, flags a delivery, or responds in their thread. NEEDS: a `notifications` table (recipient, type, proposal_id, actor, read/unread, created_at); write a notification at each trigger point (toggleLike / toggleBoost / donate / raiseFlag / respondToFlag / comment); a top-bar bell + unread count + panel + mark-as-read; self-notification guard (don't notify your own actions). **Open design question:** comments are flat (no threading) — define "responded to your comment" (any comment on your proposal? a reply to your specific comment?). This is a multi-part feature ~the size of document sharing — deserves its own focused session.
+### Next feature
+- (nothing scoped yet — pick the next one at the start of the session)
 
 ### PRE-PUBLIC CLEANUP PASS (its own careful session, before repo goes public / shown to Iroha team)
 Everything below is DEAD or debug cruft to remove together, methodically, testing each step:
