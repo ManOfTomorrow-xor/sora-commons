@@ -26,6 +26,12 @@
           </div>
         </div>
 
+<!-- following tabs -->
+        <div class="ftabs" v-if="commons.currentAccountId">
+          <button :class="{ on: tab === 'all' }" @click="tab = 'all'">All work</button>
+          <button :class="{ on: tab === 'following' }" @click="tab = 'following'">Following</button>
+        </div>
+
         <!-- sort -->
         <div class="sort">
           <button v-for="s in sorts" :key="s" :class="{ on: sort === s }" @click="sort = s">{{ s }}</button>
@@ -39,7 +45,10 @@
         </div>
 
         <!-- empty state -->
-        <p v-if="visible.length === 0" class="empty">
+        <p v-if="visible.length === 0 && tab === 'following'" class="empty">
+          You're not following anything yet. Follow proposals or builders to see their work here.
+        </p>
+        <p v-else-if="visible.length === 0" class="empty">
           No stories yet. Be the first to post your work.
         </p>
 
@@ -135,6 +144,7 @@ const commons = useCommonsStore();
 
 const sorts = ["Active", "Newest", "Most boosted"] as const;
 const sort = ref<(typeof sorts)[number]>("Active");
+const tab = ref<"all" | "following">("all");
 // snapshot lives in the store (survives Feed's mount/unmount on nav)
 // pending = loaded but not yet revealed, EXCLUDING your own posts (those show instantly)
 const pending = computed(() =>
@@ -149,9 +159,15 @@ function revealNew() { commons.revealFeedPending(); }
 
 const visible = computed(() => {
   // show only revealed cards + always your own posts (instant, no pill for your work)
-  const list = commons.proposals.filter((p: any) =>
+  let list = commons.proposals.filter((p: any) =>
     commons.feedShownIds.has(p.id) || p.proposerAccountId === commons.currentAccountId
   );
+  if (tab.value === "following" && commons.currentAccountId) {
+    list = list.filter((p: any) =>
+      (commons.followedProposals || []).includes(p.id) ||
+      (commons.followedAccounts || []).includes(p.proposerAccountId)
+    );
+  }
   if (sort.value === "Newest") {
     return list.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
   }
@@ -167,6 +183,7 @@ const hasMore = computed(() => visible.value.length > shownCount.value);
 function loadMore() { shownCount.value += PAGE_SIZE; }
 // reset to first page when the sort changes
 watch(sort, () => { shownCount.value = PAGE_SIZE; });
+watch(tab, () => { shownCount.value = PAGE_SIZE; });
 
 const topBoosted = computed(() =>
   [...commons.proposals]
@@ -275,6 +292,10 @@ function avStyle(id: string) {
 .loadmore-count { font-size: .76rem; color: var(--ink-faint); font-family: var(--mono); }
 .loadmore-btn { background: var(--navy-850); border: 1px solid var(--line); color: var(--ink-dim); border-radius: 999px; padding: 10px 24px; font-family: var(--body); font-weight: 600; font-size: .86rem; cursor: pointer; transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease); }
 .loadmore-btn:hover { border-color: var(--gold-600); color: var(--gold-300); background: var(--navy-800); }
+.ftabs { display: inline-flex; gap: 4px; background: var(--navy-850); border: 1px solid var(--line); border-radius: 999px; padding: 4px; margin-bottom: 12px; }
+.ftabs button { background: none; border: none; color: var(--ink-dim); padding: 6px 16px; border-radius: 999px; font-family: var(--body); font-weight: 600; font-size: .85rem; cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+.ftabs button.on { background: var(--gold-600); color: #22180a; }
+.ftabs button:hover:not(.on) { color: var(--ink); }
 @keyframes loadmore-in { from { opacity: 0; transform: translateY(-10px) scale(.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 

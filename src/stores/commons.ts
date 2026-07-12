@@ -1714,7 +1714,7 @@ const toggleFollow = (id: string): void => {
     updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount, formatDate, 
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
-    savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow, followedAccounts, isFollowingUser, getFollowerCount, getFollowingCount, toggleFollowUser,
+    savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow,followedProposals, followedAccounts, isFollowingUser, getFollowerCount, getFollowingCount, toggleFollowUser,
     donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount, boostsRemaining, boostBlockedTick,  mockWalletId, initMockWallet,
     notifications, unreadCount, loadNotifications, markNotificationsRead,
     feedShownIds, feedInitialized, initFeedSnapshot, revealFeedPending, subscribeToProposals, unsubscribeProposals, subscribeToNotifications, unsubscribeNotifications, subscribeToSocial, unsubscribeSocial, createNotification, boostRows,
