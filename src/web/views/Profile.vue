@@ -20,8 +20,16 @@
         </div>
         <p class="pbio">{{ commons.getBio(accountId) || bio }}</p>
         <div class="prep"><span class="prep__dot"></span> Reputation: {{ reputationWord }}</div>
+        <div class="pfollows">
+          <b>{{ commons.getFollowerCount(accountId) }}</b> followers
+          <span class="pfollows__sep">·</span>
+          <b>{{ commons.getFollowingCount(accountId) }}</b> following
+        </div>
       </div>
       <button v-if="isOwn" class="pedit" @click="showEditor = true">Edit profile</button>
+      <button v-else-if="commons.currentAccountId" class="pfollow" :class="{ on: commons.isFollowingUser(accountId) }" @click="commons.toggleFollowUser(accountId)">
+        {{ commons.isFollowingUser(accountId) ? "Following" : "+ Follow" }}
+      </button>
     </div>
 
     <!-- TRACK-RECORD STRIP -->
@@ -157,6 +165,9 @@ function avStyle(id?: string) {
 .phero__name { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .phero__name h1 { font-family: var(--display); font-size: 1.8rem; font-weight: 800; margin: 0; }
 .plabel { font-family: var(--mono); font-size: .62rem; text-transform: uppercase; letter-spacing: .05em; padding: 3px 9px; border-radius: 999px; }
+.pfollows { color: var(--ink-dim); font-size: .84rem; margin-top: 6px; }
+.pfollows b { color: var(--ink); font-family: var(--mono); font-weight: 700; }
+.pfollows__sep { margin: 0 7px; color: var(--ink-faint); }
 .plabel.lbl--newcomer { color: var(--info); border: 1px solid rgba(126,155,224,.4); }
 .plabel.lbl--proven { color: var(--affirm); border: 1px solid rgba(100,220,170,.4); }
 .plabel.lbl--veteran { color: var(--gold-300); border: 1px solid var(--gold-600); }
@@ -165,6 +176,11 @@ function avStyle(id?: string) {
 .prep { display: inline-flex; align-items: center; gap: 7px; font-size: .82rem; color: var(--ink-faint); }
 .prep__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold-500); }
 .pedit { background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 9px 14px; color: var(--ink); font-weight: 600; font-size: .84rem; cursor: pointer; flex: none; }
+.pstats--six { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 600px) { .pstats--six { grid-template-columns: repeat(2, 1fr); } }
+.pfollow { background: var(--navy-900); border: 1px solid var(--gold-600); color: var(--gold-300); border-radius: var(--r-sm); padding: 9px 18px; font-family: var(--body); font-weight: 600; font-size: .9rem; cursor: pointer; transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
+.pfollow:hover { background: rgba(201,168,76,.12); transform: translateY(-1px); }
+.pfollow.on { background: rgba(201,168,76,.14); }
 .pedit:hover { border-color: var(--gold-600); }
 
 .pstats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; margin-bottom: 22px; }

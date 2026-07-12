@@ -130,12 +130,17 @@ Dedicated Search.vue view, opened by a magnifying-glass icon in the top bar (`go
 ### Feed pagination  [DONE]
 Feed shows `PAGE_SIZE = 10` at a time via a `paged` computed (`visible.slice(0, shownCount)`), a "Load more stories" button + "Showing X of Y" count when `hasMore`, `shownCount += PAGE_SIZE` on click, resets to first page on sort change (`watch(sort, ...)`). Distinct from the top realtime "N new — show" pill (different feature: bottom = paginate existing, top = reveal new arrivals).
 
+### Explore — faceted browse  [DONE]
+Explore.vue filters `[...commons.proposals]` (the full store list — independent of feed pagination/realtime snapshot). Facets, all composable (AND together): text search (title/description/story/category substring); Category (all/production/productivity_public_good); Track (all/donations/desk); Status (active = not complete / archive = complete / **flagged** = `proposalChallengeState(p) === 'flagged'` / all); **Show** (all / following = `isFollowing(p.id)` / backed = `donatedProposals.includes(acct+"::"+p.id)`) — the Show row is `v-if="commons.currentAccountId"` (sign-in gated). Sorts: Active (store order) / Newest / Most boosted / **Most funded** (parseFloat totalDonated) / **Most backers**. NOTE: default filters are Status=active — this HIDES completed proposals, which can look like "Explore is empty/missing proposals"; it's the filters, not a data limit (loadProposals has no `.limit` — fetches all).
+
 ### Config flags
 `DEMO_MODE` (testnet mode), `SHOW_DEV_TOOLS` (gates 3-account switcher, LOCAL DEV ONLY — false for visitor deploy), `IS_TEST_VERSION` (honesty flag, banner live).
 
 ---
 
 ## WORKING NOTES / GOTCHAS (hard-won)
+
+- **Social lit-state must be restored in `loadProposals`, not just `setDemoAccount`:** `likedProposals`/`boostedProposals`/`followedProposals`/`savedProposals` (the "have I done this" arrays) were originally only rebuilt on account switch. On a fresh load/refresh they stayed empty → a followed/liked proposal showed as un-followed/un-liked after refresh even though the DB row existed. Fix: after building `socialRows` in loadProposals, filter each res.data to the current account and set all four arrays (mirror what setDemoAccount does). The row was in the DB and RLS/grants were fine — it was purely a client-side restore gap.
 
 - **WSL `/mnt/c` editor↔disk desync:** an edit can look saved while `grep` reads the old file. **Trust `grep`.** If a save won't land, `sed -i`, re-grep, restart Vite.
 - **Vite reads `.env` + `vite.config.ts` only at startup** — fully restart. Stale build → `rm -rf node_modules/.vite` + Ctrl+Shift+R.

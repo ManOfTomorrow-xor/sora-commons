@@ -662,6 +662,16 @@ export const useCommonsStore = defineStore("commons", () => {
       backers: backersByProposal[row.id]?.size ?? 0,
       totalDonated: (totalByProposal[row.id] ?? 0).toFixed(4),
     }));
+    const { data: ufData } = await supabase.from("user_follows").select("follower_account_id, followed_account_id");
+    const flwerCount: Record<string, number> = {};
+    const flwingCount: Record<string, number> = {};
+    for (const r of ufData ?? []) {
+      flwerCount[r.followed_account_id] = (flwerCount[r.followed_account_id] ?? 0) + 1;
+      flwingCount[r.follower_account_id] = (flwingCount[r.follower_account_id] ?? 0) + 1;
+    }
+    followerCountByAccount.value = flwerCount;
+    followingCountByAccount.value = flwingCount;
+    followedAccounts.value = (ufData ?? []).filter((r) => r.follower_account_id === currentAccountId.value).map((r) => r.followed_account_id);
     console.log(`✓ loaded ${proposals.value.length} proposals from Supabase`);
     await loadNotifications();
     initFeedSnapshot();
@@ -691,6 +701,10 @@ export const useCommonsStore = defineStore("commons", () => {
     avatarByAccount.value[acct] = url;
     return { ok: true };
   }
+
+  function getAvatar(accountId: string): string {
+    return avatarByAccount.value[accountId] || "";
+  }
   async function searchAll(query: string) {
     const q = query.trim();
     if (!q) return { stories: [], people: [] };
@@ -703,10 +717,6 @@ export const useCommonsStore = defineStore("commons", () => {
       .limit(20);
     if (pErr) console.error("people search failed:", pErr);
     return { stories: storyData ?? [], people: peopleData ?? [] };
-  }
-
-  function getAvatar(accountId: string): string {
-    return avatarByAccount.value[accountId] || "";
   }
   async function uploadDocument(
     file: File,
@@ -1250,6 +1260,9 @@ export const useCommonsStore = defineStore("commons", () => {
   const likedProposals = ref<string[]>([]);
   const boostedProposals = ref<string[]>([]);
   const followedProposals = ref<string[]>([]);
+  const followedAccounts = ref<string[]>([]);
+  const followerCountByAccount = ref<Record<string, number>>({});
+  const followingCountByAccount = ref<Record<string, number>>({});
   const donatedProposals = ref<string[]>([]); // proposal ids the current account has donated to (for unique-backer counting)
   const notifications = ref<any[]>([]);
   const backersByProposalRef = ref<Record<string, Set<string>>>({});
@@ -1416,6 +1429,28 @@ export const useCommonsStore = defineStore("commons", () => {
       .eq("read", false);
     if (error) console.error("mark read failed:", error);
   }
+  const isFollowingUser = (accountId: string): boolean => followedAccounts.value.includes(accountId);
+  const getFollowerCount = (accountId: string): number => followerCountByAccount.value[accountId] ?? 0;
+  const getFollowingCount = (accountId: string): number => followingCountByAccount.value[accountId] ?? 0;
+  const toggleFollowUser = (accountId: string): void => {
+    const me = currentAccountId.value;
+    if (!me || me === accountId) return;
+    const i = followedAccounts.value.indexOf(accountId);
+    if (i >= 0) {
+      followedAccounts.value.splice(i, 1);
+      followerCountByAccount.value = { ...followerCountByAccount.value, [accountId]: Math.max(0, (followerCountByAccount.value[accountId] ?? 1) - 1) };
+      followingCountByAccount.value = { ...followingCountByAccount.value, [me]: Math.max(0, (followingCountByAccount.value[me] ?? 1) - 1) };
+      supabase.from("user_follows").delete().match({ follower_account_id: me, followed_account_id: accountId }).then();
+    } else {
+      followedAccounts.value.push(accountId);
+      followerCountByAccount.value = { ...followerCountByAccount.value, [accountId]: (followerCountByAccount.value[accountId] ?? 0) + 1 };
+      followingCountByAccount.value = { ...followingCountByAccount.value, [me]: (followingCountByAccount.value[me] ?? 0) + 1 };
+      (async () => {
+        await supabase.from("accounts").upsert({ account_id: me, public_key: "", network: "taira" }, { onConflict: "account_id", ignoreDuplicates: true });
+        await supabase.from("user_follows").insert({ follower_account_id: me, followed_account_id: accountId });
+      })();
+    }
+  };
   const isLiked = (id: string): boolean => likedProposals.value.includes(id);
   const isBoosted = (id: string): boolean => boostedProposals.value.includes(id);
   const isFollowing = (id: string): boolean => followedProposals.value.includes(id);
@@ -1637,10 +1672,10 @@ const toggleFollow = (id: string): void => {
     resetDraft, submitProposal,loadProposals, castSignal,
     postDiscussion, submitAmendment, submitParliamentBrief, submitParliamentRemarks, reviseAndResubmit,
     advanceToSortition, castPanelVote, confirmMilestone, markChapterDelivered, milestoneChallengeState, proposalChallengeState, raiseFlag, withdrawFlag, respondToFlag,uploadAvatar,uploadDocument, getAvatar, avatarUrl, avatarByAccount,
-    updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount, formatDate,
+    updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount, formatDate, 
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
-    savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow, 
+    savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow, followedAccounts, isFollowingUser, getFollowerCount, getFollowingCount, toggleFollowUser,
     donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount, boostsRemaining, boostBlockedTick,  mockWalletId, initMockWallet,
     notifications, unreadCount, loadNotifications, markNotificationsRead,
     feedShownIds, feedInitialized, initFeedSnapshot, revealFeedPending, subscribeToProposals, unsubscribeProposals, subscribeToNotifications, unsubscribeNotifications, subscribeToSocial, unsubscribeSocial, createNotification, boostRows,
