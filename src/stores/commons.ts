@@ -1015,6 +1015,7 @@ export const useCommonsStore = defineStore("commons", () => {
     if (proposal.milestones.every((m) => m.completed)) {
       proposal.status = "complete";
       supabase.from("proposals").update({ status: "complete" }).eq("id", proposal.id).then(({ error }) => { if (error) console.error("status persist failed:", error); });
+      notifyProposalFollowers(proposal.id, "follow_completed");
     // Completion → proposer reputation (separate scope, never blended with panel).
       creditReputation(
         proposal.proposerAccountId,
@@ -1044,9 +1045,11 @@ export const useCommonsStore = defineStore("commons", () => {
     milestone.deliveredAt = now;
     milestone.completed = true;
     milestone.completedAt = now;
+    notifyProposalFollowers(proposalId, "follow_delivered");
     if (proposal.milestones.every((m) => m.completed)) {
       proposal.status = "complete";
       supabase.from("proposals").update({ status: "complete" }).eq("id", proposal.id).then(({ error }) => { if (error) console.error("status persist failed:", error); });
+      notifyProposalFollowers(proposalId, "follow_completed");
     }
     // persist the delivery to Supabase so it survives refresh
     (async () => {
@@ -1088,6 +1091,7 @@ export const useCommonsStore = defineStore("commons", () => {
     };
     (milestone.flags ??= []).push(newFlag);
      createNotification({ recipient: proposal.proposerAccountId, type: "flag", proposalId, milestoneId });
+     notifyProposalFollowers(proposalId, "follow_flagged", milestoneId);
     (async () => {
       await supabase.from("accounts").upsert({ account_id: acct, public_key: "", network: "taira" }, { onConflict: "account_id", ignoreDuplicates: true });
       const { data, error } = await supabase.from("flags").insert({
@@ -1459,7 +1463,7 @@ export const useCommonsStore = defineStore("commons", () => {
   const boostBlockedTick = ref(0); // increments each time a boost is blocked at 0 allotment
 async function createNotification(opts: {
     recipient: string;
-    type: "like" | "boost" | "donate" | "flag" | "comment" | "reply";
+    type: "like" | "boost" | "donate" | "flag" | "comment" | "reply" | "follow_delivered" | "follow_flagged" | "follow_completed";
     proposalId: string;
     milestoneId?: string;
     meta?: string;
@@ -1475,6 +1479,14 @@ async function createNotification(opts: {
       meta: opts.meta ?? null,
     });
     if (error) console.error("notification insert failed:", error);
+  }
+  async function notifyProposalFollowers(proposalId: string, type: "follow_delivered" | "follow_flagged" | "follow_completed", meta?: string) {
+    const actor = currentAccountId.value;
+    const { data } = await supabase.from("follows").select("account_id").eq("proposal_id", proposalId);
+    for (const r of data ?? []) {
+      if (r.account_id === actor) continue;
+      await createNotification({ recipient: r.account_id, type, proposalId, meta });
+    }
   }
  const toggleLike = (id: string): void => {
     const p = proposals.value.find((x) => x.id === id);
