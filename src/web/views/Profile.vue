@@ -21,9 +21,9 @@
         <p class="pbio">{{ commons.getBio(accountId) || bio }}</p>
         <div class="prep"><span class="prep__dot"></span> Reputation: {{ reputationWord }}</div>
         <div class="pfollows">
-          <b>{{ commons.getFollowerCount(accountId) }}</b> followers
+          <b><CountUp :value="commons.getFollowerCount(accountId)" :decimals="0" /></b> followers
           <span class="pfollows__sep">·</span>
-          <b>{{ commons.getFollowingCount(accountId) }}</b> following
+          <b><CountUp :value="commons.getFollowingCount(accountId)" :decimals="0" /></b> following
         </div>
       </div>
       <button v-if="isOwn" class="pedit" @click="showEditor = true">Edit profile</button>
@@ -96,6 +96,7 @@
 import { ref, computed } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import ProfileEditor from "@/web/components/ProfileEditor.vue";
+import CountUp from "../components/CountUp.vue";
 
 const emit = defineEmits<{ (e: "nav", id: string): void }>();
 const commons = useCommonsStore();

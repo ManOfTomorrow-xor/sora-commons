@@ -153,6 +153,7 @@ onMounted(async () => {
   commons.subscribeToProposals();   // ← add
   commons.subscribeToNotifications();
   commons.subscribeToSocial();
+  commons.subscribeToUserFollows();
   commons.subscribeToDonations();
 
 });
@@ -162,6 +163,7 @@ onUnmounted(() => {
   commons.unsubscribeProposals();   // ← add
   commons.unsubscribeNotifications();
   commons.unsubscribeSocial();
+  commons.unsubscribeUserFollows();
   commons.unsubscribeDonations();
 
 });

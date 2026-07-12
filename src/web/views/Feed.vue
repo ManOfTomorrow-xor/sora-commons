@@ -58,7 +58,8 @@
           <span class="loadmore__ic">↑</span>
           {{ pendingCount }} new {{ pendingCount === 1 ? 'story' : 'stories' }} — show
         </button>
-       <article v-for="(p, i) in paged" :key="p.id" class="card":class="{ 'card--flagged': commons.proposalChallengeState(p) === 'flagged' }" :style="{ '--i': Math.min(i, 12) }" @click="open(p)">
+                <TransitionGroup name="card" tag="div" class="cardlist">
+       <article v-for="(p, i) in paged" :key="p.id" class="card" :class="{ 'card--flagged': commons.proposalChallengeState(p) === 'flagged' }" :style="{ '--i': Math.min(i, 12) }" @click="open(p)">
           <div class="card__top">
             <span class="av" :style="commons.getAvatar(p.proposerAccountId) ? {} : avStyle(p.proposerAccountId)">
               <img v-if="commons.getAvatar(p.proposerAccountId)" :src="commons.getAvatar(p.proposerAccountId)" class="av__img" alt="" />
@@ -100,7 +101,8 @@
             <button class="engbtn" @click.stop="openComments(p)"><svg class="i-cmt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>{{ (p.discussionPosts && p.discussionPosts.length) || 0 }}</button>
             <span class="donated"><template v-if="p.fundingMode === 'open'">{{ p.totalDonated || 0 }} XOR raised</template><template v-else>{{ p.totalDonated || 0 }} / {{ p.xorRequested || 0 }} XOR raised</template></span>
           </div>
-        </article>
+          </article>
+          </TransitionGroup>
         <div v-if="hasMore" class="loadmore-wrap">
           <span class="loadmore-count">Showing {{ paged.length }} of {{ visible.length }}</span>
           <button class="loadmore-btn" @click="loadMore">Load more stories</button>
@@ -290,7 +292,7 @@ function avStyle(id: string) {
 .empty { color: var(--ink-faint); padding: 48px 0; text-align: center; }
 .i-heart.pulse { animation: pop var(--dur) var(--ease-spring) both; transform-origin: center; }
 .i-bolt.zapping { animation: zap var(--dur) var(--ease-spring) both; transform-origin: center; }
-.card { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; margin-bottom: 14px; cursor: pointer; transition: border-color .2s var(--ease), transform .2s var(--ease); animation: fade-up var(--dur) var(--ease) both; animation-delay: calc(var(--i, 0) * 40ms); }
+.card { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; margin-bottom: 14px; cursor: pointer; transition: border-color .2s var(--ease), transform .2s var(--ease); }
 .card:hover { border-color: var(--gold-600); transform: translateY(-2px); }
 .card__top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .av { position: relative; overflow: hidden; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #22180a; font-size: .8rem; flex: none; }
@@ -304,6 +306,12 @@ function avStyle(id: string) {
 .card__save { margin-left: auto; background: none; border: none; color: var(--ink-faint); cursor: pointer; padding: 4px; display: flex; }
 .card__save svg { width: 18px; height: 18px; }
 .card__save:hover, .card__save.on { color: var(--gold-300); }
+.cardlist { display: block; }
+.card-enter-active { transition: opacity .4s var(--ease), transform .4s var(--ease-spring); transition-delay: calc(var(--i, 0) * 40ms); }
+.card-enter-from { opacity: 0; transform: translateY(-16px) scale(0.97); }
+.card-leave-active { transition: opacity .3s var(--ease); position: absolute; width: 100%; }
+.card-leave-to { opacity: 0; }
+.card-move { transition: transform .45s var(--ease); }
 .card--flagged { border-left: 4px solid var(--negate); padding-left: calc(var(--card-pad, 18px) - 4px); }
 .card__flag { display: inline-flex; align-items: center; gap: 3px; font-size: .66rem; font-weight: 700; font-family: var(--mono); color: var(--negate); background: rgba(139,30,45,.12); border: 1px solid rgba(139,30,45,.3); border-radius: 999px; padding: 2px 8px; margin-left: 8px; vertical-align: middle; letter-spacing: .02em; }
 .loadmore { display: flex; width: fit-content; align-items: center; gap: 8px; margin: 0 auto 18px; background: rgba(201,168,76,.12); color: var(--gold-300); border: 1px solid var(--gold-600); border-radius: 999px; padding: 9px 20px; font-family: var(--body); font-weight: 600; font-size: .84rem; letter-spacing: .01em; cursor: pointer; backdrop-filter: blur(8px); box-shadow: 0 4px 20px rgba(201,168,76,.15); animation: loadmore-in var(--dur) var(--ease-spring) both; transition: transform var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease); }

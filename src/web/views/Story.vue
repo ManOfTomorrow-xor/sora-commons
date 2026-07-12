@@ -192,9 +192,9 @@
 
           <div class="support__totals">
             <div><b>{{ p.fundingMode === 'open' ? '—' : (p.xorRequested || 0) }}</b><span>{{ p.fundingMode === 'open' ? 'Open to donations' : 'XOR goal' }}</span></div>
-            <div><b>{{ p.totalDonated || 0 }}</b><span>XOR raised</span></div>
-            <div><b>{{ p.xorBurned || 0 }}</b><span>XOR burned</span></div>
-            <div><b>{{ p.backers || 0 }}</b><span>backers</span></div>
+            <div><b><CountUp :value="Number(p.totalDonated) || 0" :decimals="2" /></b><span>XOR raised</span></div>
+            <div><b><CountUp :value="Number(p.xorBurned) || 0" :decimals="2" /></b><span>XOR burned</span></div>
+            <div><b><CountUp :value="p.backers || 0" :decimals="0" /></b><span>backers</span></div>
             <div><b>{{ p.followers || 0 }}</b><span>followers</span></div>
           </div>
         </div>
@@ -245,11 +245,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from "vue";
+import { ref, computed, watch, nextTick, onMounted } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import WhyExpander from "../components/WhyExpander.vue";
 import Clampable from "../components/Clampable.vue";
 import { COMMONS_CONFIG } from "@/constants/commonsConfig";
+import CountUp from "@/web/components/CountUp.vue";
 
 const emit = defineEmits<{ (e: "nav", id: string): void }>();
 const commons = useCommonsStore();

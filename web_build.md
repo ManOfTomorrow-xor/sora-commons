@@ -153,8 +153,10 @@ Design decision, to make follow mean something distinct from save:
 ### Piece C — person-follow notifications (with dedupe)  [DONE]
 `notifyPersonFollowers(type, proposalId, meta?)` — fans out to a person's followers (queries `user_follows` by `followed_account_id = actor`), skips the actor. `notifyFollowersOfEvent(proposalId, proposalType, personType, meta?)` — the UNIFIED deduped fan-out for events that overlap both follow kinds (delivery, completion): queries both `follows` (proposal-followers) and `user_follows` (person-followers), sends each recipient exactly ONE notification via a `sent` Set, with proposal-follow taking priority (more specific reason). Triggers: new proposal posted → `person_posted` (standalone notifyPersonFollowers, no overlap so no dedupe needed — you can't follow a proposal that doesn't exist yet); chapter delivered → notifyFollowersOfEvent(follow_delivered/person_delivered); completion → notifyFollowersOfEvent(follow_completed/person_completed) at both completion sites. Flag stays proposal-follow ONLY (a flag isn't a "builder's activity" event). Extended createNotification union + App.vue bell for person_posted (✦) / person_delivered (📦) / person_completed (🏁).
 
-### Piece D — a "Following" feed/view  [PENDING]
-One aggregated view of updates from everything you follow (proposals + people). Build last, once A/B/C feed it.
+### Piece D — a "Following" feed  [DONE]
+Implemented as tabs on the main Feed (NOT a separate view — same content type, reuses feed cards + sort + pagination): "All work" / "Following", gated on `commons.currentAccountId`. A `tab` ref (`"all" | "following"`); when `following`, `visible` filters to proposals where `followedProposals.includes(p.id) || followedAccounts.includes(p.proposerAccountId)` (proposals you follow OR proposals by people you follow), deduped by nature of the single list. Pagination resets on tab change (`watch(tab, ...)`). Guiding empty state ("You're not following anything yet…"). GOTCHA that surfaced here: `followedProposals` had never been exported from the store (only `isFollowing()` was used before, never the raw array) — reading `commons.followedProposals` directly threw "Cannot read properties of undefined" until it was added to the return. Note: the following filter runs AFTER the `feedShownIds` snapshot filter, so a followed proposal still pending behind the realtime pill won't show until revealed — minor, acceptable.
+
+**FOLLOW SYSTEM COMPLETE (all 4 pieces).** The loop: follow work/people → get notified live as things happen (bell) → check the Following feed to see it all as cards. Save stays a silent private bookmark, fully distinct.
 
 ## WORKING NOTES / GOTCHAS (hard-won)
 
@@ -182,8 +184,16 @@ One aggregated view of updates from everything you follow (proposals + people). 
 
 ## REMAINING WORK
 
-### Next feature
-- (nothing scoped yet — pick the next one at the start of the session)
+### ANIMATIONS + MOBILE POLISH
+- [x] **Like/boost micro-interactions** [DONE] — `onLike`/`onBoost` wrappers in Feed.vue: call the toggle, and only on the POSITIVE action (not un-like/un-boost) set a short-lived `likePulse`/`boostPulse` = proposal id (cleared via setTimeout), which drives `:class="{ pulse: ... }"` / `{ zapping: ... }` on the icon. Keyframes `pop` (scale 1.5 + glow drop-shadow + dip to 0.92) and `zap` (scale 1.55 + rotate wiggle + glow) at `--dur-slow` + `--ease-spring`. GOTCHA: the edits first DUPLICATED the buttons (added new instead of replacing) — watch for that; ended with clean like/boost/comment order.
+- [x] **Notification panel spring-open** [DONE] — panel wrapped in `<Transition name="notifs-pop">` (single `v-if` child), `notifs-in` keyframe (fade + translateY + scale from `transform-origin: top right`), spring in / quick reverse out.
+- [x] **Bell ring on new notification** [DONE] — `bellShake` ref, `watch(() => commons.unreadCount, (n,o) => if n>o …)` sets it true ~550ms (fires LIVE via realtime when a notif lands). Bell icon swings (`shake` keyframe, pure rotation, `transform-origin: top center`). PLUS gold "sound-wave" arcs: two small SVG arc elements flanking the bell (`bell__ring--l/--r`), `ring-l`/`ring-r` keyframes push them outward + fade. KEY FIX: arcs must NOT use `v-if` (DOM removal caused an end-of-animation flash at the bottom) — instead they're always in the DOM at `opacity: 0`, animate only when `.ringing` (= bellShake) is added, and the keyframes END at opacity 0 so they rest invisible in place. GOTCHA: the bell SVG also got duplicated once (two bells) — deduped, kept the one with the correct path + shake class.
+- [ ] **Remaining animation targets** (optional): TransitionGroup reveal for the "N new" pill (cards expand at top + others slide down via `-move`), page/tab transitions, value tick-ups.
+- [ ] **Mobile polish pass** — go through every view at mobile widths. Views: Feed (+ All work/Following tabs, sort row, boost meter, the engagement buttons already have `min-height:44px` tap targets under a breakpoint), Story (support rail, chapters, conversation), Explore (filter groups — category/track/status/show chips + sort select can wrap awkwardly), Search (results, sections), Profile (hero, inline followers·following line, stats grid already 2-col under 600px), the notification bell panel, Compose, modals (Donate). Watch: chip rows overflowing, the crowded top bar (demo switcher + netchip + search + bell + avatar), grids not reflowing.
+- [ ] **Final run-through** at the end — one last full walk through the whole app.
+
+### Later feature
+- (nothing else scoped yet)
 
 ### PRE-PUBLIC CLEANUP PASS (its own careful session, before repo goes public / shown to Iroha team)
 Everything below is DEAD or debug cruft to remove together, methodically, testing each step:

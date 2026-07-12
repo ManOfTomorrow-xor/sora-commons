@@ -1,49 +1,55 @@
-<template>
-  <span>{{ display }}</span>
-</template>
+<template><span>{{ display }}</span></template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, watch, onMounted } from "vue";
 
-const props = withDefaults(
-  defineProps<{ value: number | string; duration?: number }>(),
-  { duration: 900 }
-);
+const props = withDefaults(defineProps<{
+  value: number | string;
+  decimals?: number;
+  duration?: number;   // ms
+}>(), {
+  decimals: 0,
+  duration: 650,
+});
 
 const display = ref("0");
+let raf = 0;
 
-function parse(v: number | string): { target: number; decimals: number } {
-  const raw = String(v).replace(/,/g, "").trim();
-  const target = Number(raw) || 0;
-  const dec = raw.includes(".") ? Math.min(raw.split(".")[1].replace(/0+$/, "").length, 4) : 0;
-  return { target, decimals: dec };
+function fmt(n: number): string {
+  return n.toFixed(props.decimals);
 }
 
-function format(n: number, decimals: number): string {
-  return n.toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-}
-
-function animate() {
-  const { target, decimals } = parse(props.value);
-  const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  if (reduce || target === 0) {
-    display.value = format(target, decimals);
-    return;
-  }
+function animateTo(target: number, from: number) {
+  cancelAnimationFrame(raf);
   const start = performance.now();
-  const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+  const delta = target - from;
+  if (delta === 0) { display.value = fmt(target); return; }
+  const dur = props.duration;
   const tick = (now: number) => {
-    const p = Math.min((now - start) / props.duration, 1);
-    display.value = format(target * ease(p), decimals);
-    if (p < 1) requestAnimationFrame(tick);
-    else display.value = format(target, decimals);
+    const t = Math.min(1, (now - start) / dur);
+    // ease-out cubic — fast then settling
+    const eased = 1 - Math.pow(1 - t, 3);
+    display.value = fmt(from + delta * eased);
+    if (t < 1) raf = requestAnimationFrame(tick);
+    else display.value = fmt(target);
   };
-  requestAnimationFrame(tick);
+  raf = requestAnimationFrame(tick);
 }
 
-onMounted(animate);
-watch(() => props.value, animate); // re-animate whenever the value changes
+onMounted(() => {
+  // no animation on first paint — just show the value
+  display.value = fmt(Number(props.value) || 0);
+});
+
+watch(() => props.value, (nv, ov) => {
+  const target = Number(nv) || 0;
+  const from = Number(ov) || 0;
+  animateTo(target, from);
+});
 </script>
+<style scoped>
+span { color: inherit !important; }
+</style>
+<style scoped>
+span { color: inherit !important; font: inherit !important; }
+</style>

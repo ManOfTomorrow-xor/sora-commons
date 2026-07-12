@@ -1387,6 +1387,26 @@ export const useCommonsStore = defineStore("commons", () => {
   function unsubscribeSocial() {
     if (socialChannel) { supabase.removeChannel(socialChannel); socialChannel = null; }
   }
+  let userFollowChannel: any = null;
+  function subscribeToUserFollows() {
+    if (userFollowChannel) return;
+    const apply = (row: any, delta: number) => {
+      if (!row) return;
+      const follower = row.follower_account_id;
+      const followed = row.followed_account_id;
+      if (follower === currentAccountId.value) return;   // our own action — handled optimistically
+      followerCountByAccount.value = { ...followerCountByAccount.value, [followed]: Math.max(0, (followerCountByAccount.value[followed] ?? 0) + delta) };
+      followingCountByAccount.value = { ...followingCountByAccount.value, [follower]: Math.max(0, (followingCountByAccount.value[follower] ?? 0) + delta) };
+    };
+    userFollowChannel = supabase
+      .channel("public:user_follows")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "user_follows" }, (pl: any) => apply(pl.new, +1))
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "user_follows" }, (pl: any) => apply(pl.old, -1))
+      .subscribe();
+  }
+  function unsubscribeUserFollows() {
+    if (userFollowChannel) { supabase.removeChannel(userFollowChannel); userFollowChannel = null; }
+  }
   let donationChannel: any = null;
   function subscribeToDonations() {
     if (donationChannel) return;
@@ -1697,7 +1717,7 @@ const toggleFollow = (id: string): void => {
     commonsRole,
 
     // Proposal views
-    activeProposal, proposalsByStatus, liveProposals,
+    activeProposal, proposalsByStatus, liveProposals, subscribeToUserFollows, unsubscribeUserFollows,
     completedProposals, totalXorBurned,
 
     // Signal
@@ -1711,7 +1731,7 @@ const toggleFollow = (id: string): void => {
     resetDraft, submitProposal,loadProposals, castSignal,
     postDiscussion, submitAmendment, submitParliamentBrief, submitParliamentRemarks, reviseAndResubmit,
     advanceToSortition, castPanelVote, confirmMilestone, markChapterDelivered, milestoneChallengeState, proposalChallengeState, raiseFlag, withdrawFlag, respondToFlag,uploadAvatar,uploadDocument, getAvatar, avatarUrl, avatarByAccount,
-    updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount, formatDate, 
+    updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount, formatDate,
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
     savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow,followedProposals, followedAccounts, isFollowingUser, getFollowerCount, getFollowingCount, toggleFollowUser,
