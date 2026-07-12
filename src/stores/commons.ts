@@ -493,6 +493,7 @@ export const useCommonsStore = defineStore("commons", () => {
     };
     proposals.value.unshift(newProposal);   // optimistic: instant feedback
     await persistProposalToSupabase(newProposal);   // wait for DB row + adopt real id
+    notifyPersonFollowers("person_posted", newProposal.id);
     resetDraft();
     return newProposal;
   };
@@ -1015,7 +1016,7 @@ export const useCommonsStore = defineStore("commons", () => {
     if (proposal.milestones.every((m) => m.completed)) {
       proposal.status = "complete";
       supabase.from("proposals").update({ status: "complete" }).eq("id", proposal.id).then(({ error }) => { if (error) console.error("status persist failed:", error); });
-      notifyProposalFollowers(proposal.id, "follow_completed");
+      notifyFollowersOfEvent(proposal.id, "follow_completed", "person_completed");
     // Completion → proposer reputation (separate scope, never blended with panel).
       creditReputation(
         proposal.proposerAccountId,
@@ -1045,11 +1046,11 @@ export const useCommonsStore = defineStore("commons", () => {
     milestone.deliveredAt = now;
     milestone.completed = true;
     milestone.completedAt = now;
-    notifyProposalFollowers(proposalId, "follow_delivered");
+    notifyFollowersOfEvent(proposalId, "follow_delivered", "person_delivered");
     if (proposal.milestones.every((m) => m.completed)) {
       proposal.status = "complete";
       supabase.from("proposals").update({ status: "complete" }).eq("id", proposal.id).then(({ error }) => { if (error) console.error("status persist failed:", error); });
-      notifyProposalFollowers(proposalId, "follow_completed");
+      notifyFollowersOfEvent(proposalId, "follow_completed", "person_completed");
     }
     // persist the delivery to Supabase so it survives refresh
     (async () => {
@@ -1463,7 +1464,7 @@ export const useCommonsStore = defineStore("commons", () => {
   const boostBlockedTick = ref(0); // increments each time a boost is blocked at 0 allotment
 async function createNotification(opts: {
     recipient: string;
-    type: "like" | "boost" | "donate" | "flag" | "comment" | "reply" | "follow_delivered" | "follow_flagged" | "follow_completed";
+    type: "like" | "boost" | "donate" | "flag" | "comment" | "reply" | "follow_delivered" | "follow_flagged" | "follow_completed" | "person_posted" | "person_delivered" | "person_completed";
     proposalId: string;
     milestoneId?: string;
     meta?: string;
@@ -1486,6 +1487,32 @@ async function createNotification(opts: {
     for (const r of data ?? []) {
       if (r.account_id === actor) continue;
       await createNotification({ recipient: r.account_id, type, proposalId, meta });
+    }
+  }
+  async function notifyPersonFollowers(type: "person_posted" | "person_delivered" | "person_completed", proposalId: string, meta?: string) {
+    const actor = currentAccountId.value;
+    if (!actor) return;
+    const { data } = await supabase.from("user_follows").select("follower_account_id").eq("followed_account_id", actor);
+    for (const r of data ?? []) {
+      if (r.follower_account_id === actor) continue;
+      await createNotification({ recipient: r.follower_account_id, type, proposalId, meta });
+    }
+  }
+  async function notifyFollowersOfEvent(proposalId: string, proposalType: "follow_delivered" | "follow_completed", personType: "person_delivered" | "person_completed", meta?: string) {
+    const actor = currentAccountId.value;
+    if (!actor) return;
+    const { data: pf } = await supabase.from("follows").select("account_id").eq("proposal_id", proposalId);
+    const { data: uf } = await supabase.from("user_follows").select("follower_account_id").eq("followed_account_id", actor);
+    const sent = new Set<string>();
+    for (const r of pf ?? []) {
+      if (r.account_id === actor || sent.has(r.account_id)) continue;
+      sent.add(r.account_id);
+      await createNotification({ recipient: r.account_id, type: proposalType, proposalId, meta });
+    }
+    for (const r of uf ?? []) {
+      if (r.follower_account_id === actor || sent.has(r.follower_account_id)) continue;
+      sent.add(r.follower_account_id);
+      await createNotification({ recipient: r.follower_account_id, type: personType, proposalId, meta });
     }
   }
  const toggleLike = (id: string): void => {

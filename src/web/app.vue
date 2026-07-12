@@ -218,7 +218,7 @@ function openNotif(n: any) {
   }
 }
 function notifIcon(type: string) {
-  return { like: "♥", boost: "⚡", donate: "◈", flag: "⚑", comment: "💬", reply: "↩", follow_delivered: "📦", follow_flagged: "⚑", follow_completed: "🏁" }[type] || "•";
+  return { like: "♥", boost: "⚡", donate: "◈", flag: "⚑", comment: "💬", reply: "↩", follow_delivered: "📦", follow_flagged: "⚑", follow_completed: "🏁", person_posted: "✦", person_delivered: "📦", person_completed: "🏁" }[type] || "•";
 }
 function notifText(n: any) {
   const who = commons.getDisplayName(n.actor_account_id) || shortId(n.actor_account_id);
@@ -232,6 +232,9 @@ function notifText(n: any) {
     case "follow_delivered": return `${who} delivered a chapter on a proposal you follow`;
     case "follow_flagged": return `A proposal you follow was flagged`;
     case "follow_completed": return `A proposal you follow is now complete`;
+    case "person_posted": return `${who} posted new work`;
+    case "person_delivered": return `${who} delivered a chapter`;
+    case "person_completed": return `${who} completed a proposal`;
     default: return "New notification";
   }
 }

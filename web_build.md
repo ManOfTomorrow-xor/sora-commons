@@ -138,7 +138,27 @@ Explore.vue filters `[...commons.proposals]` (the full store list — independen
 
 ---
 
+## FOLLOW FEATURE — SAVE vs FOLLOW distinction (4 pieces)
+Design decision, to make follow mean something distinct from save:
+- **Save** = private bookmark, silent, no relationship, no notifications.
+- **Follow (proposal)** = "notify me of THIS work's progress" + Following feed + follower count.
+- **Follow (person)** = "notify me of THIS builder's activity" + follower/following counts on profiles. Following a person notifies on BOTH new work AND progress.
+
+### Piece B — follow people + profile counts  [DONE]
+`user_follows` table (follower_account_id, followed_account_id, PK on the pair) + grants/RLS (select/insert/delete to anon). Store: `followedAccounts` ref, `followerCountByAccount`/`followingCountByAccount` maps (built in loadProposals from row counts), `isFollowingUser`, `getFollowerCount`, `getFollowingCount`, `toggleFollowUser` (self-guard, optimistic + DB, updates both target's follower count AND my following count). Profile.vue: Follow/Following button (`v-else-if="commons.currentAccountId"`, not on own profile), inline "N followers · N following" line under the reputation line (NOT in the stats grid — a 4+2 grid left an ugly stranded row; social counts belong with identity, work metrics stay a clean 4).
+
+### Piece A — proposal-follow notifications  [DONE]
+`notifyProposalFollowers(proposalId, type, meta?)` — fans out to ALL followers of a proposal (queries `follows` FRESH each call for accuracy, not the stale loaded snapshot), skips the actor. Triggers: chapter delivered → `follow_delivered` (in markChapterDelivered), proposal flagged → `follow_flagged` (in raiseFlag, after the proposer's flag notif), proposal completed → `follow_completed` (in confirmMilestone AND markChapterDelivered's final-chapter path). Extended `createNotification`'s type union + App.vue `notifIcon`/`notifText` for the 3 new types (📦/⚑/🏁). Followers get updates LIVE via the existing realtime notifications channel.
+
+### Piece C — person-follow notifications  [PENDING]
+When someone you follow (person) posts new work or delivers, notify you. Extends Piece A's fan-out pattern but keyed on `user_follows` (who follows the actor) rather than `follows` (who follows the proposal).
+
+### Piece D — a "Following" feed/view  [PENDING]
+One aggregated view of updates from everything you follow (proposals + people). Build last, once A/B/C feed it.
+
 ## WORKING NOTES / GOTCHAS (hard-won)
+
+- **NEVER use `sed -i 'N,Md'` (line-number delete) after line numbers have shifted mid-session.** A line-based delete clipped `uploadAvatar`'s tail + all of `searchAll` when the numbers had moved from an earlier edit. When removing a block, match on content, or re-grep for the CURRENT line numbers immediately before deleting, and prefer deleting by unique anchor text over raw line ranges. Paste-corruption (a block landing inside the wrong function — searchAll, uploadAvatar, loadProposals, an object literal) was the #1 recurring bug this session; always verify with a brace-balance check (`awk '{...}' → 0`) + a grep for the moved symbol after any structural edit.
 
 - **Social lit-state must be restored in `loadProposals`, not just `setDemoAccount`:** `likedProposals`/`boostedProposals`/`followedProposals`/`savedProposals` (the "have I done this" arrays) were originally only rebuilt on account switch. On a fresh load/refresh they stayed empty → a followed/liked proposal showed as un-followed/un-liked after refresh even though the DB row existed. Fix: after building `socialRows` in loadProposals, filter each res.data to the current account and set all four arrays (mirror what setDemoAccount does). The row was in the DB and RLS/grants were fine — it was purely a client-side restore gap.
 
