@@ -31,9 +31,12 @@
         </button>
         <div class="bell" v-if="commons.currentAccountId" ref="bellEl">
           <button class="bell__btn" @click="toggleNotifs" title="Notifications">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <svg class="bell__ring bell__ring--l" :class="{ ringing: bellShake }" viewBox="0 0 12 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6 Q3 12 8 18"/><path d="M11 3 Q4 12 11 21" opacity="0.5"/></svg>
+            <svg :class="{ shake: bellShake }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <svg class="bell__ring bell__ring--r" :class="{ ringing: bellShake }" viewBox="0 0 12 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6 Q9 12 4 18"/><path d="M1 3 Q8 12 1 21" opacity="0.5"/></svg>
             <span v-if="commons.unreadCount > 0" class="bell__badge">{{ commons.unreadCount > 9 ? '9+' : commons.unreadCount }}</span>
           </button>
+          <Transition name="notifs-pop">
           <div v-if="notifsOpen" class="notifs">
             <div class="notifs__h">Notifications</div>
             <div v-if="commons.notifications.length === 0" class="notifs__empty">No notifications yet.</div>
@@ -50,6 +53,7 @@
               <span v-if="!n.read" class="notif__dot"></span>
             </button>
           </div>
+          </Transition>
         </div>
         <button class="meav" :style="commons.getAvatar(myId) ? {} : avStyle(myId)" @click="goMyProfile" title="Your profile">
           <img v-if="commons.getAvatar(myId)" :src="commons.getAvatar(myId)" class="meav__img" alt="" />
@@ -208,6 +212,10 @@ function toggleNotifs() {
     notifsOpen.value = true;
   }
 }
+const bellShake = ref(false);
+watch(() => commons.unreadCount, (n, o) => {
+  if (n > o) { bellShake.value = true; setTimeout(() => { bellShake.value = false; }, 550); }
+});
 function openNotif(n: any) {
   notifsOpen.value = false;
   commons.markNotificationsRead();
@@ -340,6 +348,18 @@ function onDocClick(e: MouseEvent) {
 .bell__btn { position: relative; background: none; border: none; color: var(--ink-dim); cursor: pointer; padding: 6px; display: grid; place-items: center; border-radius: 50%; }
 .bell__btn:hover { color: var(--ink); background: var(--navy-800); }
 .bell__badge { position: absolute; top: 0; right: 0; min-width: 16px; height: 16px; padding: 0 4px; background: var(--gold-500); color: #22180a; font-size: .62rem; font-weight: 800; border-radius: 999px; display: grid; place-items: center; font-family: var(--mono); }
+.bell__btn svg.shake { animation: shake 0.5s var(--ease); transform-origin: top center; }
+.bell__ring { position: absolute; top: 50%; width: 8px; height: 18px; color: var(--gold-300); pointer-events: none; opacity: 0; transform: translateY(-50%); }
+.bell__ring--l { right: 100%; margin-right: 1px; }
+.bell__ring--r { left: 100%; margin-left: 1px; }
+.bell__ring--l.ringing { animation: ring-l 0.5s var(--ease); }
+.bell__ring--r.ringing { animation: ring-r 0.5s var(--ease); }
+@keyframes ring-l { 0% { opacity: 0; transform: translateY(-50%) translateX(5px); } 40% { opacity: 1; transform: translateY(-50%) translateX(0); } 100% { opacity: 0; transform: translateY(-50%) translateX(-3px); } }
+@keyframes ring-r { 0% { opacity: 0; transform: translateY(-50%) translateX(-5px); } 40% { opacity: 1; transform: translateY(-50%) translateX(0); } 100% { opacity: 0; transform: translateY(-50%) translateX(3px); } }
+.notifs { transform-origin: top right; }
+.notifs-pop-enter-active { animation: notifs-in var(--dur) var(--ease-spring); }
+.notifs-pop-leave-active { animation: notifs-in var(--dur-fast) var(--ease) reverse; }
+@keyframes notifs-in { from { opacity: 0; transform: translateY(-8px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .topsearch { background: none; border: none; color: var(--ink-dim); cursor: pointer; padding: 6px; display: grid; place-items: center; border-radius: 50%; }
 .topsearch svg { width: 20px; height: 20px; }
 .topsearch:hover { color: var(--ink); background: var(--navy-800); }

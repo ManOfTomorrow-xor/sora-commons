@@ -95,8 +95,8 @@
             <div class="prog__bar"><div class="prog__fill" :class="{ 'prog__fill--done': p.status === 'complete' }" :style="{ width: pct(p) + '%' }"></div></div>
           </div>
           <div class="eng">
-            <button class="engbtn" :class="{ on: commons.isLiked(p.id) }" :disabled="isOwn(p)" @click.stop="commons.toggleLike(p.id)"><svg class="i-heart" viewBox="0 0 24 24" :fill="commons.isLiked(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5C12 20.5 3.5 15 3.5 8.8 3.5 6 5.7 4 8.2 4c1.7 0 3 .9 3.8 2.2C12.8 4.9 14.1 4 15.8 4c2.5 0 4.7 2 4.7 4.8C20.5 15 12 20.5 12 20.5z"/></svg>{{ p.likes || 0 }}</button>
-            <button class="engbtn bolts" :class="{ on: commons.isBoosted(p.id) }" :disabled="isOwn(p)" @click.stop="commons.toggleBoost(p.id)"><svg class="i-bolt" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>{{ p.boostCount || 0 }}</button>
+            <button class="engbtn" :class="{ on: commons.isLiked(p.id) }" :disabled="isOwn(p)" @click.stop="onLike(p.id)"><svg class="i-heart" :class="{ pulse: likePulse === p.id }" viewBox="0 0 24 24" :fill="commons.isLiked(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5C12 20.5 3.5 15 3.5 8.8 3.5 6 5.7 4 8.2 4c1.7 0 3 .9 3.8 2.2C12.8 4.9 14.1 4 15.8 4c2.5 0 4.7 2 4.7 4.8C20.5 15 12 20.5 12 20.5z"/></svg>{{ p.likes || 0 }}</button>
+            <button class="engbtn bolts" :class="{ on: commons.isBoosted(p.id) }" :disabled="isOwn(p)" @click.stop="onBoost(p.id)"><svg class="i-bolt" :class="{ zapping: boostPulse === p.id }" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>{{ p.boostCount || 0 }}</button>
             <button class="engbtn" @click.stop="openComments(p)"><svg class="i-cmt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>{{ (p.discussionPosts && p.discussionPosts.length) || 0 }}</button>
             <span class="donated"><template v-if="p.fundingMode === 'open'">{{ p.totalDonated || 0 }} XOR raised</template><template v-else>{{ p.totalDonated || 0 }} / {{ p.xorRequested || 0 }} XOR raised</template></span>
           </div>
@@ -196,6 +196,25 @@ const totalBurned = computed(() => commons.totalXorBurned ?? "0");
 const totalRaised = computed(() =>
   commons.proposals.reduce((s: number, p: any) => s + Number(p.totalDonated || 0), 0)
 );
+const likePulse = ref<string | null>(null);
+const boostPulse = ref<string | null>(null);
+
+function onLike(id: string) {
+  const wasLiked = commons.isLiked(id);
+  commons.toggleLike(id);
+  if (!wasLiked) {   // only animate on the positive action (liking, not un-liking)
+    likePulse.value = id;
+    setTimeout(() => { if (likePulse.value === id) likePulse.value = null; }, 400);
+  }
+}
+function onBoost(id: string) {
+  const wasBoosted = commons.isBoosted(id);
+  commons.toggleBoost(id);
+  if (!wasBoosted) {
+    boostPulse.value = id;
+    setTimeout(() => { if (boostPulse.value === id) boostPulse.value = null; }, 500);
+  }
+}
 
 function open(p: any) { commons.setActiveProposal?.(p.id); emit("nav", "story"); }
 function pct(p: any) {
@@ -247,6 +266,7 @@ function avStyle(id: string) {
   return { background: colors[Math.abs(h) % colors.length] };
 }
 
+
 </script>
 
 <style scoped>
@@ -268,7 +288,8 @@ function avStyle(id: string) {
 .sort button.on { background: rgba(201,168,76,.12); border-color: var(--gold-600); color: var(--gold-300); }
 
 .empty { color: var(--ink-faint); padding: 48px 0; text-align: center; }
-
+.i-heart.pulse { animation: pop var(--dur) var(--ease-spring) both; transform-origin: center; }
+.i-bolt.zapping { animation: zap var(--dur) var(--ease-spring) both; transform-origin: center; }
 .card { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; margin-bottom: 14px; cursor: pointer; transition: border-color .2s var(--ease), transform .2s var(--ease); animation: fade-up var(--dur) var(--ease) both; animation-delay: calc(var(--i, 0) * 40ms); }
 .card:hover { border-color: var(--gold-600); transform: translateY(-2px); }
 .card__top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -298,6 +319,8 @@ function avStyle(id: string) {
 .ftabs button:hover:not(.on) { color: var(--ink); }
 @keyframes loadmore-in { from { opacity: 0; transform: translateY(-10px) scale(.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes pop { 0% { transform:scale(1); } 30% { transform:scale(1.5); filter: drop-shadow(0 0 6px currentColor); } 60% { transform:scale(0.92); } 100% { transform:scale(1); } }
+@keyframes zap { 0% { transform:scale(1) rotate(0); } 25% { transform:scale(1.55) rotate(-15deg); filter: drop-shadow(0 0 8px var(--gold-300)); } 55% { transform:scale(1.2) rotate(10deg); } 100% { transform:scale(1) rotate(0); } }
 
 .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 .badge__ic { width: 13px; height: 13px; flex: none; }
@@ -310,6 +333,8 @@ function avStyle(id: string) {
 
 .i-heart, .i-cmt, .i-bolt { width: 13px; height: 13px; vertical-align: -2px; margin-right: 4px; }
 .i-bolt { color: var(--gold-300); }
+.i-heart.pulse { animation: pop var(--dur-slow) var(--ease-spring) both; transform-origin: center; }
+.i-bolt.zapping { animation: zap var(--dur-slow) var(--ease-spring) both; transform-origin: center; }
 .eng .i-bolt { color: inherit; }
 .card__title { font-family: var(--display); font-size: 1.3rem; font-weight: 700; margin: 0 0 6px; line-height: 1.2; }
 .card__snip { color: var(--ink-dim); font-size: .92rem; margin: 0 0 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
