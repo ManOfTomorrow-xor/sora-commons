@@ -382,7 +382,75 @@ export const useCommonsStore = defineStore("commons", () => {
     draftFundingMode.value = "goal";
     draftMilestones.value = [{ description: "", timeline: "", evidence: "" }];
   };
+const hasDraft = ref(false);
+const draftPreview = ref<{ title: string; updatedAt: string } | null>(null);
+const resumingDraft = ref(false);
 
+  async function saveDraft(): Promise<boolean> {
+    if (!currentAccountId.value) return false;
+    const data = {
+      title: draftTitle.value,
+      description: draftDescription.value,
+      story: draftStory.value,
+      category: draftCategory.value,
+      productiveClaim: draftProductiveClaim.value,
+      inputs: draftInputs.value,
+      expectedOutput: draftExpectedOutput.value,
+      demandSignal: draftDemandSignal.value,
+      riskBearer: draftRiskBearer.value,
+      failureHandling: draftFailureHandling.value,
+      publicBenefit: draftPublicBenefit.value,
+      fundingMode: draftFundingMode.value,
+      xorRequested: draftXorRequested.value,
+      milestones: draftMilestones.value,
+    };
+    const { error } = await supabase.from("proposal_drafts")
+      .upsert({ account_id: currentAccountId.value, data, updated_at: new Date().toISOString() });
+    if (error) { console.error("saveDraft failed:", error); return false; }
+    hasDraft.value = true;
+    return true;
+  }
+
+  async function loadDraft(): Promise<boolean> {
+    if (!currentAccountId.value) return false;
+    const { data: row, error } = await supabase.from("proposal_drafts")
+      .select("data").eq("account_id", currentAccountId.value).maybeSingle();
+    if (error) { console.error("loadDraft failed:", error); return false; }
+    if (!row?.data) { hasDraft.value = false; return false; }
+    const d = row.data;
+    draftTitle.value = d.title ?? "";
+    draftDescription.value = d.description ?? "";
+    draftStory.value = d.story ?? "";
+    draftCategory.value = d.category ?? "";
+    draftProductiveClaim.value = d.productiveClaim ?? "";
+    draftInputs.value = d.inputs ?? "";
+    draftExpectedOutput.value = d.expectedOutput ?? "";
+    draftDemandSignal.value = d.demandSignal ?? "";
+    draftRiskBearer.value = d.riskBearer ?? "";
+    draftFailureHandling.value = d.failureHandling ?? "";
+    draftPublicBenefit.value = d.publicBenefit ?? "";
+    draftFundingMode.value = d.fundingMode ?? "goal";
+    draftXorRequested.value = d.xorRequested ?? "";
+    draftMilestones.value = (d.milestones?.length ? d.milestones : [{ description: "", timeline: "", evidence: "" }]);
+    hasDraft.value = true;
+    resumingDraft.value = true;
+    return true;
+  }
+
+  async function deleteDraft(): Promise<void> {
+    if (!currentAccountId.value) return;
+    const { error } = await supabase.from("proposal_drafts").delete().eq("account_id", currentAccountId.value);
+    if (error) console.error("deleteDraft failed:", error);
+    hasDraft.value = false;
+  }
+
+  async function checkDraft(): Promise<void> {
+    if (!currentAccountId.value) { hasDraft.value = false; draftPreview.value = null; return; }
+    const { data: row } = await supabase.from("proposal_drafts")
+      .select("data, updated_at").eq("account_id", currentAccountId.value).maybeSingle();
+    hasDraft.value = !!row;
+    draftPreview.value = row ? { title: (row.data?.title || "Untitled draft"), updatedAt: row.updated_at } : null;
+  }
   // Stage 1 — Submit Proposal
   async function persistProposalToSupabase(p: CommonsProposal) {
   // 1. ensure the proposer's account row exists (FK target)
@@ -1741,7 +1809,7 @@ const toggleFollow = (id: string): void => {
     resetDraft, submitProposal,loadProposals, castSignal,
     postDiscussion, submitAmendment, submitParliamentBrief, submitParliamentRemarks, reviseAndResubmit,
     advanceToSortition, castPanelVote, confirmMilestone, markChapterDelivered, milestoneChallengeState, proposalChallengeState, raiseFlag, withdrawFlag, respondToFlag,uploadAvatar,uploadDocument, getAvatar, avatarUrl, avatarByAccount,
-    updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount, formatDate, feedShownCount,
+    updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount, formatDate, feedShownCount,hasDraft, saveDraft, loadDraft, deleteDraft, checkDraft, draftPreview, resumingDraft,
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
     savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow,followedProposals, followedAccounts, isFollowingUser, getFollowerCount, getFollowingCount, toggleFollowUser,

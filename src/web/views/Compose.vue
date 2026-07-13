@@ -4,6 +4,11 @@
       <h1>Tell the story of your work</h1>
       <p class="sub">Posting is free. Share what you're building, prove it milestone by milestone, and let people follow and support it.</p>
     </header>
+    <div v-if="commons.hasDraft && !draftLoaded" class="draftbar">
+      <span class="draftbar__txt">You have a saved draft.</span>
+      <button class="draftbar__btn" @click="onResumeDraft">Resume</button>
+      <button class="draftbar__btn draftbar__btn--ghost" @click="onDiscardDraft">Discard</button>
+    </div>
     <div v-if="!isConnected" class="notice">You can write your story now. Posting comes once an account is connected.</div>
 
     <section class="sec">
@@ -102,17 +107,33 @@
         <input type="checkbox" v-model="confirmedPermanent" />
         <span>Once published, this becomes a permanent part of the public record — it can't be edited or deleted.</span>
       </label>
+      <button class="bar__btn bar__btn--ghost" :disabled="posting || savingDraft" @click="onSaveDraft">{{ savingDraft ? "Saving…" : "Save for later" }}</button>
       <button class="bar__btn btn-gold" :disabled="posting || !confirmedPermanent" @click="onPost">{{ posting ? "Posting..." : "Post your story" }}</button>
     <p v-if="message" class="result" :class="{ 'result--err': isError }">{{ message }}</p>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount  } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import CharCount from "../components/CharCount.vue";
 
-onMounted(() => window.scrollTo(0, 0));
+onMounted(async () => {
+  window.scrollTo(0, 0);
+  // sync decision FIRST (no await before it) so the form never flashes old content
+  if (commons.resumingDraft) {
+    commons.resumingDraft = false;   // arrived via Resume/Continue — keep loaded content
+    draftLoaded.value = true;
+  } else {
+    draftLoaded.value = false;       // fresh nav — store already cleared on last unmount
+  }
+  await commons.checkDraft();        // sets hasDraft for the banner
+});
+
+onBeforeUnmount(() => {
+  // live form is ephemeral — clear it on leave (saved draft lives in the DB, so this is safe)
+  if (!commons.resumingDraft) commons.resetDraft();
+});
 
 const emit = defineEmits<{ (e: "nav", id: string): void }>();
 const commons = useCommonsStore();
@@ -135,6 +156,17 @@ const LIMITS = {
 const isConnected = computed(() => commons.isConnected);
 const posting = ref(false);
 const confirmedPermanent = ref(false);
+const savingDraft = ref(false);
+async function onSaveDraft() {
+  savingDraft.value = true;
+  const ok = await commons.saveDraft();
+  savingDraft.value = false;
+  message.value = ok ? "Draft saved. You can resume it anytime from Post." : "Couldn't save draft — try again.";
+  isError.value = !ok;
+}
+const draftLoaded = ref(false);
+async function onResumeDraft() { await commons.loadDraft(); draftLoaded.value = true; message.value = ""; }
+async function onDiscardDraft() { await commons.deleteDraft(); draftLoaded.value = true; }
 const message = ref("");
 const isError = ref(false);
 const showBlockers = ref(false);
@@ -224,6 +256,7 @@ async function onPost() {
         if (!res.ok) console.error("proposal doc upload failed:", res.error);
       }
       stagedDocs.value = [];
+      await commons.deleteDraft();
       await commons.loadProposals();
       message.value = "Your story is live.";
       emit("nav", "feed");
@@ -281,6 +314,12 @@ input:focus, textarea:focus { outline: none; border-color: var(--gold-600); }
 .confirm-permanent { display: flex; gap: 9px; align-items: center; font-size: .82rem; color: var(--ink-dim); line-height: 1.35; cursor: pointer; margin: 4px 0 10px; }
 .confirm-permanent input { accent-color: var(--gold-500); cursor: pointer; flex-shrink: 0; width: 16px; height: 16px; }
 .confirm-permanent:hover { color: var(--ink); }
+.bar__btn--ghost { background: transparent; color: var(--gold-300); border: 1px solid var(--line); box-shadow: none; margin-right: 8px; }
+.bar__btn--ghost:hover { border-color: var(--gold-600); background: var(--line-soft); transform: none; filter: none; box-shadow: none; }
+.draftbar { display: flex; align-items: center; gap: 12px; padding: 12px 16px; margin-bottom: 16px; background: rgba(201,168,76,.08); border: 1px solid var(--line); border-radius: var(--r); }
+.draftbar__txt { color: var(--ink-dim); font-size: .9rem; flex: 1; }
+.draftbar__btn { padding: 6px 14px; border-radius: var(--r-sm); border: none; background: var(--gold-600); color: #22180a; font-weight: 600; font-size: .85rem; cursor: pointer; }
+.draftbar__btn--ghost { background: transparent; color: var(--ink-dim); border: 1px solid var(--line); }
 .bar__btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(201,168,76,.34); filter: brightness(1.06); }
 .bar__btn:disabled { opacity: .45; cursor: not-allowed; }
 .bar__blockers { font-size: .8rem; max-height: 120px; overflow-y: auto; }

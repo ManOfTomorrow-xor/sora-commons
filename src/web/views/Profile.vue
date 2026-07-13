@@ -86,7 +86,18 @@
       </article>
 
       <h2 class="asec">My drafts</h2>
-      <p class="anote">Saved drafts will live here once the backend is connected.</p>
+      <div v-if="commons.hasDraft" class="pdraft-row">
+        <button class="pdraft" @click="continueDraft">
+          <span class="pdraft__title">{{ commons.draftPreview?.title || 'Untitled draft' }}</span>
+          <span class="pdraft__go">Continue →</span>
+        </button>
+        <button v-if="!confirmDeleteDraft" class="pdraft__del" @click="confirmDeleteDraft = true" title="Delete draft">✕</button>
+        <template v-else>
+          <button class="pdraft__del pdraft__del--yes" @click="onDeleteDraft">Delete?</button>
+          <button class="pdraft__del" @click="confirmDeleteDraft = false">Cancel</button>
+        </template>
+      </div>
+      <p v-else class="anote">No saved drafts yet. Start one from Post — you can save and come back anytime.</p>
     </div>
     <ProfileEditor v-if="showEditor" :account-id="accountId" @close="showEditor = false" @saved="onProfileSaved" />
   </div>
@@ -98,7 +109,7 @@ import { useCommonsStore } from "@/stores/commons";
 import ProfileEditor from "@/web/components/ProfileEditor.vue";
 import CountUp from "../components/CountUp.vue";
 
-onMounted(() => window.scrollTo(0, 0));
+onMounted(() => { window.scrollTo(0, 0); if (isOwn.value) commons.checkDraft(); });
 
 const emit = defineEmits<{ (e: "nav", id: string): void }>();
 const commons = useCommonsStore();
@@ -123,12 +134,15 @@ const saved = computed(() => commons.proposals.filter((p: any) => commons.isSave
 const youDonated = ref(0);
 const youBoosted = ref(0);
 const youBurned = ref(0);
+const confirmDeleteDraft = ref(false);
+async function onDeleteDraft() { await commons.deleteDraft(); confirmDeleteDraft.value = false; }
 
 const bio = computed(() => isOwn.value ? "Add a short bio once profiles are editable." : "This builder hasn't added a bio yet.");
 const reputationWord = computed(() => deliveredCount.value > 0 ? "established" : "building");
 const labelClass = computed(() => "lbl--" + commons.proposerLabel(accountId.value).toLowerCase());
 
 function open(p: any) { commons.setActiveProposal(p.id); emit("nav", "story"); }
+async function continueDraft() { await commons.loadDraft(); emit("nav", "post"); }
 
 function catLabel(c?: string) {
   return c === "production" ? "Production" : c === "productivity_public_good" ? "Productivity / Public-good" : (c || "Proposal");
@@ -185,6 +199,16 @@ function avStyle(id?: string) {
 .pfollow:hover { background: rgba(201,168,76,.12); transform: translateY(-1px); }
 .pfollow.on { background: rgba(201,168,76,.14); }
 .pedit:hover { border-color: var(--gold-600); }
+.pdraft { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 14px 16px; background: rgba(201,168,76,.06); border: 1px solid var(--line); border-radius: var(--r); cursor: pointer; transition: border-color .15s var(--ease), background .15s var(--ease); }
+.pdraft:hover { border-color: var(--gold-600); background: rgba(201,168,76,.10); }
+.pdraft__title { color: var(--ink); font-weight: 600; }
+.pdraft__go { color: var(--gold-300); font-size: .85rem; }
+.pdraft-row { display: flex; align-items: stretch; gap: 8px; }
+.pdraft-row .pdraft { flex: 1; }
+.pdraft__del { padding: 0 14px; background: transparent; border: 1px solid var(--line); border-radius: var(--r); color: var(--ink-faint); cursor: pointer; font-size: .9rem; white-space: nowrap; transition: border-color .15s var(--ease), color .15s var(--ease); }
+.pdraft__del:hover { border-color: var(--ink-dim); color: var(--ink); }
+.pdraft__del--yes { border-color: var(--negate); color: var(--negate); }
+.pdraft__del--yes:hover { background: var(--negate); color: #fff; }
 
 .pstats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; margin-bottom: 22px; }
 .pstats--soft { grid-template-columns: repeat(3, 1fr); }
