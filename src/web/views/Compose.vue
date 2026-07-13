@@ -25,9 +25,9 @@
           <button type="button" class="filebtn" @click="pickDoc" :disabled="posting">📎 Add files</button>
           <span class="field__hint">Optional — attaching a spec, whitepaper, or reference (PDF or image) strengthens your story and helps backers trust the work. Removable until you post.</span>
           <div v-if="stagedDocs.length" class="cdocs">
-            <div v-for="(f, idx) in stagedDocs" :key="idx" class="cdocrow">
-              <span class="cdoc_ic">{{ f.type === 'application/pdf' ? '📄' : '🖼️' }}</span>
-              <span class="cdoc_nm">{{ f.name }}</span>
+            <div v-for="(item, idx) in stagedDocs" :key="idx" class="cdocrow">
+              <span class="cdoc_ic">{{ item.type === 'application/pdf' ? '📄' : '🖼️' }}</span>
+              <span class="cdoc_nm">{{ item.name }}</span>
               <button type="button" class="cdoc_x" @click="removeDoc(idx)" title="Remove">✕</button>
             </div>
           </div>
@@ -121,8 +121,9 @@ import CharCount from "../components/CharCount.vue";
 onMounted(async () => {
   window.scrollTo(0, 0);
   // sync decision FIRST (no await before it) so the form never flashes old content
-  if (commons.resumingDraft) {
+ if (commons.resumingDraft) {
     commons.resumingDraft = false;   // arrived via Resume/Continue — keep loaded content
+    stagedDocs.value = (commons.draftFiles || []).map((f: any) => ({ kind: 'draft', name: f.name, url: f.url, path: f.path, type: f.type }));
     draftLoaded.value = true;
   } else {
     draftLoaded.value = false;       // fresh nav — store already cleared on last unmount
@@ -159,13 +160,27 @@ const confirmedPermanent = ref(false);
 const savingDraft = ref(false);
 async function onSaveDraft() {
   savingDraft.value = true;
-  const ok = await commons.saveDraft();
+  const fileRefs: any[] = [];
+  for (const item of stagedDocs.value) {
+    if (item.kind === 'draft') {
+      fileRefs.push({ name: item.name, url: item.url, path: item.path, type: item.type });
+    } else {
+      const r = await commons.uploadDraftFile(item.file);
+      if (r) fileRefs.push(r);
+    }
+  }
+  const ok = await commons.saveDraft(fileRefs);
   savingDraft.value = false;
-  message.value = ok ? "Draft saved. You can resume it anytime from Post." : "Couldn't save draft — try again.";
+  message.value = ok ? "Draft saved. Resume it from Post or your profile." : "Couldn't save draft — try again.";
   isError.value = !ok;
 }
 const draftLoaded = ref(false);
-async function onResumeDraft() { await commons.loadDraft(); draftLoaded.value = true; message.value = ""; }
+async function onResumeDraft() {
+  await commons.loadDraft();
+  stagedDocs.value = (commons.draftFiles || []).map((f: any) => ({ kind: 'draft', name: f.name, url: f.url, path: f.path, type: f.type }));
+  draftLoaded.value = true;
+  message.value = "";
+}
 async function onDiscardDraft() { await commons.deleteDraft(); draftLoaded.value = true; }
 const message = ref("");
 const isError = ref(false);
@@ -221,7 +236,10 @@ const blockers = computed(() => {
   return out;
 });
 
-const stagedDocs = ref<File[]>([]);
+type StagedItem =
+  | { kind: 'new'; file: File; name: string; type: string }
+  | { kind: 'draft'; name: string; url: string; path: string; type: string };
+const stagedDocs = ref<StagedItem[]>([]);
 const docInput = ref<HTMLInputElement | null>(null);
 const docError = ref("");
 function pickDoc() { docError.value = ""; docInput.value?.click(); }
@@ -232,7 +250,7 @@ function onDocPicked(e: Event) {
   if (!okTypes.includes(file.type)) { docError.value = "Use a PDF or image."; return; }
   if (file.size > 10*1024*1024) { docError.value = "File must be under 10 MB."; return; }
   if (stagedDocs.value.length >= 5) { docError.value = "Up to 5 files."; return; }
-  stagedDocs.value = [...stagedDocs.value, file];
+ stagedDocs.value = [...stagedDocs.value, { kind: 'new', file, name: file.name, type: file.type }];
     console.log("STAGED DOCS:", stagedDocs.value.length, file.name);
   docError.value = "";
   (e.target as HTMLInputElement).value = "";
@@ -251,12 +269,17 @@ async function onPost() {
     const created = await commons.submitProposal();
     if (created) {
       // upload staged supporting documents against the new proposal id
-      for (const file of stagedDocs.value) {
-        const res = await commons.uploadDocument(file, { proposalId: created.id });
-        if (!res.ok) console.error("proposal doc upload failed:", res.error);
+      for (const item of stagedDocs.value) {
+        if (item.kind === 'new') {
+          const res = await commons.uploadDocument(item.file, { proposalId: created.id });
+          if (!res.ok) console.error("proposal doc upload failed:", res.error);
+        } else {
+          const res = await commons.linkDraftFileToProposal(item, created.id);
+          if (!res.ok) console.error("draft doc link failed:", res.error);
+        }
       }
       stagedDocs.value = [];
-      await commons.deleteDraft();
+      await commons.deleteDraft(false);
       await commons.loadProposals();
       message.value = "Your story is live.";
       emit("nav", "feed");

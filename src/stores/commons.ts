@@ -385,8 +385,9 @@ export const useCommonsStore = defineStore("commons", () => {
 const hasDraft = ref(false);
 const draftPreview = ref<{ title: string; updatedAt: string } | null>(null);
 const resumingDraft = ref(false);
+const draftFiles = ref<any[]>([]);
 
-  async function saveDraft(): Promise<boolean> {
+  async function saveDraft(files: any[] = []): Promise<boolean> {
     if (!currentAccountId.value) return false;
     const data = {
       title: draftTitle.value,
@@ -402,7 +403,8 @@ const resumingDraft = ref(false);
       publicBenefit: draftPublicBenefit.value,
       fundingMode: draftFundingMode.value,
       xorRequested: draftXorRequested.value,
-      milestones: draftMilestones.value,
+      milestones: draftMilestones.value, files,
+      
     };
     const { error } = await supabase.from("proposal_drafts")
       .upsert({ account_id: currentAccountId.value, data, updated_at: new Date().toISOString() });
@@ -431,17 +433,26 @@ const resumingDraft = ref(false);
     draftPublicBenefit.value = d.publicBenefit ?? "";
     draftFundingMode.value = d.fundingMode ?? "goal";
     draftXorRequested.value = d.xorRequested ?? "";
+    draftFiles.value = d.files ?? [];
+    hasDraft.value = true;
     draftMilestones.value = (d.milestones?.length ? d.milestones : [{ description: "", timeline: "", evidence: "" }]);
     hasDraft.value = true;
     resumingDraft.value = true;
     return true;
   }
 
-  async function deleteDraft(): Promise<void> {
+  async function deleteDraft(cleanupFiles = true): Promise<void> {
     if (!currentAccountId.value) return;
+    if (cleanupFiles) {
+      const { data: row } = await supabase.from("proposal_drafts")
+        .select("data").eq("account_id", currentAccountId.value).maybeSingle();
+      const paths = (row?.data?.files || []).map((f: any) => f.path).filter(Boolean);
+      if (paths.length) await deleteDraftFiles(paths);
+    }
     const { error } = await supabase.from("proposal_drafts").delete().eq("account_id", currentAccountId.value);
     if (error) console.error("deleteDraft failed:", error);
     hasDraft.value = false;
+    draftFiles.value = [];
   }
 
   async function checkDraft(): Promise<void> {
@@ -807,6 +818,32 @@ const resumingDraft = ref(false);
     const { error: dbErr } = await supabase.from(table).insert(row);
     if (dbErr) { console.error("doc record failed:", dbErr); return { ok: false, error: dbErr.message }; }
     return { ok: true };
+  }
+  async function uploadDraftFile(file: File): Promise<{ name: string; url: string; path: string; type: string } | null> {
+    const okTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+    if (!okTypes.includes(file.type)) { console.error("draft file: bad type"); return null; }
+    if (file.size > 10 * 1024 * 1024) { console.error("draft file: too large"); return null; }
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const path = `drafts/${currentAccountId.value}/${Date.now()}_${safeName}`;
+    const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { contentType: file.type });
+    if (upErr) { console.error("draft file upload failed:", upErr); return null; }
+    const { data: pub } = supabase.storage.from("documents").getPublicUrl(path);
+    return { name: file.name, url: pub.publicUrl, path, type: file.type };
+  }
+  async function linkDraftFileToProposal(
+    ref: { name: string; url: string; type: string },
+    proposalId: string
+  ): Promise<{ ok: boolean; error?: string }> {
+    const fileType = ref.type === "application/pdf" ? "pdf" : "image";
+    const { error } = await supabase.from("proposal_documents")
+      .insert({ proposal_id: proposalId, filename: ref.name, url: ref.url, file_type: fileType });
+    if (error) { console.error("link draft doc failed:", error); return { ok: false, error: error.message }; }
+    return { ok: true };
+  }
+  async function deleteDraftFiles(paths: string[]): Promise<void> {
+    if (!paths?.length) return;
+    const { error } = await supabase.storage.from("documents").remove(paths);
+    if (error) console.error("delete draft files failed:", error);
   }
   async function updateProfile(name: string, bio: string): Promise<{ ok: boolean; error?: string }> {
     const acct = currentAccountId.value;
@@ -1809,7 +1846,7 @@ const toggleFollow = (id: string): void => {
     resetDraft, submitProposal,loadProposals, castSignal,
     postDiscussion, submitAmendment, submitParliamentBrief, submitParliamentRemarks, reviseAndResubmit,
     advanceToSortition, castPanelVote, confirmMilestone, markChapterDelivered, milestoneChallengeState, proposalChallengeState, raiseFlag, withdrawFlag, respondToFlag,uploadAvatar,uploadDocument, getAvatar, avatarUrl, avatarByAccount,
-    updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount, formatDate, feedShownCount,hasDraft, saveDraft, loadDraft, deleteDraft, checkDraft, draftPreview, resumingDraft,
+    updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount, formatDate, feedShownCount,hasDraft, saveDraft, loadDraft, deleteDraft, checkDraft, draftPreview, resumingDraft, uploadDraftFile, linkDraftFileToProposal, deleteDraftFiles, draftFiles,
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
     savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow,followedProposals, followedAccounts, isFollowingUser, getFollowerCount, getFollowingCount, toggleFollowUser,
