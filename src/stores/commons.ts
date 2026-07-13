@@ -1279,6 +1279,9 @@ export const useCommonsStore = defineStore("commons", () => {
     return all.size;
   });
   const feedShownIds = ref<Set<string>>(new Set());
+  const feedScrollY = ref(0);
+  const feedShownCount = ref(10);
+  const exploreScrollY = ref(0);
   const feedInitialized = ref(false);
   function initFeedSnapshot() {
     if (!feedInitialized.value && proposals.value.length > 0) {
@@ -1738,13 +1741,13 @@ const toggleFollow = (id: string): void => {
     resetDraft, submitProposal,loadProposals, castSignal,
     postDiscussion, submitAmendment, submitParliamentBrief, submitParliamentRemarks, reviseAndResubmit,
     advanceToSortition, castPanelVote, confirmMilestone, markChapterDelivered, milestoneChallengeState, proposalChallengeState, raiseFlag, withdrawFlag, respondToFlag,uploadAvatar,uploadDocument, getAvatar, avatarUrl, avatarByAccount,
-    updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount, formatDate,
+    updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount, formatDate, feedShownCount,
     // Helpers
     statusLabel, stageNumber, roleLabel, roleHint,
     savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow,followedProposals, followedAccounts, isFollowingUser, getFollowerCount, getFollowingCount, toggleFollowUser,
     donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount, boostsRemaining, boostBlockedTick,  mockWalletId, initMockWallet,
     notifications, unreadCount, loadNotifications, markNotificationsRead,
-    uniqueBackerCount, feedShownIds, feedInitialized, initFeedSnapshot, revealFeedPending, subscribeToProposals, unsubscribeProposals, subscribeToNotifications, unsubscribeNotifications, subscribeToSocial, unsubscribeSocial, createNotification, boostRows,
+    uniqueBackerCount, feedShownIds, feedScrollY, exploreScrollY, feedInitialized, initFeedSnapshot, revealFeedPending, subscribeToProposals, unsubscribeProposals, subscribeToNotifications, unsubscribeNotifications, subscribeToSocial, unsubscribeSocial, createNotification, boostRows,
     subscribeToDonations, unsubscribeDonations, searchAll,
 
     // Reputation

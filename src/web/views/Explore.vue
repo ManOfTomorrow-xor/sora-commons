@@ -105,7 +105,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, nextTick, onMounted, onBeforeUnmount} from "vue";
 import { useCommonsStore } from "@/stores/commons";
 
 const emit = defineEmits<{ (e: "nav", id: string): void }>();
@@ -168,7 +168,9 @@ if (funding.value !== "all") list = list.filter((p: any) => (p.fundingMode || "o
   return list;
 });
 
-function open(p: any) { commons.setActiveProposal?.(p.id); emit("nav", "story"); }
+function open(p: any) { commons.exploreScrollY = window.scrollY; commons.setActiveProposal?.(p.id); emit("nav", "story"); }
+
+onMounted(() => { nextTick(() => requestAnimationFrame(() => { console.log("FEED RESTORE to:", commons.feedScrollY, "docHeight:", document.body.scrollHeight); window.scrollTo(0, commons.feedScrollY); })); });
 
 function pct(p: any) {
   const done = p.milestones?.filter((m: any) => m.completed).length || 0;

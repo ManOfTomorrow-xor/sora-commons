@@ -137,7 +137,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted } from "vue";
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import { COMMONS_CONFIG } from "@/constants/commonsConfig";
 const boostsPerWeek = COMMONS_CONFIG.BOOSTS_PER_WEEK;
@@ -160,6 +160,7 @@ function moveTabIndicator() {
 function scheduleTabMove() { nextTick(() => requestAnimationFrame(moveTabIndicator)); }
 watch(tab, scheduleTabMove);
 onMounted(() => { scheduleTabMove(); if (document.fonts?.ready) document.fonts.ready.then(scheduleTabMove); });
+onMounted(() => { nextTick(() => requestAnimationFrame(() => window.scrollTo(0, commons.feedScrollY))); });
 // snapshot lives in the store (survives Feed's mount/unmount on nav)
 // pending = loaded but not yet revealed, EXCLUDING your own posts (those show instantly)
 const pending = computed(() =>
@@ -192,13 +193,12 @@ const visible = computed(() => {
   return list; // Active = store order
 });
 const PAGE_SIZE = 10;
-const shownCount = ref(PAGE_SIZE);
-const paged = computed(() => visible.value.slice(0, shownCount.value));
-const hasMore = computed(() => visible.value.length > shownCount.value);
-function loadMore() { shownCount.value += PAGE_SIZE; }
-// reset to first page when the sort changes
-watch(sort, () => { shownCount.value = PAGE_SIZE; });
-watch(tab, () => { shownCount.value = PAGE_SIZE; });
+const paged = computed(() => visible.value.slice(0, commons.feedShownCount));
+const hasMore = computed(() => visible.value.length > commons.feedShownCount);
+function loadMore() { commons.feedShownCount += PAGE_SIZE; }
+
+watch(sort, () => { commons.feedShownCount = PAGE_SIZE; });
+watch(tab, () => { commons.feedShownCount = PAGE_SIZE; });
 
 const topBoosted = computed(() =>
   [...commons.proposals]
@@ -231,13 +231,14 @@ function onBoost(id: string) {
   }
 }
 
-function open(p: any) { commons.setActiveProposal?.(p.id); emit("nav", "story"); }
+function open(p: any) { commons.feedScrollY = window.scrollY; commons.setActiveProposal?.(p.id); emit("nav", "story"); }
 function pct(p: any) {
   const done = p.milestones?.filter((m: any) => m.completed).length || 0;
   const total = p.milestones?.length || 0;
   return total ? Math.round((done / total) * 100) : 0;
 }
 function openComments(p: any) {
+  commons.feedScrollY = window.scrollY;
   commons.setActiveProposal?.(p.id);
   commons.setScrollToComments(true);
   emit("nav", "story");
