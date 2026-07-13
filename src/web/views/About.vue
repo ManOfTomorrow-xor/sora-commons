@@ -88,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import sealUrl from "../assets/seal.png";
 
 const open = ref(false);

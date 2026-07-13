@@ -68,8 +68,9 @@
 import { useCommonsStore } from "@/stores/commons";
 import CountUp from "../components/CountUp.vue";
 import Flame from "../components/Flame.vue";
-import { computed, ref } from "vue";
+import { computed, ref, onMounted } from "vue";
 
+onMounted(() => window.scrollTo(0, 0));
 
 const commons = useCommonsStore();
 

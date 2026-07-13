@@ -93,10 +93,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import ProfileEditor from "@/web/components/ProfileEditor.vue";
 import CountUp from "../components/CountUp.vue";
+
+onMounted(() => window.scrollTo(0, 0));
 
 const emit = defineEmits<{ (e: "nav", id: string): void }>();
 const commons = useCommonsStore();

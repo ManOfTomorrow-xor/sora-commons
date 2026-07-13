@@ -422,6 +422,8 @@ watch(() => commons.scrollToComments, (should) => {
         document.getElementById("conversation")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 150);
     });
+  } else {
+    window.scrollTo(0, 0);
   }
 }, { immediate: true });
 </script>

@@ -7,7 +7,7 @@
       Test version — identities and donations are simulated. No real XOR moves.
     </div>
       <div class="topbar__inner">
-        <a class="brand" @click="go('feed')">
+        <a class="brand" @click="goHome">
           <img class="brand__seal" :src="sealUrl" alt="SORA Commons seal" />
           <span class="brand__name">SORA <b>Commons</b></span>
         </a>
@@ -150,17 +150,29 @@ onMounted(() => {
 });
 const navHidden = ref(false);
 let lastY = 0;
+let resetFeedScroll = false;
 const go = (id: string) => {
   const [view, anchor] = id.split("#");
+  const sameView = view === active.value && !anchor;   // clicked the tab you're already on
+  // save the OUTGOING view's scroll before we leave (skip on same-view or reset)
+  if (!sameView && !resetFeedScroll && active.value === 'feed') commons.feedScrollY = window.scrollY;
+  else if (!sameView && active.value === 'explore') commons.exploreScrollY = window.scrollY;
+  resetFeedScroll = false;
   active.value = view;
   navHidden.value = false;
   lastY = 0;
   if (anchor) {
     nextTick(() => requestAnimationFrame(() => document.getElementById(anchor)?.scrollIntoView({ behavior: "smooth" })));
-  } else {
-    window.scrollTo(0, 0);
+  } else if (sameView) {
+    // clicked the current tab → zip to top; clear saved pos so feed/explore restore doesn't fight it
+    if (view === 'feed') commons.feedScrollY = 0;
+    else if (view === 'explore') commons.exploreScrollY = 0;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 };
+function goHome() { resetFeedScroll = true; commons.feedScrollY = 0; commons.feedShownCount = 10; go('feed'); }
+
+
 function tabTap(id: string) {
   if (navHidden.value) { navHidden.value = false; lastY = window.scrollY || 0; return; }
   go(id);

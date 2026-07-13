@@ -117,7 +117,7 @@ function avStyle(id?: string) {
   return { background: colors[Math.abs(h) % colors.length] };
 }
 
-onMounted(() => { inputEl.value?.focus(); });
+onMounted(() => { window.scrollTo(0, 0); inputEl.value?.focus(); });
 </script>
 
 <style scoped>
