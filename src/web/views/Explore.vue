@@ -41,6 +41,14 @@
           <button class="chip" :class="{ on: show === 'backed' }" @click="show = 'backed'">Backed</button>
         </div>
       </div>
+      <div class="ex__group">
+        <span class="ex__lab">Funding</span>
+        <div class="ex__chips">
+          <button class="chip" :class="{ on: funding === 'all' }" @click="funding = 'all'">All</button>
+          <button class="chip" :class="{ on: funding === 'goal' }" @click="funding = 'goal'">Goal</button>
+          <button class="chip" :class="{ on: funding === 'open' }" @click="funding = 'open'">Open</button>
+        </div>
+      </div>
       <div class="ex__group ex__group--sort">
         <span class="ex__lab">Sort</span>
         <select v-model="sort" class="ex__select">
@@ -109,7 +117,7 @@ const query = ref("");
 const category = ref("all");
 const track = ref("all");
 const status = ref<"active" | "archive" | "all" | "flagged">("active");
-
+const funding = ref<"all" | "goal" | "open">("all");
 
 const categories = [
   { v: "all", t: "All" },
@@ -140,6 +148,8 @@ const results = computed(() => {
   // track (default donations when unset)
   if (track.value !== "all") list = list.filter((p: any) => (p.track || "donations") === track.value);
 
+if (funding.value !== "all") list = list.filter((p: any) => (p.fundingMode || "open") === funding.value);
+
 // status
   if (status.value === "active") list = list.filter((p: any) => p.status !== "complete");
   else if (status.value === "archive") list = list.filter((p: any) => p.status === "complete");
@@ -155,7 +165,6 @@ const results = computed(() => {
   else if (sort.value === "Most boosted") list.sort((a: any, b: any) => (b.boostCount || 0) - (a.boostCount || 0));
   else if (sort.value === "Most funded") list.sort((a: any, b: any) => parseFloat(b.totalDonated || "0") - parseFloat(a.totalDonated || "0"));
   else if (sort.value === "Most backers") list.sort((a: any, b: any) => (b.backers || 0) - (a.backers || 0));
-  return list;
   return list;
 });
 
