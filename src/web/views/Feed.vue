@@ -26,15 +26,16 @@
           </div>
         </div>
 
-<!-- following tabs -->
-        <div class="ftabs" v-if="commons.currentAccountId">
-          <button :class="{ on: tab === 'all' }" @click="tab = 'all'">All work</button>
-          <button :class="{ on: tab === 'following' }" @click="tab = 'following'">Following</button>
-        </div>
-
-        <!-- sort -->
-        <div class="sort">
-          <button v-for="s in sorts" :key="s" :class="{ on: sort === s }" @click="sort = s">{{ s }}</button>
+<!-- controls: sorts left, following-tabs right -->
+        <div class="feedcontrols">
+          <div class="sort">
+            <button v-for="s in sorts" :key="s" :class="{ on: sort === s }" @click="sort = s">{{ s }}</button>
+          </div>
+          <div class="ftabs" v-if="commons.currentAccountId" ref="tabsRef">
+            <span class="ftabs__indicator" :style="tabIndicator"></span>
+            <button :class="{ on: tab === 'all' }" @click="tab = 'all'">All work</button>
+            <button :class="{ on: tab === 'following' }" @click="tab = 'following'">Following</button>
+          </div>
         </div>
 
         <!-- weekly boost allotment indicator -->
@@ -136,7 +137,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, nextTick, onMounted } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import { COMMONS_CONFIG } from "@/constants/commonsConfig";
 const boostsPerWeek = COMMONS_CONFIG.BOOSTS_PER_WEEK;
@@ -147,6 +148,18 @@ const commons = useCommonsStore();
 const sorts = ["Active", "Newest", "Most boosted"] as const;
 const sort = ref<(typeof sorts)[number]>("Active");
 const tab = ref<"all" | "following">("all");
+const tabsRef = ref<HTMLElement | null>(null);
+const tabIndicator = ref({ left: '0px', width: '0px', opacity: '0' });
+function moveTabIndicator() {
+  const el = tabsRef.value;
+  if (!el) return;
+  const activeBtn = el.querySelector('button.on') as HTMLElement | null;
+  if (!activeBtn) { tabIndicator.value = { ...tabIndicator.value, opacity: '0' }; return; }
+  tabIndicator.value = { left: activeBtn.offsetLeft + 'px', width: activeBtn.offsetWidth + 'px', opacity: '1' };
+}
+function scheduleTabMove() { nextTick(() => requestAnimationFrame(moveTabIndicator)); }
+watch(tab, scheduleTabMove);
+onMounted(() => { scheduleTabMove(); if (document.fonts?.ready) document.fonts.ready.then(scheduleTabMove); });
 // snapshot lives in the store (survives Feed's mount/unmount on nav)
 // pending = loaded but not yet revealed, EXCLUDING your own posts (those show instantly)
 const pending = computed(() =>
@@ -285,7 +298,7 @@ function avStyle(id: string) {
 
 .grid { display: grid; grid-template-columns: minmax(0,1fr) 280px; gap: 24px; align-items: start; }
 @media (max-width: 980px) { .grid { grid-template-columns: 1fr; }}
-.sort { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.sort { display: flex; gap: 6px; flex-wrap: wrap; }
 .sort button { background: var(--navy-850); border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; color: var(--ink-dim); font-size: .82rem; cursor: pointer; }
 .sort button.on { background: rgba(201,168,76,.12); border-color: var(--gold-600); color: var(--gold-300); }
 
@@ -309,7 +322,7 @@ function avStyle(id: string) {
 .cardlist { display: block; }
 .card-enter-active { transition: opacity .4s var(--ease), transform .4s var(--ease-spring); transition-delay: calc(var(--i, 0) * 40ms); }
 .card-enter-from { opacity: 0; transform: translateY(-16px) scale(0.97); }
-.card-leave-active { transition: opacity .3s var(--ease); position: absolute; width: 100%; }
+.card-leave-active { transition: opacity .25s var(--ease); }
 .card-leave-to { opacity: 0; }
 .card-move { transition: transform .45s var(--ease); }
 .card--flagged { border-left: 4px solid var(--negate); padding-left: calc(var(--card-pad, 18px) - 4px); }
@@ -321,10 +334,13 @@ function avStyle(id: string) {
 .loadmore-count { font-size: .76rem; color: var(--ink-faint); font-family: var(--mono); }
 .loadmore-btn { background: var(--navy-850); border: 1px solid var(--line); color: var(--ink-dim); border-radius: 999px; padding: 10px 24px; font-family: var(--body); font-weight: 600; font-size: .86rem; cursor: pointer; transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease); }
 .loadmore-btn:hover { border-color: var(--gold-600); color: var(--gold-300); background: var(--navy-800); }
-.ftabs { display: inline-flex; gap: 4px; background: var(--navy-850); border: 1px solid var(--line); border-radius: 999px; padding: 4px; margin-bottom: 12px; }
+.ftabs { display: inline-flex; gap: 4px; background: var(--navy-850); border: 1px solid var(--line); border-radius: 999px; padding: 4px; position: relative; }
 .ftabs button { background: none; border: none; color: var(--ink-dim); padding: 6px 16px; border-radius: 999px; font-family: var(--body); font-weight: 600; font-size: .85rem; cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
-.ftabs button.on { background: var(--gold-600); color: #22180a; }
+.ftabs button.on { color: #22180a; }
 .ftabs button:hover:not(.on) { color: var(--ink); }
+.feedcontrols { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.ftabs button { position: relative; z-index: 1; }
+.ftabs__indicator { position: absolute; top: 4px; bottom: 4px; height: auto; background: var(--gold-600); border-radius: 999px; transition: left 0.28s var(--ease), width 0.28s var(--ease), opacity 0.2s var(--ease); pointer-events: none; z-index: 0; }
 @keyframes loadmore-in { from { opacity: 0; transform: translateY(-10px) scale(.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 @keyframes pop { 0% { transform:scale(1); } 30% { transform:scale(1.5); filter: drop-shadow(0 0 6px currentColor); } 60% { transform:scale(0.92); } 100% { transform:scale(1); } }
@@ -376,7 +392,7 @@ function avStyle(id: string) {
 .boostmeter .i-bolt { color: var(--gold-300); }
 .boostmeter.empty { color: var(--gold-300); border-color: var(--gold-700, #7a5c1a); }
 
-.rail { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 88px; align-self: start; }
+.rail { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 140px; align-self: start; }
 @media (max-width: 980px) { .rail { display: none; } }
 .panel { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; }
 .panel__h { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-size: 1rem; font-weight: 700; margin-bottom: 12px; }

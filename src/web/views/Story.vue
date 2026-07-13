@@ -440,7 +440,7 @@ watch(() => commons.scrollToComments, (should) => {
 .sd__main { min-width: 0; }
 
 /* sticky support rail */
-.sd__rail { position: sticky; top: 88px; }
+.sd__rail { position: sticky; top: 140px; }
 .support { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
 .support__donate { background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r); padding: 15px; font-weight: 800; font-size: 1.05rem; letter-spacing: .01em; cursor: pointer; box-shadow: 0 4px 14px rgba(201,168,76,.25); transition: transform .15s var(--ease), box-shadow .15s var(--ease), filter .15s var(--ease); }
 .support__donate:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,168,76,.35); filter: brightness(1.06); }

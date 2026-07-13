@@ -17,7 +17,8 @@
         <span>You've used all {{ boostsPerWeek }} boosts this week. Your allotment resets soon.</span>
       </div>
     </transition>
-       <nav class="nav">
+       <nav class="nav" ref="navRef">
+          <span class="nav__indicator" :style="indicatorStyle"></span>
           <a v-for="t in tabs" :key="t.id" :class="{ active: active === t.id }" @click="go(t.id)">{{ t.label }}</a>
           <button class="nav-post btn-gold" :class="{ active: active === 'post' }" @click="go('post')">Post</button>
         </nav>
@@ -63,22 +64,26 @@
       </div>
     </header>
 
-    <main class="wrap">
-      <Feed v-if="active === 'feed'" @nav="go" />
-      <Story v-else-if="active === 'story'" @nav="go" />
-      <Compose v-else-if="active === 'post'" @nav="go" />
-      <Profile v-else-if="active === 'profile'" @nav="go" />
-      <Overview v-else-if="active === 'overview'" @nav="go" />
-      <About v-else-if="active === 'about'" />
-      <Proposals v-else-if="active === 'proposals'" @nav="go" />
-      <Treasury v-else-if="active === 'treasury'" />
-      <Explore v-else-if="active === 'explore'" @nav="go" />
-      <Search v-else-if="active === 'search'" @nav="go" />
-      <Submit v-else-if="active === 'submit'" @nav="go" />
-      <template v-else>
-        <h1 class="page-title">{{ tabs.find(t => t.id === active)?.label }}</h1>
-        <p class="muted">This page is coming next.</p>
-      </template>
+      <main class="wrap">
+      <Transition name="view" mode="out-in">
+        <div :key="active" class="view-slot">
+          <Feed v-if="active === 'feed'" @nav="go" />
+          <Story v-else-if="active === 'story'" @nav="go" />
+          <Compose v-else-if="active === 'post'" @nav="go" />
+          <Profile v-else-if="active === 'profile'" @nav="go" />
+          <Overview v-else-if="active === 'overview'" @nav="go" />
+          <About v-else-if="active === 'about'" />
+          <Proposals v-else-if="active === 'proposals'" @nav="go" />
+          <Treasury v-else-if="active === 'treasury'" />
+          <Explore v-else-if="active === 'explore'" @nav="go" />
+          <Search v-else-if="active === 'search'" @nav="go" />
+          <Submit v-else-if="active === 'submit'" @nav="go" />
+          <div v-else>
+            <h1 class="page-title">{{ tabs.find(t => t.id === active)?.label }}</h1>
+            <p class="muted">This page is coming next.</p>
+          </div>
+        </div>
+      </Transition>
     </main>
 
     <!-- MOBILE BOTTOM TAB BAR -->
@@ -101,6 +106,22 @@ import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import { COMMONS_CONFIG } from "@/constants/commonsConfig";
 const commons = useCommonsStore();
+const navRef = ref<HTMLElement | null>(null);
+const indicatorStyle = ref({ left: '0px', width: '0px', opacity: '0' });
+
+function moveNavIndicator() {
+  const nav = navRef.value;
+  if (!nav) { console.log("NAV: no navRef"); return; }
+  const activeEl = nav.querySelector('a.active') as HTMLElement | null;
+  if (!activeEl) { console.log("NAV: no active element"); indicatorStyle.value = { ...indicatorStyle.value, opacity: '0' }; return; }
+  console.log("NAV: measured", activeEl.offsetLeft, activeEl.offsetWidth);
+  indicatorStyle.value = {
+    left: activeEl.offsetLeft + 'px',
+    width: activeEl.offsetWidth + 'px',
+    opacity: '1',
+  };
+}
+
 const boostsPerWeek = COMMONS_CONFIG.BOOSTS_PER_WEEK;
 const isTestVersion = COMMONS_CONFIG.IS_TEST_VERSION;
 import sealUrl from "./assets/seal.png";
@@ -121,6 +142,12 @@ watch(() => commons.boostBlockedTick, () => {
 });
 
 const active = ref("feed");
+function scheduleMove() { nextTick(() => requestAnimationFrame(moveNavIndicator)); }
+watch(active, scheduleMove);
+onMounted(() => {
+  scheduleMove();
+  if (document.fonts?.ready) document.fonts.ready.then(scheduleMove);
+});
 const navHidden = ref(false);
 let lastY = 0;
 const go = (id: string) => {
@@ -272,10 +299,21 @@ function onDocClick(e: MouseEvent) {
 .brand__seal { height: 34px; width: auto; display: block; }
 .brand__name { font-family: var(--display); font-size: 1.15rem; font-weight: 600; letter-spacing: .01em; }
 .brand__name b { color: var(--gold-300); font-weight: 700; }
-.nav { display: flex; gap: 4px; }
+.nav { display: flex; gap: 4px; position: relative; }
+.nav__indicator {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: rgba(201,168,76,.10);
+  border-radius: var(--r-sm);
+  transition: left 0.28s var(--ease), width 0.28s var(--ease), opacity 0.2s var(--ease);
+  pointer-events: none;
+  z-index: 0;
+}
+.nav a { position: relative; z-index: 1; }
 .nav a { padding: 7px 12px; border-radius: var(--r-sm); color: var(--ink-dim); font-size: .9rem; font-weight: 500; cursor: pointer; }
 .nav a:hover { color: var(--ink); background: var(--line-soft); }
-.nav a.active { color: var(--gold-300); background: rgba(201,168,76,.10); }
+.nav a.active { color: var(--gold-300); }
 .nav-post { margin-left: 6px; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 7px 16px; font-family: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; box-shadow: 0 3px 12px rgba(201,168,76,.22); transition: transform .15s var(--ease), box-shadow .15s var(--ease), filter .15s var(--ease); }
 .nav-post:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(201,168,76,.34); filter: brightness(1.06); }
 .spacer { flex: 1; }

@@ -98,7 +98,11 @@
           <ul><li v-for="(b, i) in blockers" :key="i">{{ b }}</li></ul>
         </div>
       </div>
-      <button class="bar__btn btn-gold" :disabled="posting" @click="onPost">{{ posting ? "Posting..." : "Post your story" }}</button>
+      <label class="confirm-permanent">
+        <input type="checkbox" v-model="confirmedPermanent" />
+        <span>Once published, this becomes a permanent part of the public record — it can't be edited or deleted.</span>
+      </label>
+      <button class="bar__btn btn-gold" :disabled="posting || !confirmedPermanent" @click="onPost">{{ posting ? "Posting..." : "Post your story" }}</button>
     <p v-if="message" class="result" :class="{ 'result--err': isError }">{{ message }}</p>
   </div>
 </template>
@@ -128,6 +132,7 @@ const LIMITS = {
 
 const isConnected = computed(() => commons.isConnected);
 const posting = ref(false);
+const confirmedPermanent = ref(false);
 const message = ref("");
 const isError = ref(false);
 const showBlockers = ref(false);
@@ -271,6 +276,9 @@ input:focus, textarea:focus { outline: none; border-color: var(--gold-600); }
 .bar__ok { color: var(--affirm); font-size: .88rem; }
 .bar__over { color: var(--negate); font-size: .88rem; font-weight: 600; }
 .bar__btn { background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); color: #22180a; border: none; border-radius: var(--r-sm); padding: 12px 22px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 12px rgba(201,168,76,.22); transition: transform .15s var(--ease), box-shadow .15s var(--ease), filter .15s var(--ease); }
+.confirm-permanent { display: flex; gap: 9px; align-items: center; font-size: .82rem; color: var(--ink-dim); line-height: 1.35; cursor: pointer; margin: 4px 0 10px; }
+.confirm-permanent input { accent-color: var(--gold-500); cursor: pointer; flex-shrink: 0; width: 16px; height: 16px; }
+.confirm-permanent:hover { color: var(--ink); }
 .bar__btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(201,168,76,.34); filter: brightness(1.06); }
 .bar__btn:disabled { opacity: .45; cursor: not-allowed; }
 .bar__blockers { font-size: .8rem; max-height: 120px; overflow-y: auto; }

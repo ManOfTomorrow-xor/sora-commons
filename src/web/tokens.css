@@ -19,6 +19,11 @@
 @keyframes slide-scale { from { opacity:0; transform:translateY(-6px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
 @keyframes shake { 0%,100% { transform:rotate(0); } 20% { transform:rotate(-14deg); } 40% { transform:rotate(11deg); } 60% { transform:rotate(-7deg); } 80% { transform:rotate(4deg); } }
 
+.view-enter-active { transition: opacity 0.22s var(--ease); }
+.view-leave-active { transition: opacity 0.16s var(--ease); }
+.view-enter-from { opacity: 0; }
+.view-leave-to { opacity: 0; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: .001ms !important;
