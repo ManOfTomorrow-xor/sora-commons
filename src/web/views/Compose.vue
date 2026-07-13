@@ -107,6 +107,11 @@
         <input type="checkbox" v-model="confirmedPermanent" />
         <span>Once published, this becomes a permanent part of the public record — it can't be edited or deleted.</span>
       </label>
+      <div v-if="showOverwritePrompt" class="overwrite">
+        <span>You already have a saved draft. Overwrite it with this one?</span>
+        <button class="bar__btn bar__btn--ghost" @click="doSaveDraft">Overwrite</button>
+        <button class="bar__btn bar__btn--ghost" @click="showOverwritePrompt = false">Keep old</button>
+      </div>
       <button class="bar__btn bar__btn--ghost" :disabled="posting || savingDraft" @click="onSaveDraft">{{ savingDraft ? "Saving…" : "Save for later" }}</button>
       <button class="bar__btn btn-gold" :disabled="posting || !confirmedPermanent" @click="onPost">{{ posting ? "Posting..." : "Post your story" }}</button>
     <p v-if="message" class="result" :class="{ 'result--err': isError }">{{ message }}</p>
@@ -158,7 +163,13 @@ const isConnected = computed(() => commons.isConnected);
 const posting = ref(false);
 const confirmedPermanent = ref(false);
 const savingDraft = ref(false);
+const showOverwritePrompt = ref(false);
 async function onSaveDraft() {
+  if (commons.hasDraft && !draftLoaded.value) { showOverwritePrompt.value = true; return; }
+  await doSaveDraft();
+}
+async function doSaveDraft() {
+  showOverwritePrompt.value = false;
   savingDraft.value = true;
   const fileRefs: any[] = [];
   for (const item of stagedDocs.value) {
@@ -360,6 +371,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--gold-600); }
 .cdoc_x:hover { color: var(--negate); }
 .cdoc_err { font-size: .78rem; color: var(--negate); margin: 4px 0 0; }
 .field__hint { font-size: .74rem; color: var(--ink-faint); line-height: 1.4; margin-top: 4px; display: block; }
+.overwrite { display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 10px; background: rgba(201,168,76,.10); border: 1px solid var(--gold-600); border-radius: var(--r-sm); font-size: .85rem; color: var(--ink-dim); flex-wrap: wrap; }
 @media (max-width: 720px) { .cats { grid-template-columns: 1fr; } }
 @media (max-width: 720px) 
   .head h1 { font-size: 1.5rem; }
