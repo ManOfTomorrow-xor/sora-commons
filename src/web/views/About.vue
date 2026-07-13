@@ -13,7 +13,7 @@
     <!-- WHAT THIS IS -->
     <section class="block">
       <h2>What this is</h2>
-      <p>Most platforms for funding work hand the decision to whoever has the most money or the loudest voice. The Commons doesn't. Anyone can post the work they're doing as a story, with milestones they'll deliver and the evidence they'll show. People who want it to happen support it directly. The record of what was promised, what was delivered, and what happened after stays public and permanent — so the work, not the marketing, is what speaks.</p>
+      <p>Most platforms for funding work hand the decision to whoever has the most money or the loudest voice. The Commons doesn't. Anyone can post the work they're doing as a story, with milestones they'll deliver and the evidence they'll show. People who want it to happen support it directly. The record of what was promised, what was delivered, and what happened after stays public and permanent: once posted, work can't be edited or deleted — so the work, not the marketing, is what speaks.</p>
       <p>When someone supports work with a donation, 99% goes to the builder and 1% is destroyed. The burn isn't a tax that anyone collects; the XOR is gone. That's the meaning of the motto on the seal: work that's real leaves a mark that can't be faked.</p>
     </section>
 
@@ -33,7 +33,7 @@
 
       <div id="challenge" class="mech">
         <h3>The challenge window</h3>
-        <p>When a builder marks a chapter delivered and presents evidence, a short <b>challenge window</b> opens. If no one raises a concern, the chapter becomes <b>Confirmed</b> — not "verified" (silence isn't proof), just unchallenged in the open. If someone does raise a concern, it must come with a written reason, the builder gets to respond, and both sides stay on the permanent record. ...Because a donation already reached the builder, there's nothing for the Commons to claw back or rule on — so it issues no verdicts. It surfaces concerns, keeps everything transparent, and lets supporters judge for themselves. The real red flag is never a single flag — it's silence.</p>
+        <p>When a builder marks a chapter delivered and presents evidence, a short <b>challenge window</b> opens. If no one raises a concern, the chapter becomes <b>Confirmed</b> — not "verified" (silence isn't proof), just unchallenged in the open. If someone does raise a concern, it must come with a written reason, the builder gets to respond, and both sides stay on the permanent record. Because a donation already reached the builder, there's nothing for the Commons to claw back or rule on — so it issues no verdicts. It surfaces concerns, keeps everything transparent, and lets supporters judge for themselves. The real red flag is never a single flag — it's silence.</p>
       </div>
 
       <div id="boost" class="mech">
@@ -65,7 +65,7 @@
         <div v-show="open" class="deep">
           <div class="deep__inner">
             <h3>One loop, not three slogans</h3>
-            <p>The framework underneath the Commons is what we call <b>3Gi — Global Governance, Growth, and intelligence</b>. Governance defines the lawful surface of the system: who can change the rules, and how a change becomes legitimate. Growth defines what the system is for: money created against real production, not speculation. Intelligence is how the system learns whether its rules are actually producing the world it claims to want. They aren't three separate ideas — they're one loop.</p>
+            <p>The framework underneath the Commons is what we call <b>3Gi — Global Governance, Growth, and Intelligence</b>. Governance defines the lawful surface of the system: who can change the rules, and how a change becomes legitimate. Growth defines what the system is for: money created against real production, not speculation. Intelligence is how the system learns whether its rules are actually producing the world it claims to want. They aren't three separate ideas — they're one loop.</p>
 
             <h3>Reputation that can't harden into a caste</h3>
             <p>The Commons keeps a memory: who proposed well, who delivered, who went silent. But there's a hard line. <b>Reputation may gate access — it never weights a vote or a draw.</b> The moment a track record buys you more power over others' work, you've rebuilt plutocracy, just denominated in tenure instead of tokens. So reputation rewards presence, never punishes honest failure, and decays over time so no permanent class forms.</p>
