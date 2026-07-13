@@ -39,7 +39,7 @@
       <h2>Burn ledger</h2>
       <div class="ledger">
         <p v-if="burns.length === 0" class="empty">No burns yet. The first donation will burn 1% here.</p>
-        <div v-for="(b, i) in burns" :key="i" class="row">
+        <div v-for="(b, i) in pagedBurns" :key="i" class="row">
           <Flame :size="16" class="row__flame" />
           <div class="row__main">
             <div class="row__what">{{ b.what }}</div>
@@ -50,6 +50,9 @@
             <div class="row__time">{{ b.time }}</div>
           </div>
         </div>
+        <button v-if="hasMoreBurns" class="ledger-more" @click="ledgerShown += LEDGER_PAGE">
+          Load more ({{ burns.length - pagedBurns.length }} more)
+        </button>
       </div>
     </section>
 
@@ -62,10 +65,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
 import { useCommonsStore } from "@/stores/commons";
 import CountUp from "../components/CountUp.vue";
 import Flame from "../components/Flame.vue";
+import { computed, ref } from "vue";
 
 
 const commons = useCommonsStore();
@@ -74,9 +77,7 @@ const totalBurned = computed(() => commons.totalXorBurned ?? "0");
 const totalRaised = computed(() =>
   commons.proposals.reduce((sum, p) => sum + Number(p.totalDonated || 0), 0)
 );
-const backerTotal = computed(() =>
-  commons.proposals.reduce((sum, p) => sum + Number(p.backers || 0), 0)
-);
+const backerTotal = computed(() => commons.uniqueBackerCount);
 const burns = computed(() => {
   const rows: { amt: string; what: string; kind: string; time: string }[] = [];
   for (const p of commons.proposals) {
@@ -86,6 +87,10 @@ const burns = computed(() => {
   }
   return rows.reverse();
 });
+const LEDGER_PAGE = 15;
+const ledgerShown = ref(LEDGER_PAGE);
+const pagedBurns = computed(() => burns.value.slice(0, ledgerShown.value));
+const hasMoreBurns = computed(() => burns.value.length > ledgerShown.value);
 </script>
 
 <style scoped>
@@ -108,6 +113,8 @@ const burns = computed(() => {
 .stat__n { font-family: var(--mono); font-size: 1.5rem; font-weight: 600; }
 .stat__l { color: var(--ink-faint); font-size: .8rem; margin-top: 4px; }
 
+.ledger-more { width: 100%; padding: 12px; background: transparent; border: none; border-top: 1px solid var(--line); color: var(--gold-300); font-size: .85rem; cursor: pointer; transition: background .15s var(--ease); }
+.ledger-more:hover { background: var(--line-soft); }
 .block h2 { font-family: var(--display); font-size: 1.4rem; margin: 0 0 12px; }
 .ledger { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
 .empty { color: var(--ink-faint); padding: 28px 16px; text-align: center; margin: 0; }

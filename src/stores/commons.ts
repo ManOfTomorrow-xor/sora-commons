@@ -1271,6 +1271,13 @@ export const useCommonsStore = defineStore("commons", () => {
   const donatedProposals = ref<string[]>([]); // proposal ids the current account has donated to (for unique-backer counting)
   const notifications = ref<any[]>([]);
   const backersByProposalRef = ref<Record<string, Set<string>>>({});
+  const uniqueBackerCount = computed(() => {
+    const all = new Set<string>();
+    for (const set of Object.values(backersByProposalRef.value)) {
+      for (const acct of set) all.add(acct);
+    }
+    return all.size;
+  });
   const feedShownIds = ref<Set<string>>(new Set());
   const feedInitialized = ref(false);
   function initFeedSnapshot() {
@@ -1737,7 +1744,7 @@ const toggleFollow = (id: string): void => {
     savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow,followedProposals, followedAccounts, isFollowingUser, getFollowerCount, getFollowingCount, toggleFollowUser,
     donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount, boostsRemaining, boostBlockedTick,  mockWalletId, initMockWallet,
     notifications, unreadCount, loadNotifications, markNotificationsRead,
-    feedShownIds, feedInitialized, initFeedSnapshot, revealFeedPending, subscribeToProposals, unsubscribeProposals, subscribeToNotifications, unsubscribeNotifications, subscribeToSocial, unsubscribeSocial, createNotification, boostRows,
+    uniqueBackerCount, feedShownIds, feedInitialized, initFeedSnapshot, revealFeedPending, subscribeToProposals, unsubscribeProposals, subscribeToNotifications, unsubscribeNotifications, subscribeToSocial, unsubscribeSocial, createNotification, boostRows,
     subscribeToDonations, unsubscribeDonations, searchAll,
 
     // Reputation
