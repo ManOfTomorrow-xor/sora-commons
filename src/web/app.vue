@@ -39,7 +39,7 @@
           </button>
           <Transition name="notifs-pop">
           <div v-if="notifsOpen" class="notifs">
-            <div class="notifs__h">Notifications</div>
+            <div class="notifs__h">Notifications<button class="notifs__x" @click="toggleNotifs">✕</button></div>
             <div v-if="commons.notifications.length === 0" class="notifs__empty">No notifications yet.</div>
             <button v-for="n in commons.notifications" :key="n.id" class="notif" :class="{ 'notif--unread': !n.read }" @click="openNotif(n)">
               <span class="notif__av" :style="commons.getAvatar(n.actor_account_id) ? {} : avStyle(n.actor_account_id)">
@@ -348,7 +348,7 @@ function onDocClick(e: MouseEvent) {
 .tabbar { display: none; }
 @media (max-width: 720px) {
   .nav { display: none; }
-  .wrap { padding-bottom: 104px; }
+  .wrap { padding-bottom: 104px; overflow-x: hidden; }
   .tabbar {
     display: flex; position: fixed; z-index: 60;
     left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px));
@@ -356,15 +356,15 @@ function onDocClick(e: MouseEvent) {
     background: rgba(17,25,40,.92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
     border: 1px solid var(--line);
     border-radius: 22px;
-    padding: 8px 6px;
+    padding: 8px 4px; left: 8px; right: 8px;
     box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.3);
   }
-  .topbar__inner { gap: 8px; padding: 10px var(--pad); }
+  .topbar__inner { gap: 6px; padding: 10px var(--pad); }
   .brand__seal { height: 28px; }
   .brand__name { font-size: 1rem; }
-  .netchip { padding: 6px; gap: 0; }
-  .netchip__lbl { display: none; }
-  .meav { width: 30px; height: 30px; margin-left: 4px; }
+  .netchip { display: none; }
+  .topsearch, .bell__btn { padding: 10px; }
+  .meav { width: 32px; height: 32px; margin-left: 2px; }
   .topbar { transition: transform .28s var(--ease); }
   .tabbar { transition: transform .28s var(--ease); }
   .topbar.nav-hidden { transform: translateY(-100%); }
@@ -373,6 +373,7 @@ function onDocClick(e: MouseEvent) {
   .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ink-faint); font-size: .62rem; font-weight: 600; min-height: 48px; justify-content: flex-end; cursor: pointer; }
   .tab.active { color: var(--gold-300); }
   .tab__ic :deep(svg) { width: 23px; height: 23px; }
+  .tab:nth-child(4) .tab__ic :deep(svg) { width: 30px; height: 30px; transform: translateY(6px); }
   .tab-fab .fabc { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(180deg, var(--gold-300), var(--gold-500)); display: grid; place-items: center; color: #22180a; box-shadow: 0 6px 18px rgba(201,168,76,.45); border: 3px solid var(--navy-900); margin-top: -22px; }
   .tab-fab .fabc svg { width: 25px; height: 25px; }
   .tab-fab .tab__lbl { color: var(--gold-300); }
@@ -416,7 +417,10 @@ function onDocClick(e: MouseEvent) {
 .topsearch svg { width: 20px; height: 20px; }
 .topsearch:hover { color: var(--ink); background: var(--navy-800); }
 .notifs { position: absolute; top: 44px; right: 0; width: 340px; max-height: 440px; overflow-y: auto; background: color-mix(in srgb, var(--navy-850) 92%, transparent); backdrop-filter: blur(16px); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.02) inset; z-index: 200; padding: 8px; }
-.notifs__h { font-family: var(--display); font-size: .95rem; font-weight: 700; padding: 10px 12px 8px; color: var(--ink); letter-spacing: -.01em; }
+@media (max-width: 720px) { .notifs { position: fixed; top: 60px; left: 12px; right: 12px; width: auto; max-height: 72vh; background: var(--navy-850); backdrop-filter: none; } }
+.notifs__h { display: flex; align-items: center; justify-content: space-between; font-family: var(--display); font-size: .95rem; font-weight: 700; padding: 10px 12px 8px; color: var(--ink); letter-spacing: -.01em; }
+.notifs__x { background: none; border: none; color: var(--ink-faint); font-size: 1.1rem; line-height: 1; cursor: pointer; padding: 6px; margin: -6px -6px -6px 0; }
+.notifs__x:hover { color: var(--ink); }
 .notifs__empty { padding: 28px 12px; color: var(--ink-faint); font-size: .84rem; text-align: center; }
 .notif { position: relative; display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; background: none; border: none; border-radius: 12px; padding: 11px 12px; cursor: pointer; transition: background .14s var(--ease); }
 .notif:hover { background: var(--navy-900); }
@@ -425,6 +429,17 @@ function onDocClick(e: MouseEvent) {
 .notif__badge { position: absolute; bottom: -3px; right: -3px; width: 18px; height: 18px; border-radius: 50%; background: var(--navy-850); border: 2px solid var(--navy-850); display: grid; place-items: center; font-size: .64rem; color: var(--gold-300); box-shadow: 0 1px 4px rgba(0,0,0,.4); }
 .notif__badge.nb--flag { color: var(--negate); }
 .notif__badge.nb--donate { color: var(--gold-300); }
+@media (max-width: 720px) {
+  .notifs {
+    position: fixed;
+    top: 60px;
+    left: 12px; right: 12px;
+    width: auto;
+    max-height: 72vh;
+    background: var(--navy-850);
+    backdrop-filter: none;
+  }
+}
 .notif__body { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
 .notif__txt { font-size: .855rem; color: var(--ink); line-height: 1.4; overflow-wrap: anywhere; }
 .notif__time { font-size: .7rem; color: var(--ink-faint); font-family: var(--mono); }

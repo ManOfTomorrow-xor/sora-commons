@@ -433,7 +433,8 @@ function avStyle(id: string) {
   .av { width: 30px; height: 30px; }
   .badges { margin-bottom: 10px; }
   .prog { margin-bottom: 10px; }
-  .card__top { margin-bottom: 8px; }
+  .eng { flex-wrap: wrap; gap: 10px 14px; }
+   .eng { flex-wrap: wrap; gap: 10px 14px; }
 }
 
 
