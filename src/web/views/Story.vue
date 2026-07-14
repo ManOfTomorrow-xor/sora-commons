@@ -27,9 +27,6 @@
         <section class="sec">
           <h2>The story</h2>
           <div class="narrative"><Clampable :text="p.story || p.description" :lines="5" pre /></div>
-          <div v-if="p.files && p.files.length" class="files">
-            <span v-for="f in p.files" :key="f" class="file">📎 {{ f }}</span>
-          </div>
         </section>
          <section class="sec" v-if="(p.documents || []).length">
           <h2>Supporting documents</h2>
@@ -539,8 +536,6 @@ watch(() => commons.scrollToComments, (should) => {
 .sec { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 22px; margin-bottom: 16px; }
 .sec h2 { font-family: var(--display); font-size: 1.3rem; font-weight: 700; margin: 0 0 14px; }
 .narrative { color: var(--ink-dim); line-height: 1.7; margin: 0; }
-.files { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
-.file { display: inline-flex; align-items: center; gap: 8px; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 9px 13px; font-size: .84rem; color: var(--ink-dim); }
 
 .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
 .facts > div { background: var(--navy-900); border: 1px solid var(--line-soft); border-radius: var(--r); padding: 16px 18px; }
