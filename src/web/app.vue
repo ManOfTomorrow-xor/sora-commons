@@ -111,10 +111,9 @@ const indicatorStyle = ref({ left: '0px', width: '0px', opacity: '0' });
 
 function moveNavIndicator() {
   const nav = navRef.value;
-  if (!nav) { console.log("NAV: no navRef"); return; }
+  if (!nav) { return; }
   const activeEl = nav.querySelector('a.active') as HTMLElement | null;
-  if (!activeEl) { console.log("NAV: no active element"); indicatorStyle.value = { ...indicatorStyle.value, opacity: '0' }; return; }
-  console.log("NAV: measured", activeEl.offsetLeft, activeEl.offsetWidth);
+  if (!activeEl) { indicatorStyle.value = { ...indicatorStyle.value, opacity: '0' }; return; }
   indicatorStyle.value = {
     left: activeEl.offsetLeft + 'px',
     width: activeEl.offsetWidth + 'px',

@@ -262,7 +262,6 @@ function onDocPicked(e: Event) {
   if (file.size > 10*1024*1024) { docError.value = "File must be under 10 MB."; return; }
   if (stagedDocs.value.length >= 5) { docError.value = "Up to 5 files."; return; }
  stagedDocs.value = [...stagedDocs.value, { kind: 'new', file, name: file.name, type: file.type }];
-    console.log("STAGED DOCS:", stagedDocs.value.length, file.name);
   docError.value = "";
   (e.target as HTMLInputElement).value = "";
 }

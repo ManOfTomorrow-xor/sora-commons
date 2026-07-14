@@ -372,7 +372,6 @@ async function submitDelivery(milestoneId: string) {
   stagedEvidence.value[milestoneId] = [];
   deliverText.value = "";
   await commons.loadProposals();
-  console.log("UPLOADING SET:", milestoneId, evUploading.value[milestoneId]);
 }
 
 const flagText = ref<Record<string, string>>({});
