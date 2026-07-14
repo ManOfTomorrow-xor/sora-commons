@@ -289,33 +289,7 @@ export const useCommonsStore = defineStore("commons", () => {
       .toFixed(4),
   );
 
-  // ── Signal Stats ───────────────────────────────────────────────────────────
-
-  const getSignalStats = (proposal: CommonsProposal) => {
-    const aye = proposal.signals.filter((s) => s.vote === "aye").length;
-    const nay = proposal.signals.filter((s) => s.vote === "nay").length;
-    const total = aye + nay;
-    const ayePercent = total > 0 ? Math.round((aye / total) * 100) : 0;
-    const meetsQuorum = aye >= COMMONS_CONFIG.MINIMUM_AYE_SIGNALS;
-    const meetsPercent = ayePercent >= COMMONS_CONFIG.MINIMUM_AYE_PERCENT;
-    const passes = meetsQuorum && meetsPercent;
-    return { aye, nay, total, ayePercent, meetsQuorum, meetsPercent, passes };
-  };
-
- const canSignal = (proposal: CommonsProposal): boolean => {
-    if (proposal.status !== "signal") return false;
-    if (!COMMONS_CONFIG.DEMO_MODE && proposal.proposerAccountId === currentAccountId.value) return false;
-    if (!COMMONS_CONFIG.DEMO_MODE) {
-      if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.MINIMUM_SIGNAL_BALANCE)) return false;
-    }
-    if (proposal.signals.some((s) => s.accountId === currentAccountId.value)) return false;
-    return true;
-  };
-
-  const hasSignaled = (proposal: CommonsProposal): SignalVote | null => {
-    const signal = proposal.signals.find((s) => s.accountId === currentAccountId.value);
-    return signal?.vote ?? null;
-  };
+  
 
   // ── Draft Validation ───────────────────────────────────────────────────────
 
@@ -855,44 +829,6 @@ const draftFiles = ref<any[]>([]);
   function getDisplayName(accountId: string): string { return displayNameByAccount.value[accountId] || ""; }
   function getBio(accountId: string): string { return bioByAccount.value[accountId] || ""; }
 
-  // Stage 2 — Cast Signal (Aye or Nay)
-  const castSignal = (proposalId: string, vote: SignalVote): boolean => {
-    const accountId = currentAccountId.value;
-    if (!accountId) return false;
-    if (!COMMONS_CONFIG.DEMO_MODE) {
-      if (parseFloat(xorBalance.value) < parseFloat(COMMONS_CONFIG.MINIMUM_SIGNAL_BALANCE)) return false;
-    }
-    const proposal = proposals.value.find((p) => p.id === proposalId);
-    if (!proposal || proposal.status !== "signal") return false;
-    if (!COMMONS_CONFIG.DEMO_MODE && proposal.proposerAccountId === accountId) return false;
-    const existing = proposal.signals.findIndex((s) => s.accountId === accountId);
-    if (existing >= 0) {
-      // Allow changing vote during signal window
-      proposal.signals[existing].vote = vote;
-    } else {
-      proposal.signals.push({
-        accountId,
-        vote,
-        createdAt: new Date().toISOString(),
-      });
-    }
-    // Check if signal window passed threshold
-    const stats = getSignalStats(proposal);
-    if (stats.passes) {
-      advanceToDeliberation(proposal);
-    }
-    return true;
-  };
-
-  // Advance to Stage 3
-  const advanceToDeliberation = (proposal: CommonsProposal) => {
-    proposal.status = "deliberation";
-    const deliberationEnd = new Date(
-      Date.now() + COMMONS_CONFIG.PARLIAMENT_DELIBERATION_DAYS * 24 * 60 * 60 * 1000,
-    );
-    proposal.deliberationEndsAt = deliberationEnd.toISOString();
-  };
-
   // Stage 3 — Post Discussion
   const postDiscussion = (proposalId: string, content: string): boolean => {
     const accountId = currentAccountId.value;
@@ -936,207 +872,10 @@ const draftFiles = ref<any[]>([]);
     return true;
   };
 
-  // Stage 3 — Submit Amendment
-  const submitAmendment = (
-    proposalId: string,
-    newDescription: string,
-    newMilestones: Omit<Milestone, "id" | "completed" | "completedAt" | "xorBurned">[],
-  ): boolean => {
-    const accountId = currentAccountId.value;
-    const proposal = proposals.value.find((p) => p.id === proposalId);
-    if (!proposal || proposal.status !== "deliberation") return false;
-    if (proposal.proposerAccountId !== accountId) return false;
-    if (proposal.amendments.length >= COMMONS_CONFIG.MAX_AMENDMENTS) return false;
 
-    // Validate milestone total still equals xorRequested
-    const total = newMilestones.reduce((sum, m) => sum + parseFloat(m.xorAmount || "0"), 0);
-    if (Math.abs(total - parseFloat(proposal.xorRequested)) > 0.0001) return false;
-
-    const amendment: Amendment = {
-      id: generateId(),
-      proposalId,
-      version: proposal.amendments.length + 1,
-      description: newDescription.trim(),
-      milestones: newMilestones,
-      submittedAt: new Date().toISOString(),
-    };
-    proposal.amendments.push(amendment);
-
-    // Apply amendment to proposal
-    proposal.description = newDescription.trim();
-    proposal.milestones = newMilestones.map((m, i) => ({
-      id: `m-${i}-${Date.now()}`,
-      description: String(m.description).trim(),
-      xorAmount: String(m.xorAmount).trim(),
-      timeline: String(m.timeline).trim(),
-      completed: false,
-      completedAt: null,
-      xorBurned: "0",
-    }));
-
-    // Add 48hr extension
-    const currentEnd = new Date(proposal.deliberationEndsAt ?? Date.now());
-    const newEnd = new Date(
-      currentEnd.getTime() + COMMONS_CONFIG.AMENDMENT_EXTENSION_HOURS * 60 * 60 * 1000,
-    );
-    proposal.deliberationEndsAt = newEnd.toISOString();
-
-    // Post amendment notice to discussion
-    proposal.discussionPosts.push({
-      id: generateId(),
-      proposalId,
-      authorAccountId: accountId,
-      content: `Amendment ${amendment.version} submitted. Description and milestones updated.`,
-      isAmendment: true,
-      createdAt: new Date().toISOString(),
-    });
-
-    return true;
-  };
-
-  // Stage 3 — Submit Parliament Brief (operator only)
-  const submitParliamentBrief = (proposalId: string, brief: string): boolean => {
-    if (!isOperator.value) return false;
-    const proposal = proposals.value.find((p) => p.id === proposalId);
-    if (!proposal || proposal.status !== "deliberation") return false;
-    proposal.parliamentBrief = brief.trim();
-
-    // Brief author excluded from sortition
-    const accountId = currentAccountId.value;
-    if (!proposal.sortitionExcluded.includes(accountId)) {
-      proposal.sortitionExcluded.push(accountId);
-    }
-    return true;
-  };
-
-  // Stage 3 — Submit Parliament Final Remarks (operator only)
-  const submitParliamentRemarks = (proposalId: string, remarks: string): boolean => {
-    if (!isOperator.value) return false;
-    const proposal = proposals.value.find((p) => p.id === proposalId);
-    if (!proposal || proposal.status !== "deliberation") return false;
-    if (!proposal.parliamentBrief) return false;
-    proposal.parliamentRemarks = remarks.trim();
-    return true;
-  };
-
-  // Advance to Stage 4 — Sortition
-  const advanceToSortition = (proposalId: string): boolean => {
-    const proposal = proposals.value.find((p) => p.id === proposalId);
-    if (!proposal || proposal.status !== "deliberation") return false;
-    proposal.status = "sortition";
-    const sortitionEnd = new Date(
-      Date.now() + COMMONS_CONFIG.SORTITION_DECISION_DAYS * 24 * 60 * 60 * 1000,
-    );
-    proposal.sortitionEndsAt = sortitionEnd.toISOString();
-    // Phase 1B: replace with real Parliament sortition contract call
-    proposal.panelMembers = ["[SORTITION PENDING - Phase 1B]"];
-    return true;
-  };
-
-  // Stage 4 — Panel Vote
-  const castPanelVote = (
-    proposalId: string,
-    decision: SortitionDecision,
-    feedback: string,
-  ): boolean => {
-    const accountId = currentAccountId.value;
-    const proposal = proposals.value.find((p) => p.id === proposalId);
-    if (!proposal || proposal.status !== "sortition") return false;
-    if (!proposal.panelMembers.includes(accountId) && !isOperator.value) return false;
-    if (proposal.panelVotes.some((v) => v.accountId === accountId)) return false;
-
-    proposal.panelVotes.push({
-      accountId,
-      decision,
-      feedback: feedback.trim(),
-      votedAt: new Date().toISOString(),
-    });
-    // On-time panel vote → panel reputation. This runs only while status is still
-    // "sortition" (window open). A late juror reaches a transitioned proposal and
-    // earns nothing — never a penalty.
-    creditReputation(accountId, "panel", COMMONS_CONFIG.REPUTATION_PANEL_VOTE_POINTS);
-    // Check if threshold reached
-    const approvals = proposal.panelVotes.filter((v) => v.decision === "approve").length;
-    const rejections = proposal.panelVotes.filter((v) => v.decision === "reject").length;
-    const revisions = proposal.panelVotes.filter((v) => v.decision === "revision").length;
-    const threshold = COMMONS_CONFIG.SORTITION_APPROVAL_THRESHOLD;
-    const panelSize = COMMONS_CONFIG.SORTITION_PANEL_SIZE;
-
-    const sendToRevision = () => {
-      proposal.revisionCount += 1;
-      proposal.status = "deliberation";
-      proposal.panelVotes = [];
-      const revisionEnd = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
-      proposal.deliberationEndsAt = revisionEnd.toISOString();
-    };
-
-    if (approvals >= threshold) {
-      proposal.status = "funded";
-    } else if (rejections >= threshold) {
-      proposal.status = "rejected";
-    } else if (revisions >= threshold && proposal.revisionCount < 1) {
-      sendToRevision();
-    } else if (proposal.panelVotes.length >= panelSize) {
-      // All panel members have voted but no option reached the threshold —
-      // deadlock (e.g. 2 Approve / 2 Reject / 1 Revision).
-      // First deadlock → Revision (refine, try once more).
-      // Already revised → Reject (cannot agree twice = no funding).
-      if (proposal.revisionCount < 1) {
-        sendToRevision();
-      } else {
-        proposal.status = "rejected";
-      }
-    }
-   return true;
-  };
-
-  // Stage 5 — Confirm Milestone
-  const confirmMilestone = (proposalId: string, milestoneId: string): boolean => {
-    const accountId = currentAccountId.value;
-    const proposal = proposals.value.find((p) => p.id === proposalId);
-    if (!proposal) return false;
-    if (proposal.status !== "funded") return false;
-   if (!proposal.panelMembers.includes(accountId) && !isOperator.value) return false;
-    const milestone = proposal.milestones.find((m) => m.id === milestoneId);
-    if (!milestone || milestone.completed) return false;
-    // Calculate burn — 1% of tranche
-    const tranche = parseFloat(milestone.xorAmount);
-    const burn = (tranche * COMMONS_CONFIG.MILESTONE_BURN_PERCENT) / 100;
-    const received = tranche - burn;
-
-    milestone.completed = true;
-    milestone.completedAt = new Date().toISOString();
-    milestone.xorBurned = burn.toFixed(4);
-    // Confirming a delivered milestone is panel oversight → panel reputation.
-    creditReputation(accountId, "panel", COMMONS_CONFIG.REPUTATION_MILESTONE_CONFIRM_POINTS);
-    // Add to proposal total burn
-    proposal.xorBurned = (
-      parseFloat(proposal.xorBurned) + burn
-    ).toFixed(4);
-
-    // Check if all milestones complete
-    if (proposal.milestones.every((m) => m.completed)) {
-      proposal.status = "complete";
-      supabase.from("proposals").update({ status: "complete" }).eq("id", proposal.id).then(({ error }) => { if (error) console.error("status persist failed:", error); });
-      notifyFollowersOfEvent(proposal.id, "follow_completed", "person_completed");
-    // Completion → proposer reputation (separate scope, never blended with panel).
-      creditReputation(
-        proposal.proposerAccountId,
-        "proposer",
-        COMMONS_CONFIG.REPUTATION_PROPOSAL_COMPLETE_POINTS,
-      );
-    }
-
-    console.log(
-      `Milestone confirmed. Tranche: ${tranche} XOR. ` +
-      `Burned: ${burn.toFixed(4)} XOR. Received: ${received.toFixed(4)} XOR.`
-    );
-
-    return true;
-  };
   // Proposer marks their own chapter delivered + submits actual evidence.
   // This is a CLAIM on the public record — NOT a trustless verification.
-  const markChapterDelivered = (proposalId: string, milestoneId: string, evidence: string): boolean => {
+  const markChapterDelivered = async (proposalId: string, milestoneId: string, evidence: string): Promise<boolean> => {
     const proposal = proposals.value.find((p) => p.id === proposalId);
     if (!proposal) return false;
     if (proposal.proposerAccountId !== currentAccountId.value) return false;
@@ -1149,13 +888,14 @@ const draftFiles = ref<any[]>([]);
     milestone.completed = true;
     milestone.completedAt = now;
     notifyFollowersOfEvent(proposalId, "follow_delivered", "person_delivered");
+    let statusComplete = false;
     if (proposal.milestones.every((m) => m.completed)) {
       proposal.status = "complete";
-      supabase.from("proposals").update({ status: "complete" }).eq("id", proposal.id).then(({ error }) => { if (error) console.error("status persist failed:", error); });
+      statusComplete = true;
       notifyFollowersOfEvent(proposalId, "follow_completed", "person_completed");
     }
-    // persist the delivery to Supabase so it survives refresh
-    (async () => {
+    // persist delivery (and completion) — awaited so callers can reload after commit
+    await (async () => {
       const { error } = await supabase.from("milestones").update({
         delivered_evidence: evidence.trim(),
         delivered_at: now,
@@ -1163,6 +903,10 @@ const draftFiles = ref<any[]>([]);
         completed_at: now,
       }).eq("id", milestoneId);
       if (error) console.error("delivery persist failed:", error);
+      if (statusComplete) {
+        const { error: sErr } = await supabase.from("proposals").update({ status: "complete" }).eq("id", proposal.id);
+        if (sErr) console.error("status persist failed:", sErr);
+      }
     })();
     return true;
   };
@@ -1302,30 +1046,6 @@ const draftFiles = ref<any[]>([]);
   });
 
    // ── Helpers ────────────────────────────────────────────────────────────────
-
-  const statusLabel = (status: ProposalStatus): string => ({
-    draft: "Draft",
-    active: "Active",
-    signal: "Community Signal",
-    deliberation: "Parliament Deliberation",
-    sortition: "Sortition",
-    funded: "Funded",
-    complete: "Complete",
-    rejected: "Rejected",
-    archived: "Archived",
-  }[status]);
-
-  const stageNumber = (status: ProposalStatus): number => ({
-    draft: 0,
-    active: 1,
-    signal: 2,
-    deliberation: 3,
-    sortition: 4,
-    funded: 5,
-    complete: 5,
-    rejected: 4,
-    archived: 2,
-  }[status]);
 
   const roleLabel = (role: CommonsRole): string => ({
     visitor: "Visitor",
@@ -1796,24 +1516,11 @@ const toggleFollow = (id: string): void => {
     }
     return inWindow ? "in-window" : null;
   };
-  // Revise and Resubmit — pre-fills draft from rejected proposal
-  const reviseAndResubmit = (proposalId: string): void => {
-    const proposal = proposals.value.find((p) => p.id === proposalId);
-    if (!proposal || proposal.status !== "rejected") return;
-    draftTitle.value = proposal.title;
-    draftDescription.value = proposal.description;
-    draftStory.value = proposal.story;
-    draftXorRequested.value = proposal.xorRequested;
-    draftMilestones.value = proposal.milestones.map((m) => ({
-      description: m.description,
-      timeline: "",
-      evidence: m.evidence ?? "",
-    }));
-  };
+
 
   // ── Return ─────────────────────────────────────────────────────────────────
 
-  return {
+ return {
     // State
     proposals, isLoading, error, activeProposalId,
     draftTitle, draftDescription, draftStory, draftXorRequested, draftFundingMode, draftMilestones,
@@ -1831,22 +1538,19 @@ const toggleFollow = (id: string): void => {
     activeProposal, proposalsByStatus, liveProposals, subscribeToUserFollows, unsubscribeUserFollows,
     completedProposals, totalXorBurned,
 
-    // Signal
-    getSignalStats, canSignal, hasSignaled,
-
     // Draft validation
     isDraftValid, milestoneTotal, milestoneDelta,
 
     // Actions
     setActiveProposal, addMilestone, removeMilestone,
-    resetDraft, submitProposal,loadProposals, castSignal,
-    postDiscussion, submitAmendment, submitParliamentBrief, submitParliamentRemarks, reviseAndResubmit,
-    advanceToSortition, castPanelVote, confirmMilestone, markChapterDelivered, milestoneChallengeState, proposalChallengeState, raiseFlag, withdrawFlag, respondToFlag,uploadAvatar,uploadDocument, getAvatar, avatarUrl, avatarByAccount,
-    updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount, formatDate, feedShownCount,hasDraft, saveDraft, loadDraft, deleteDraft, checkDraft, draftPreview, resumingDraft, uploadDraftFile, linkDraftFileToProposal, deleteDraftFiles, draftFiles,
+    resetDraft, submitProposal, loadProposals,
+    postDiscussion, markChapterDelivered, milestoneChallengeState, proposalChallengeState, raiseFlag, withdrawFlag, respondToFlag, uploadAvatar, uploadDocument, getAvatar, avatarUrl, avatarByAccount,
+    updateProfile, getDisplayName, getBio, displayNameByAccount, bioByAccount, formatDate, feedShownCount, hasDraft, saveDraft, loadDraft, deleteDraft, checkDraft, draftPreview, resumingDraft, uploadDraftFile, linkDraftFileToProposal, deleteDraftFiles, draftFiles,
+
     // Helpers
-    statusLabel, stageNumber, roleLabel, roleHint,
-    savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow,followedProposals, followedAccounts, isFollowingUser, getFollowerCount, getFollowingCount, toggleFollowUser,
-    donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount, boostsRemaining, boostBlockedTick,  mockWalletId, initMockWallet,
+    roleLabel, roleHint,
+    savedProposals, isSaved, toggleSave, proposerLabel, viewingProfileId, setViewingProfile, isLiked, isBoosted, isFollowing, toggleLike, toggleBoost, toggleFollow, followedProposals, followedAccounts, isFollowingUser, getFollowerCount, getFollowingCount, toggleFollowUser,
+    donate, donatedProposals, DEMO_ACCOUNTS, demoAccountId, setDemoAccount, boostsRemaining, boostBlockedTick, mockWalletId, initMockWallet,
     notifications, unreadCount, loadNotifications, markNotificationsRead,
     uniqueBackerCount, feedShownIds, feedScrollY, exploreScrollY, feedInitialized, initFeedSnapshot, revealFeedPending, subscribeToProposals, unsubscribeProposals, subscribeToNotifications, unsubscribeNotifications, subscribeToSocial, unsubscribeSocial, createNotification, boostRows,
     subscribeToDonations, unsubscribeDonations, searchAll,

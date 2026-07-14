@@ -366,7 +366,7 @@ async function submitDelivery(milestoneId: string) {
     if (!res.ok) { evError.value = { ...evError.value, [milestoneId]: res.error || "A file failed to upload." }; }
   }
   // THEN mark delivered (this flips m.completed and hides the block)
-  const ok = commons.markChapterDelivered(p.value.id, milestoneId, deliverText.value.trim());
+  const ok = await commons.markChapterDelivered(p.value.id, milestoneId, deliverText.value.trim());
   evUploading.value = { ...evUploading.value, [milestoneId]: false };
   if (!ok) return;
   stagedEvidence.value[milestoneId] = [];
