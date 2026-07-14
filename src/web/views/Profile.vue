@@ -235,4 +235,15 @@ function avStyle(id?: string) {
 .wcard h3 { font-family: var(--display); font-size: 1.15rem; font-weight: 700; margin: 0 0 5px; }
 .wsnip { color: var(--ink-dim); font-size: .88rem; margin: 0 0 8px; overflow-wrap: anywhere; }
 .wmeta { font-family: var(--mono); font-size: .78rem; color: var(--ink-faint); }
+@media (max-width: 600px) {
+  .phero { flex-direction: column; align-items: flex-start; gap: 14px; margin-bottom: 20px; }
+  .phero__b { width: 100%; }
+  .phero__name h1 { font-size: 1.5rem; }
+  .pav { width: 92px; height: 92px; font-size: 2rem; }
+  .pavwrap { align-self: center; }
+  .pbio { margin: 8px 0 0; }
+  .prep { margin-top: 8px; white-space: nowrap; }
+  .pfollows { margin-top: 8px; white-space: nowrap; }
+  .pedit, .pfollow { width: 100%; text-align: center; }
+}
 </style>
