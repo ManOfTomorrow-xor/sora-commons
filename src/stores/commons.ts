@@ -610,7 +610,6 @@ const draftFiles = ref<any[]>([]);
     for (const m of msData ?? []) {
       (msByProposal[m.proposal_id] ??= []).push(m);
     }
-    console.log("MS LOAD:", (msData ?? []).map((m: any) => ({ id: m.id, completed: m.completed, delivered: m.delivered_evidence })));
     const acct = currentAccountId.value;
     const [likesRes, boostsRes, followsRes, savesRes] = await Promise.all([
       supabase.from("likes").select("account_id, proposal_id"),
@@ -654,7 +653,6 @@ const draftFiles = ref<any[]>([]);
       for (const r of rows ?? []) m[r.proposal_id] = (m[r.proposal_id] ?? 0) + 1;
       return m;
     };
-    console.log("MDOCS:", (mDocs ?? []).map(d => ({ mid: d.milestone_id, name: d.filename })));
     const likeCount = countBy(likesRes.data);
     const boostCount = countBy(boostsRes.data);
     const followCount = countBy(followsRes.data);
@@ -752,7 +750,6 @@ const draftFiles = ref<any[]>([]);
     followerCountByAccount.value = flwerCount;
     followingCountByAccount.value = flwingCount;
     followedAccounts.value = (ufData ?? []).filter((r) => r.follower_account_id === currentAccountId.value).map((r) => r.followed_account_id);
-    console.log(`✓ loaded ${proposals.value.length} proposals from Supabase`);
     await loadNotifications();
     initFeedSnapshot();
   }
@@ -1247,7 +1244,6 @@ const draftFiles = ref<any[]>([]);
         .eq("flagger_account_id", flag.flaggerAccountId)
         .eq("status", "open")
         .select();
-      console.log("RESPOND update →", { milestoneId, flagger: flag.flaggerAccountId, matched: data?.length, error });
     })();
     return true;
   };
