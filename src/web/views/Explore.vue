@@ -11,7 +11,13 @@
     </div>
 
     <!-- FILTERS -->
-    <div class="ex__filters">
+    <button class="ex__filtoggle" @click="filtersOpen = !filtersOpen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+      Filters<span v-if="activeFilterCount" class="ex__filcount">{{ activeFilterCount }}</span>
+      <span class="ex__filcaret" :class="{ open: filtersOpen }">▾</span>
+    </button>
+    <Transition name="slidefilters">
+    <div class="ex__filters" v-show="filtersOpen">
       <div class="ex__group">
         <span class="ex__lab">Category</span>
         <div class="ex__chips">
@@ -60,6 +66,7 @@
         </select>
       </div>
     </div>
+    </Transition>
 
     <p class="ex__count">{{ results.length }} {{ results.length === 1 ? "proposal" : "proposals" }}</p>
 
@@ -67,6 +74,7 @@
     <p v-if="commons.proposals.length === 0" class="empty">No proposals yet. Be the first to post your work.</p>
     <p v-else-if="results.length === 0" class="empty">No proposals match your search and filters.</p>
 
+    <TransitionGroup name="card" tag="div" class="ex__cardlist">
     <article v-for="p in results" :key="p.id" class="card" @click="open(p)">
       <div class="card__top">
         <span class="av" :style="avStyle(p.proposerAccountId)">{{ initials(p.proposerAccountId) }}</span>
@@ -101,6 +109,7 @@
         <span class="donated">{{ p.totalDonated || 0 }} XOR donated</span>
       </div>
     </article>
+    </TransitionGroup>
   </div>
 </template>
 
@@ -118,6 +127,16 @@ const category = ref("all");
 const track = ref("all");
 const status = ref<"active" | "archive" | "all" | "flagged">("active");
 const funding = ref<"all" | "goal" | "open">("all");
+const filtersOpen = ref(false);
+const activeFilterCount = computed(() => {
+  let n = 0;
+  if (category.value !== "all") n++;
+  if (track.value !== "all") n++;
+  if (status.value !== "active") n++;
+  if (show.value !== "all") n++;
+  if (funding.value !== "all") n++;
+  return n;
+});
 
 const categories = [
   { v: "all", t: "All" },
@@ -222,6 +241,8 @@ function avStyle(id: string) {
 .ex__clear:hover { color: var(--ink); }
 
 .ex__filters { display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px; background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px 20px; }
+.slidefilters-enter-active, .slidefilters-leave-active { transition: opacity .25s var(--ease); }
+.slidefilters-enter-from, .slidefilters-leave-to { opacity: 0; }
 .ex__group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .ex__group--sort { margin-top: 2px; }
 .ex__lab { font-family: var(--mono); font-size: .66rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-faint); width: 64px; flex: none; }
@@ -235,6 +256,12 @@ function avStyle(id: string) {
 
 /* card — mirrors Feed.vue */
 .card { background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; margin-bottom: 14px; cursor: pointer; transition: border-color .2s var(--ease); }
+.ex__cardlist { display: block; }
+.card-enter-active { transition: opacity .35s var(--ease), transform .35s var(--ease-spring); }
+.card-enter-from { opacity: 0; transform: translateY(-16px) scale(.98); }
+.card-leave-active { transition: opacity .2s var(--ease); position: absolute; }
+.card-leave-to { opacity: 0; }
+.card-move { transition: transform .4s var(--ease); }
 .card:hover { border-color: var(--gold-600); }
 .card__top { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
 .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #22180a; font-size: .72rem; flex: none; }
@@ -268,11 +295,17 @@ function avStyle(id: string) {
 .i-heart, .i-cmt, .i-bolt { width: 13px; height: 13px; vertical-align: -2px; margin-right: 4px; }
 .eng .bolts { color: var(--ink-faint); }
 .eng .donated { margin-left: auto; font-family: var(--mono); color: var(--gold-300); }
+.ex__filtoggle { display: none; }
 @media (max-width: 600px) { .ex__lab { width: 100%; } }
 @media (max-width: 720px) {
+  .ex__filtoggle { display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center; background: var(--navy-850); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 12px; color: var(--ink); font-family: inherit; font-size: .9rem; font-weight: 600; cursor: pointer; margin-bottom: 14px; }
+  .ex__filcount { background: var(--gold-500); color: #22180a; font-family: var(--mono); font-size: .7rem; font-weight: 800; border-radius: 999px; padding: 1px 7px; }
+  .ex__filcaret { margin-left: auto; transition: transform .2s var(--ease); }
+  .ex__filcaret.open { transform: rotate(180deg); }
   .ex__h { font-size: 1.5rem; }
   .ex__sub { font-size: .92rem; margin-bottom: 16px; }
   .ex__filters { padding: 14px; gap: 12px; }
+  @media (min-width: 721px) { .ex__filters { display: flex !important; } }
   .ex__group { flex-direction: column; align-items: stretch; gap: 8px; }
   .ex__lab { width: 100%; }
   .ex__chips { display: flex; gap: 8px; flex-wrap: wrap; }
