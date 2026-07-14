@@ -71,13 +71,10 @@
           <Story v-else-if="active === 'story'" @nav="go" />
           <Compose v-else-if="active === 'post'" @nav="go" />
           <Profile v-else-if="active === 'profile'" @nav="go" />
-          <Overview v-else-if="active === 'overview'" @nav="go" />
           <About v-else-if="active === 'about'" />
-          <Proposals v-else-if="active === 'proposals'" @nav="go" />
           <Treasury v-else-if="active === 'treasury'" />
           <Explore v-else-if="active === 'explore'" @nav="go" />
           <Search v-else-if="active === 'search'" @nav="go" />
-          <Submit v-else-if="active === 'submit'" @nav="go" />
           <div v-else>
             <h1 class="page-title">{{ tabs.find(t => t.id === active)?.label }}</h1>
             <p class="muted">This page is coming next.</p>
@@ -124,11 +121,8 @@ function moveNavIndicator() {
 const boostsPerWeek = COMMONS_CONFIG.BOOSTS_PER_WEEK;
 const isTestVersion = COMMONS_CONFIG.IS_TEST_VERSION;
 import sealUrl from "./assets/seal.png";
-import Overview from "./views/Overview.vue";
 import About from "./views/About.vue";
-import Proposals from "./views/Proposals.vue";
 import Treasury from "./views/Treasury.vue";
-import Submit from "./views/Submit.vue";
 import Compose from "./views/Compose.vue";
 import Profile from "./views/Profile.vue";
 
