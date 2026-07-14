@@ -173,12 +173,12 @@
         <div class="support">
           <button class="support__donate btn-gold" :disabled="isMine" :title="isMine ? 'You can\'t donate to your own proposal' : 'Donate'" @click="openDonate">Donate</button>
           <div class="support__row">
-            <button class="iconbtn" :class="{ on: commons.isLiked(p.id) }" :disabled="isMine" @click="commons.toggleLike(p.id)" :title="isMine ? 'You can\'t like your own proposal' : 'Like'">
-              <svg viewBox="0 0 24 24" :fill="commons.isLiked(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5C12 20.5 3.5 15 3.5 8.8 3.5 6 5.7 4 8.2 4c1.7 0 3 .9 3.8 2.2C12.8 4.9 14.1 4 15.8 4c2.5 0 4.7 2 4.7 4.8C20.5 15 12 20.5 12 20.5z"/></svg>
+            <button class="iconbtn" :class="{ on: commons.isLiked(p.id) }" :disabled="isMine" @click="onLike" :title="isMine ? 'You can\'t like your own proposal' : 'Like'">
+              <svg :class="{ likepulse: likePulse }" viewBox="0 0 24 24" :fill="commons.isLiked(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5C12 20.5 3.5 15 3.5 8.8 3.5 6 5.7 4 8.2 4c1.7 0 3 .9 3.8 2.2C12.8 4.9 14.1 4 15.8 4c2.5 0 4.7 2 4.7 4.8C20.5 15 12 20.5 12 20.5z"/></svg>
               <span>{{ p.likes }}</span>
             </button>
-            <button class="iconbtn" :class="{ on: commons.isBoosted(p.id) }" :disabled="isMine" @click="commons.toggleBoost(p.id)" :title="isMine ? 'You can\'t boost your own proposal' : 'Boost'">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
+            <button class="iconbtn" :class="{ on: commons.isBoosted(p.id) }" :disabled="isMine" @click="onBoost" :title="isMine ? 'You can\'t boost your own proposal' : 'Boost'">
+              <svg :class="{ boostzap: boostPulse }" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
               <span>{{ p.boostCount || 0 }}</span>
             </button>
             <button class="iconbtn" :class="{ on: commons.isSaved(p.id) }" @click="commons.toggleSave(p.id)" :title="commons.isSaved(p.id) ? 'Saved' : 'Save'">
@@ -260,6 +260,20 @@ const p = computed(() => commons.activeProposal as any);
 const newComment = ref("");
 
 function openDonate() { amount.value = 0; picked.value = false; showDonate.value = true; }
+const likePulse = ref(false);
+const boostPulse = ref(false);
+function onLike() {
+  if (!p.value) return;
+  const was = commons.isLiked(p.value.id);
+  commons.toggleLike(p.value.id);
+  if (!was) { likePulse.value = true; setTimeout(() => { likePulse.value = false; }, 400); }
+}
+function onBoost() {
+  if (!p.value) return;
+  const was = commons.isBoosted(p.value.id);
+  commons.toggleBoost(p.value.id);
+  if (!was) { boostPulse.value = true; setTimeout(() => { boostPulse.value = false; }, 500); }
+}
 function postComment() {
   if (!newComment.value.trim() || !p.value) return;
   commons.postDiscussion?.(p.value.id, newComment.value.trim());
@@ -448,6 +462,8 @@ watch(() => commons.scrollToComments, (should) => {
 .support__donate:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,168,76,.35); filter: brightness(1.06); }
 .support__row { display: flex; gap: 8px; }
 .iconbtn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--navy-900); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px; color: var(--ink-dim); cursor: pointer; font-size: .86rem; }
+.iconbtn svg.likepulse { animation: pop .4s var(--ease-spring); transform-origin: center; }
+.iconbtn svg.boostzap { animation: zap .5s var(--ease-spring); transform-origin: center; }
 .iconbtn svg { width: 16px; height: 16px; }
 .iconbtn:hover { border-color: var(--gold-600); color: var(--ink); }
 .iconbtn.on { color: var(--gold-300); border-color: var(--gold-600); }
